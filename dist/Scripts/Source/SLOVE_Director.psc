@@ -135,7 +135,7 @@ Function Maintenance()
 	;the DLL clears lipsync blocks on game load - re-seed from SLS's saved
 	;ahegao state so a save made mid-ahegao stays yielded after the reload
 	if StorageUtil.GetIntValue(None, "_SLS_IsAhegaoing", 0) == 1
-		AudioUtil.SetLipSyncBlocked(playerref, true)
+		AudioUtil.SetLipSyncBlocked(playerref, true, "SLOVE_Director")
 	endif
 
 Endfunction
@@ -187,7 +187,7 @@ Function RegisterForTheEventsWeNeed()
 EndFunction
 
 Event DirectorOnSLSAhegaoStateChange(string eventName, string argString, float argNum, form sender)
-	AudioUtil.SetLipSyncBlocked(playerref, argNum >= 0.5)
+	AudioUtil.SetLipSyncBlocked(playerref, argNum >= 0.5, "SLOVE_Director")
 EndEvent
 
 Function InitializeDirectorConfigs()
