@@ -17,11 +17,15 @@
         <Import>C:\Playground\stubs</Import>
         <Import>C:\Playground\Skyrim\mods\AudioUtil\papyrus\Source</Import>
         <Import>@BuildFolder\SexLab Framework PPLUS - V2.17.1\Source\Scripts</Import>
+        <Import>@BuildFolder\racemenu\scripts\source</Import>
+        <Import>@BuildFolder\SkyrimLovense-0.1.0\Source\Scripts</Import>
+        <Import>@BuildFolder\UIExtensions\scripts\source</Import>
         <Import>@BuildFolder\JContainers SE\Data\scripts\source</Import>
         <Import>@BuildFolder\powerofthree\Required\Source\scripts</Import>
         <Import>@BuildFolder\Papyrus Extender\source\scripts</Import>
         <Import>C:\Playground\Skyrim\mods\SKSE\Mfg-Fix-NG\dist\source\scripts</Import>
         <Import>@BuildFolder\Mu Facial Expression Extended - MFEE\scripts\source</Import>
+        <Import>@BuildFolder\The New Gentleman\Core\scripts\source</Import>
         <Import>@BuildFolder\PapyrusUtil AE SE\Source</Import>
         <Import>C:\SteamLibrary\steamapps\common\Skyrim Special Edition\Data\Source\Scripts</Import>
     </Imports>
