@@ -77,7 +77,7 @@ min_level = 0.04              # levels below this keep the mouth closed
 
 # ---------- voice slots ----------
 # F1 = player (reserved above). The female pack is BRING-YOUR-OWN: drop WAVs
-# into Soundx\IVDT\F1\<Category>\*.wav - category folder names are the
+# into Sound/fx/IVDT/F1/<Category>/*.wav - category folder names are the
 # strings in SLOVE_VoiceCategories.psc; audit an installed pack in-game with
 # cgf "SLOVE_Test.AuditVoicePack" "F1".
 # M1-M8 are the external male packs (Hentairim voice pack assets):
