@@ -1,9 +1,8 @@
 # SLO VE — Voices and Expressions
 
 Standalone scene **voices** and **facial expressions** for SexLab P+ scenes.
-Extracted from Hentairim p+; no resistance/gameplay systems, no MCM — all
-configuration lives in TOML files. "SLO" = SexLab / OStim (OStim backend
-planned; v1 is SexLab P+ only).
+No gameplay systems, no MCM — all configuration lives in TOML files.
+"SLO" = SexLab / OStim (OStim backend planned; v1 is SexLab P+ only).
 
 ## Requirements (hard)
 
