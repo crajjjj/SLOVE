@@ -1,0 +1,59 @@
+# SLO VE — all settings. Read via TomlUtil (hosted by AudioUtil.dll).
+# Live reload in-game:  cgf "SLOVE_Config.Reload"
+# Voice SLOT mapping (which voice an actor gets) lives in the separate
+# AudioUtil preset: SKSE\Plugins\AudioUtil\AudioUtil.toml.
+
+[director]
+enablevoice = 1                # master switch: scene voices
+enableexpressions = 1          # master switch: facial expressions
+enablepcexpression = 1
+enablemalenpcexpression = 1
+enablefemalenpcexpression = 1
+usephysicslabels = 1           # velocity-driven intense/soft (needs SLPP interactions)
+physicsfastvelocity = 25.0     # abs velocity at/above which a stage reads as Fast
+physicsslowfactor = 0.65       # hysteresis: drop back to Slow below fast*factor
+soshugeppsize = 6              # SOS size / TNG size counted as "huge"
+printdebug = 0
+
+[voice]
+# chances are percent (0-100)
+enablehugeppscenario = 1
+enablevictimscenario = 1
+chancetocommentunamused = 15
+chancetocommentonleadinstage = 8
+chancetocommentonnonintensestage = 35
+chancetocommentonintensestage = 40
+chancetocommentononattackingstage = 35
+chancetocommentonblowjobstage = 20
+chancetocommentwhenclosetoorgasm = 75
+chancetocommentwhenmaleclosetoorgasm = 65
+femaleorgasmhypeenjoyment = 75 # enjoyment threshold for orgasm hype lines
+maleorgasmhypeenjoyment = 75
+enablemalevoice = 1
+chanceformaletocomment = 20
+voiceallactors = 1             # every male speaks (rotation); 0 = lead male only
+moanonly = 0                   # 1 = moans only, no spoken lines
+hypebeforeorgasm = 0
+useblowjobsoundforkissing = 1
+pcvolume = 100                 # 0-100
+partnervolume = 100
+voicevariation = "NA"          # "B" selects the VarB line variants
+enableddgagvoice = 1           # gagged voice when Devious Devices gag worn
+printdebug = 0
+
+[expressions]
+enablebreathing = 1
+breathingupdateinseconds = 0.55
+pcnonintenseexpressionupdateinseconds = 2.1
+pcintenseexpressionupdateinseconds = 1.6
+npcnonintenseexpressionupdateinseconds = 2.1
+npcintenseexpressionupdateinseconds = 1.6
+enabletongue = 1
+fhutonguetype = 7              # sr_fillherup tongue model 1-10; 0 = random
+removetongueonblowjob = 1
+cunusetongue = 1
+enableahegao = 1               # huge partners trigger ahegao while penetrating
+chancetostickouttongueduringintense = 30
+chancetostickouttongueduringattacking = 30
+tonguemouthopenthreshold = 0.4 # jaw gate: min measured mouth-open for tongue
+printdebug = 0
