@@ -57,3 +57,20 @@ chancetostickouttongueduringintense = 30
 chancetostickouttongueduringattacking = 30
 tonguemouthopenthreshold = 0.4 # jaw gate: min measured mouth-open for tongue
 printdebug = 0
+
+[milk]
+# Oninus Lactis NG nipple squirts during scenes (player only), driven by the
+# Director. Needs Oninus Lactis NG installed; stays off without it. If Milk
+# Mod Economy is also installed, squirts require milk in the reserve and
+# drain it proportionally (20-50% of current, scaled by level and duration).
+enable = 0                     # master switch (and the mod must be present)
+chanceonorgasm = 50            # percent roll on any orgasm in the scene (intense squirt)
+chanceintense = 20             # percent per roll while penetrated, intense stage
+chancenonintense = 8           # percent per roll while penetrated, soft stage
+rollinterval = 10              # seconds between penetration rolls
+mintime = 4                    # squirt duration bounds, seconds (engine caps at 18)
+maxtime = 10
+levelintense = 2               # OninusLactis squirt level 0-2
+levelnonintense = 1
+requirebarechest = 1           # skip while body slot (32) is covered
+mmeminfullness = 20            # MME only: skip at/below this % fullness

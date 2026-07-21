@@ -15,7 +15,9 @@ No gameplay systems, no MCM — all configuration lives in TOML files.
 
 Soft (auto-detected, optional): MFEE, sr_fillherup (tongue), Devious Devices
 (gag), SexLab Survival (ahegao yield), SOS/TNG (huge-partner detection),
-Accurate Penetration via AudioUtilPPA (measured penetration/gape).
+Accurate Penetration via AudioUtilPPA (measured penetration/gape),
+Oninus Lactis NG (nipple squirts during scenes, `[milk]` in SLOVE.toml;
+with Milk Mod Economy also installed, squirts require and drain her milk).
 
 ## External data dependencies (not bundled)
 
@@ -36,7 +38,7 @@ must win). **Mutually exclusive with full Hentairim p+** — disable one.
 ## Configuration
 
 - `SKSE\Plugins\SLOVE\SLOVE.toml` — all settings (`[director]`, `[voice]`,
-  `[expressions]`). Live reload: `cgf "TomlUtil.Reload" "SKSE\Plugins\SLOVE\SLOVE.toml"`.
+  `[expressions]`, `[milk]`). Live reload: `cgf "TomlUtil.Reload" "SKSE\Plugins\SLOVE\SLOVE.toml"`.
 - `SKSE\Plugins\AudioUtil\AudioUtil.toml` — voice slots/mapping (AudioUtil
   preset; live reload via `cgf "AudioUtil.ReloadConfig"`).
 - `SKSE\Plugins\StorageUtilData\SLOVE\*.json` — expression preset data.
@@ -50,7 +52,7 @@ history).
 ## Architecture
 
 `SLOVE_Director` (quest player-alias) is the only SexLab-P+-aware script: scene
-detection, label arrays (via `SLOVE_Tags`), physics-label intensity, spell
+detection, label arrays (via `SLOVE_Hentairim_Tags`), physics-label intensity, spell
 application, and the `SLOVE_*` mod-event re-broadcasts. `SLOVE_Voice`
 (player-only ability) runs the voice dispatcher; `SLOVE_Expressions`
 (per-actor ability) runs faces. See `docs\framework-adapter.md` for the OStim

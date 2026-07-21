@@ -117,6 +117,7 @@ EndEvent
 
 ;-----------------------Breathing micro-pass + preset cache state-----------------------
 int TicksUntilFull = 0
+int UpdateDeferCount = 0 ;bounded retries while the director is mid-update; force-proceed past the cap so a stuck flag can't freeze the face
 int BreathBase0 = 0
 bool BreathingAllowed = false
 int enablebreathing = 1
@@ -218,9 +219,14 @@ Bool Function FullExpressionPass()
 	endif
 
 	if MasterScript.isupdating()
-		printdebug("Director updating - deferring this expression pass")
-		return false
+		UpdateDeferCount = UpdateDeferCount + 1
+		if UpdateDeferCount < 25 ;~5s of 0.2s retries before giving up
+			printdebug("Director updating - deferring this expression pass")
+			return false
+		endif
+		printdebug("Director still updating after failsafe - proceeding anyway")
 	endif
+	UpdateDeferCount = 0
 
 	;one PPA snapshot per pass: the penetration checks below may run several
 	;times this cycle, and each native getter takes the bridge's lock
@@ -267,7 +273,9 @@ Bool Function FullExpressionPass()
 	if IsUnconcious()
 		MfgConsoleFunc.SetModifier(actorref, 0, 100) ;left blink
 		MfgConsoleFunc.SetModifier(actorref, 1, 100) ;right blink
-		MfgConsoleFunc.SetPhoneme(actorref,0,60) ; aah
+		if !AudioUtil.IsLipSyncActive(actorref) ;the DLL owns the jaw while a line plays
+			MfgConsoleFunc.SetPhoneme(actorref,0,60) ; aah
+		endif
 		BreathingAllowed = false
 		AdvancePhase()
 		return true
@@ -294,11 +302,11 @@ Bool Function FullExpressionPass()
 
 	bool mouthblowjob = IsSuckingoffOther() || HasDeviousGag(actorref)
 	;enableahegao gates only the hugePP arm; a broken actor always gets the broken
-	;face (pre-existing behavior, parens made explicit). The penetration checks
-	;themselves are measurement-aware: with the AudioUtilPPA bridge tracking this
-	;actor they reflect what is physically happening, so a huge partner only
-	;triggers ahegao while penetration is actually occurring
-	bool brokenface = (enableahegao == 1 && ishugepp && (IsGettingAnallyPenetrated() || IsGettingVaginallyPenetrated())) || (IsBroken() && (PenisActionlabel != "LDI" || Penetrationlabel != "LDI" || StimulationLabel != "LDI" || OralLabel != "LDI"))
+	;face. The hugePP ahegao is measurement-gated: the labels decide penetration,
+	;and MeasuredPenetrationActive() suppresses it when the PPA bridge reports the
+	;partner isn't actually inserted (returns true when no bridge, so labels alone
+	;drive it then)
+	bool brokenface = (enableahegao == 1 && ishugepp && IsgettingPenetrated() && MeasuredPenetrationActive()) || (IsBroken() && (PenisActionlabel != "LDI" || Penetrationlabel != "LDI" || StimulationLabel != "LDI" || OralLabel != "LDI"))
 
 	float[] result = BuildTickPreset(GetCachedPhase(Phase), varPct, mouthblowjob, brokenface)
 
@@ -328,10 +336,26 @@ Bool Function FullExpressionPass()
 		endif
 	endif
 
-	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
-
-	;baseline for the cheap breathing ticks between full passes
+	;baseline for the cheap breathing ticks between full passes - taken from the
+	;preset BEFORE any lipsync yield below overwrites the mouth channels
 	BreathBase0 = (result[0] * 100.0) as int
+
+	;lipsync yield (AudioUtil contract): while the DLL drives this actor's mouth
+	;from the playing clip's envelope, don't fight it over the jaw - retarget the
+	;two channels it owns (0 Aah / 1 BigAah) to their CURRENT values so the smooth
+	;apply is a no-op on them while the rest of the face still updates
+	if AudioUtil.IsLipSyncActive(actorref)
+		int curAah = MfgConsoleFunc.GetPhoneme(actorref, 0)
+		int curBigAah = MfgConsoleFunc.GetPhoneme(actorref, 1)
+		if curAah >= 0
+			result[0] = curAah / 100.0
+		endif
+		if curBigAah >= 0
+			result[1] = curBigAah / 100.0
+		endif
+	endif
+
+	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
 	BreathIntense = Isintense()
 	BreathingAllowed = !(mouthblowjob || MFEEAddTongue || MFEEAddAhegao || EquippedTongue() || IsKissing() || IsCunnilingus())
 
@@ -351,6 +375,13 @@ EndFunction
 Function BreathePass()
 	;cheap sub-tick: no MasterScript/SexLab/Json calls, just a mouth nudge around the last applied face
 	if !BreathingAllowed
+		return
+	endif
+
+	;a voice line is moving this mouth right now - breathing would stomp the
+	;DLL's per-frame Aah writes at 0.55s cadence. It resumes next tick after
+	;the clip ends (lipsync zeroes the mouth, the nudge reopens it naturally)
+	if AudioUtil.IsLipSyncActive(actorref)
 		return
 	endif
 
@@ -454,7 +485,7 @@ Float[] Function BuildTickPreset(float[] base, int varPct, bool mouthblowjob, bo
 	endwhile
 
 	result[30] = base[30]
-	if !MFEEAddAhegao && IsBroken()
+	if !MFEEAddAhegao && brokenface ;match indices 16-29, which use brokenface (IsBroken is always false in this port)
 		result[31] = BrokenOverrideF[31]
 	else
 		result[31] = base[31]
@@ -1185,24 +1216,31 @@ Bool Function IsgettingPenetrated()
 	return IsGettingAnallyPenetrated() || IsGettingVaginallyPenetrated()
 endfunction
 
-;Penetration checks prefer the MEASURED state when the AudioUtilPPA bridge is
-;tracking an interaction on this actor (context != 0). Per the PPA author the
-;context bits are scene CLASSIFICATION (which act this is - bit 1 = vaginal,
-;bit 2 = anal), not collision state, so "actually penetrated right now" is the
-;act bit combined with a nonzero penetration depth. When the bridge is absent
-;or idle for this actor, fall back to the authored animation labels.
+;Which orifice is penetrated is decided by the authored animation LABELS - they
+;are the reliable authority and never disagree with themselves mid-thrust. The
+;AudioUtilPPA bridge does NOT override them here (it used to, which lost anal
+;detection whenever PPA classified a DP as a single act, and flickered off on a
+;momentary depth dip). Live measurement is applied separately, only where it is
+;actually wanted, via MeasuredPenetrationActive() at the huge-partner ahegao gate.
 Bool Function IsGettingVaginallyPenetrated()
-	if PassPPACtx > 0
-		return Math.LogicalAnd(PassPPACtx, 1) == 1 && PassPPADepth > 0.0
-	endif
 	return PenetrationLabel == "SVP" || PenetrationLabel == "FVP" || PenetrationLabel == "SCG" || PenetrationLabel == "FCG" || PenetrationLabel == "SDP" || PenetrationLabel == "FDP"
 endfunction
 
 Bool Function IsGettingAnallyPenetrated()
-	if PassPPACtx > 0
-		return Math.LogicalAnd(PassPPACtx, 2) == 2 && PassPPADepth > 0.0
-	endif
 	return PenetrationLabel == "SAP" || PenetrationLabel == "FAP"  || PenetrationLabel == "SAC" || PenetrationLabel == "FAC" || PenetrationLabel == "SDP" || PenetrationLabel == "FDP"
+endfunction
+
+;True when the PPA bridge confirms penetration is physically happening on this
+;actor right now, OR when the bridge is not tracking this actor at all (nothing
+;to gate on, so don't suppress). Checks only the live DEPTH, not PPA's orifice
+;classification: the label already established the orifice, so a DP that PPA tags
+;as one act still counts. Depth is the "deepest active interaction" value - 0.0
+;only when genuinely idle - so this won't strobe between thrusts.
+Bool Function MeasuredPenetrationActive()
+	if PassPPACtx <= 0
+		return true
+	endif
+	return PassPPADepth > 0.0
 endfunction
 
 Bool Function IsKissing()

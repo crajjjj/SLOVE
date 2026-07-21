@@ -26,6 +26,10 @@
         <Import>C:\Playground\Skyrim\mods\SKSE\Mfg-Fix-NG\dist\source\scripts</Import>
         <Import>@BuildFolder\Mu Facial Expression Extended - MFEE\scripts\source</Import>
         <Import>@BuildFolder\The New Gentleman\Core\scripts\source</Import>
+        <Import>@BuildFolder\Oninus Lactis NG\Scripts\Source</Import>
+        <!-- MME_Storage compile stub - importing real MME sources chases
+             SOS/DD/FNIS source trees; the stub keeps the milk build shallow -->
+        <Import>.\papyrus\stubs</Import>
         <Import>@BuildFolder\PapyrusUtil AE SE\Source</Import>
         <Import>C:\SteamLibrary\steamapps\common\Skyrim Special Edition\Data\Source\Scripts</Import>
     </Imports>

@@ -1,7 +1,9 @@
-Scriptname SLOVE_Tags Hidden
+Scriptname SLOVE_Hentairim_Tags Hidden
 {Label engine: classifies SexLab P+ scene stages into Hentairim-convention
  label codes read from scene tags. Ported from HentaiRimTags; the JSON tag
- store paths are kept for compatibility with existing tag databases.}
+ store paths are kept for compatibility with existing tag databases.
+ The name carries the annotation scheme on purpose: an OStim backend would
+ ship its own *_Tags script for its scheme (see docs\framework-adapter.md).}
 
 string Function GetLabel(string anim , int stage , String actorpos = "0" ) Global
 

@@ -4,7 +4,7 @@
 `SexLabThread`, `SexlabRegistry`, or SLPP mod-event names. Voice and
 expressions consume the director's API and the SLOVE-owned mod events below.
 An OStim backend = an alternative director (`SLOVE_DirectorOStim`) providing
-the same surface, plus a replacement `SLOVE_Tags` (labels are
+the same surface, plus a replacement `SLOVE_Hentairim_Tags` (labels are
 annotation-scheme-specific).
 
 ## Mod events (re-broadcast by the director)
@@ -31,6 +31,6 @@ Labels: `GetStimulationlabel(a)`, `GetPenisActionLabel(a)`, `GetOralLabel(a)`,
 Lifecycle/services: `AnimationisEnding()`, `isUpdating()`, `SceneisIntense()`,
 `IsHugePP(a)`, `PlaySound(category, actor, wait, group)`.
 
-Known leaks (documented, acceptable): `SLOVE_Tags.HasASLTag` calls
+Known leaks (documented, acceptable): `SLOVE_Hentairim_Tags.HasASLTag` calls
 `SexlabRegistry.IsSceneTag`; `GetLegacyStageNum` uses
 `SexlabRegistry.GetAllStages` (director-internal).

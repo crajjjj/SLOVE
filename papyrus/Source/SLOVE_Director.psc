@@ -50,6 +50,23 @@ float physicsslowfactor
 int enableprintdebug
 Bool WarnedConfigMissing = false
 
+;SLO VE: cached SLOVE.toml [milk] settings (Oninus Lactis NG + optional MME).
+;Ported from Hentairim IVDTControllerScript (OninusLactislactate family); the
+;boob-sensitivity/adventure hooks were dropped - SLO VE has no such systems.
+int milkenable
+int milkchanceonorgasm
+int milkchanceintense
+int milkchancenonintense
+int milkrollinterval
+int milkmintime
+int milkmaxtime
+int milklevelintense
+int milklevelnonintense
+int milkrequirebarechest
+int milkmmeminfullness
+Quest LactisQuest ;OninusLactis.esp 0xD61; cast to OninusLactis at call time
+float NextMilkRollTime ;scene time of the next periodic penetration roll
+
 ;Called first time ever the mod is loaded
 Event OnInit()
 
@@ -61,7 +78,53 @@ EndEvent
 Event OnPlayerLoadGame()
 
 	Maintenance()
+	ReconcileSceneOnLoad()
 EndEvent
+
+;RegisterForSingleUpdate does NOT survive save/load, so a save made mid-scene
+;reloads with the update loop dead: OnUpdate never re-fires, labels freeze,
+;SLOVE_SceneEnd never sends, and the stale PlayerInScene flag then makes
+;DirectorSceneStart ignore every future scene. Reconcile the tracked scene
+;against reality here.
+Function ReconcileSceneOnLoad()
+	if !PlayerInScene
+		return ;wasn't tracking a scene when the save was made - nothing was dropped
+	endif
+	;SexLab restores its threads slightly after the load event fires; give it a
+	;short window before concluding the scene is really gone
+	int tries = 0
+	while !Sexlab.GetThreadByActor(PlayerRef) && tries < 10
+		Utility.Wait(0.3)
+		tries = tries + 1
+	endwhile
+	if Sexlab.GetThreadByActor(PlayerRef)
+		printdebug("Reload mid-scene: re-adopting the running player scene")
+		AdoptScene() ;re-applies spells (restarting per-actor loops) and restarts OnUpdate
+	else
+		printdebug("Reload after scene end: clearing stale scene state and orphaned spells")
+		ClearSpellsFromTrackedActors()
+		DirectorEndScene()
+	endif
+EndFunction
+
+;Strip our abilities off the last-tracked actors. Used only on the rare reload
+;path where the scene ended while the save was unloaded, so the per-actor loops
+;can't remove themselves (their event registrations died with the reload).
+Function ClearSpellsFromTrackedActors()
+	if VoiceSpell && playerref && playerref.HasSpell(VoiceSpell)
+		playerref.RemoveSpell(VoiceSpell)
+	endif
+	if !ExpressionsSpell || actorList == None
+		return
+	endif
+	int z = 0
+	while z < actorList.length
+		if actorList[z] && actorList[z].HasSpell(ExpressionsSpell)
+			actorList[z].RemoveSpell(ExpressionsSpell)
+		endif
+		z = z + 1
+	endwhile
+EndFunction
 
 Function Maintenance()
 
@@ -144,6 +207,34 @@ Function InitializeDirectorConfigs()
 	printdebug(" usephysicslabels :" + usephysicslabels)
 	printdebug(" physicsfastvelocity :" + physicsfastvelocity)
 	printdebug(" physicsslowfactor :" + physicsslowfactor)
+
+	;[milk] - Oninus Lactis NG nipple squirts (optional; off unless the mod is
+	;present AND milk.enable = 1). MME is a further optional layer inside Lactate().
+	milkenable = SLOVE_Config.GetInt("milk.enable", 0)
+	if milkenable == 1 && Game.GetModbyName("OninusLactis.esp") != 255
+		if LactisQuest == none
+			LactisQuest = Game.GetFormFromFile(0xD61, "OninusLactis.esp") as Quest
+		endif
+		if LactisQuest == none
+			WritetoErrorlogs("Director", "OninusLactis.esp loaded but quest 0xD61 not found - milk disabled. Reinstall Oninus Lactis NG.")
+			milkenable = 0
+		endif
+	else
+		milkenable = 0
+	endif
+	if milkenable == 1
+		milkchanceonorgasm = SLOVE_Config.GetInt("milk.chanceonorgasm", 50)
+		milkchanceintense = SLOVE_Config.GetInt("milk.chanceintense", 20)
+		milkchancenonintense = SLOVE_Config.GetInt("milk.chancenonintense", 8)
+		milkrollinterval = SLOVE_Config.GetInt("milk.rollinterval", 10)
+		milkmintime = SLOVE_Config.GetInt("milk.mintime", 4)
+		milkmaxtime = SLOVE_Config.GetInt("milk.maxtime", 10)
+		milklevelintense = SLOVE_Config.GetInt("milk.levelintense", 2)
+		milklevelnonintense = SLOVE_Config.GetInt("milk.levelnonintense", 1)
+		milkrequirebarechest = SLOVE_Config.GetInt("milk.requirebarechest", 1)
+		milkmmeminfullness = SLOVE_Config.GetInt("milk.mmeminfullness", 20)
+		printdebug(" milk enabled: orgasm=" + milkchanceonorgasm + "% intense=" + milkchanceintense + "% nonintense=" + milkchancenonintense + "%")
+	endif
 endfunction
 
 Event DirectorStageStart(string eventName, string argString, float argNum, form sender)
@@ -178,8 +269,16 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 		printdebug("Sexlab Scene Does not Involve Player.Ignored")
 		Return
 	endIf
-	UpdateNow = true
 
+	AdoptScene()
+EndEvent
+
+;Full scene setup: label init, spell (re)application, and the OnUpdate loop kick.
+;Extracted so a mid-scene reload can re-run it - RegisterForSingleUpdate and the
+;per-actor ability loops do not survive save/load. ApplySpells removes-then-adds
+;each ability, so re-adopting restarts every actor's OnEffectStart cleanly.
+Function AdoptScene()
+	UpdateNow = true
 
 	;Initialize Configs
 	InitializeDirectorConfigs() ;SLO VE: cheap toml-cache reads; keeps live edits + Reload() effective per scene
@@ -205,8 +304,10 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 	PCisReceiving = playerref == actorList[0]
 	PCisVictim = PCisVictim()
 
-	while CurrentThread.GetStatus() == 2
+	int statusfailsafe = 0
+	while CurrentThread.GetStatus() == 2 && statusfailsafe < 100 ;cap: a thread stuck registering must not pin UpdateNow true forever
 		utility.wait(0.1)
+		statusfailsafe = statusfailsafe + 1
 	endwhile
 
 	ApplySpells()
@@ -216,9 +317,10 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 	printdebug("CurrentStageID :" + CurrentStageID)
 	printdebug("actorList :" + actorList)
 	printdebug("Scene start")
+	NextMilkRollTime = CurrentThread.GetTimeTotal() + milkrollinterval
 	UpdateNow = false
 	RegisterForSingleUpdate(0.1)
-EndEvent
+EndFunction
 
 Event DirectorOnOrgasm(Form actorRef, Int thread)
 	;SLO VE: re-broadcast only. Current consumers (voice/expressions ports) still
@@ -230,6 +332,13 @@ Event DirectorOnOrgasm(Form actorRef, Int thread)
 			actorid = actorRef.GetFormID() as float
 		endif
 		SendModEvent("SLOVE_Orgasm", thread as string, actorid)
+
+		;milk: any orgasm in the player's scene may trigger a nipple squirt.
+		;Orgasm squirts are always the intense level (ported Hentairim behavior).
+		;After the re-broadcast - PlayNippleSquirt is latent and must not delay it.
+		if milkenable == 1 && Utility.RandomInt(1, 100) <= milkchanceonorgasm
+			Lactate(true)
+		endif
 	endif
 endevent
 
@@ -285,7 +394,7 @@ Event OnUpdate()
 		CurrentStageNum = GetLegacyStageNum(CurrentSceneID, CurrentStageID)
 		isAlmostFinalStage = isAlmostFinalStage()
 		IsFinalStage = IsFinalStage()
-		updatelabelsarr(CurrentSceneID, GetLegacyStageNum(CurrentSceneID, CurrentStageID))
+		updatelabelsarr(CurrentSceneID, CurrentStageNum)
 
 		LastLabelUpdateTime = CurrentThread.GetTimeTotal()
 		UpdateNow = false
@@ -298,6 +407,27 @@ Event OnUpdate()
 		endif
 	endif
 
+	;=== milk: periodic lactation roll while the PC is being penetrated ===
+	;(physics-aware for free: the penetration label read here is the overlaid
+	;array, so the intense/soft split follows measured thrust speed when SLPP
+	;interactions are registered, tags otherwise)
+	if milkenable == 1 && CurrentThread.GetTimeTotal() >= NextMilkRollTime
+		NextMilkRollTime = CurrentThread.GetTimeTotal() + milkrollinterval
+		string milklbl = GetPenetrationLabel(playerref)
+		if milklbl != "LDI" && milklbl != ""
+			;the Hentairim original compared this prefix against lowercase "f" -
+			;case-sensitive ==, so its penetration rolls always read as non-intense
+			bool milkintense = StringUtil.Substring(milklbl, 0, 1) == "F"
+			int milkchance = milkchancenonintense
+			if milkintense
+				milkchance = milkchanceintense
+			endif
+			if Utility.RandomInt(1, 100) <= milkchance
+				Lactate(milkintense)
+			endif
+		endif
+	endif
+
 	;=== Continue Scene or End ===
 
 	RegisterForSingleUpdate(updaterate)
@@ -307,6 +437,111 @@ endEvent
 bool function isUpdating()
 	return updatenow
 endfunction
+
+;------------------------------ MILK (Oninus Lactis NG + optional MME) ------------------------------
+;Player-only, like the Hentairim original (its per-actor trigger spell also
+;always squirted the player). Triggers: any orgasm in the scene (intense), and
+;the periodic penetration roll in OnUpdate above.
+
+Bool Function HasMME()
+	return Game.GetModbyName("MilkModNEW.esp") != 255
+endfunction
+
+Bool Function CanLactate()
+	if milkenable != 1 || LactisQuest == none
+		return false
+	endif
+	;bare-chest gate: biped slot 32 (body) occupied counts as covered. Simpler
+	;than Hentairim's BoobCovers.json slot/name lists; toggle via the toml.
+	if milkrequirebarechest == 1 && playerref.GetWornForm(0x4) != none
+		return false
+	endif
+	return true
+endfunction
+
+Function Lactate(Bool IsIntense)
+	if !CanLactate()
+		return
+	endif
+	int lactatetime = Utility.RandomInt(milkmintime, milkmaxtime)
+	int lactatelevel = milklevelnonintense
+	if IsIntense
+		lactatelevel = milklevelintense
+	endif
+
+	;----- Milk Mod Economy (MME) integration -----
+	;When MME is installed the squirt is driven by the milkmaid's actual reserve:
+	;no squirt when she is nearly empty, and squirting drains what she has.
+	;MME_Storage calls are global functions - they resolve lazily, so this is
+	;safe to compile against with MME absent at runtime (guarded by HasMME).
+	bool isMME = HasMME()
+	if isMME
+		float milkMax = MME_Storage.getMilkMaximum(playerref)
+		int fullness = 0
+		if milkMax > 0.0
+			fullness = Math.Ceiling(MME_Storage.getMilkCurrent(playerref) / milkMax * 100)
+		endif
+		if fullness <= milkmmeminfullness
+			printdebug("Milk: MME fullness " + fullness + "% at/below " + milkmmeminfullness + "% - skipping squirt")
+			return
+		endif
+	endif
+
+	OninusLactis squirtScript = LactisQuest as OninusLactis
+	if squirtScript == none
+		WritetoErrorlogs("Director", "OninusLactis quest script missing - reinstall Oninus Lactis NG")
+		return
+	endif
+	printdebug("Milk: nipple squirt time=" + lactatetime + "s level=" + lactatelevel + " intense=" + IsIntense)
+	squirtScript.PlayNippleSquirt(playerref, lactatetime, lactatelevel)
+
+	if isMME
+		DrainMMEMilkForSquirt(lactatetime, lactatelevel)
+	endif
+EndFunction
+
+;Drain the MME reserve proportionally to the squirt: a random 20-50% of current
+;milk, scaled down for softer levels and shorter squirts. Ported unchanged from
+;Hentairim DrainMMEMilkForSquirt.
+Function DrainMMEMilkForSquirt(int lactatetime, int lactatelevel)
+	Float curMilk = MME_Storage.getMilkCurrent(playerref)
+
+	Float basePct = Utility.RandomFloat(0.20, 0.50)
+
+	;intensityScale in [0..1]: non-intense squirts drain less than intense ones
+	Float intensityScale = 1.0
+	if milklevelintense > 0
+		intensityScale = (lactatelevel as Float) / (milklevelintense as Float)
+		if intensityScale < 0.0
+			intensityScale = 0.0
+		elseif intensityScale > 1.0
+			intensityScale = 1.0
+		endif
+	endif
+
+	;timeScale in [0.25..1.0]: longer squirts drain more
+	Float timeScale = 1.0
+	if milkmaxtime > 0
+		timeScale = (lactatetime as Float) / (milkmaxtime as Float)
+		if timeScale < 0.25
+			timeScale = 0.25
+		elseif timeScale > 1.0
+			timeScale = 1.0
+		endif
+	endif
+
+	Float drain = curMilk * basePct * intensityScale * timeScale
+	if drain > curMilk
+		drain = curMilk
+	elseif drain < 0.0
+		drain = 0.0
+	endif
+
+	if drain > 0.0
+		MME_Storage.changeMilkCurrent(playerref, 0.0 - drain, false)
+		printdebug("Milk: MME drained " + drain + " (was " + curMilk + ")")
+	endif
+EndFunction
 
 float function GetDirectorLastLabelTime()
 	return LastLabelUpdateTime
@@ -416,11 +651,11 @@ string[] EndingLabelarr
 string Labelsconcat
 Function UpdateLabelsArr(string anim , int stage)
 
-	Stimulationlabelarr = SLOVE_Tags.GetStimulationlabelarr(anim , stage , actorlist)
-	PenisActionLabelarr  = SLOVE_Tags.GetPenisActionLabelarr(anim , stage , actorlist)
-	OralLabelarr  = SLOVE_Tags.GetOralLabelarr(anim , stage , actorlist)
-	PenetrationLabelarr = SLOVE_Tags.GetPenetrationLabelarr(anim , stage , actorlist)
-	EndingLabelarr  =SLOVE_Tags.GetEndingLabelarr(anim , stage , actorlist)
+	Stimulationlabelarr = SLOVE_Hentairim_Tags.GetStimulationlabelarr(anim , stage , actorlist)
+	PenisActionLabelarr  = SLOVE_Hentairim_Tags.GetPenisActionLabelarr(anim , stage , actorlist)
+	OralLabelarr  = SLOVE_Hentairim_Tags.GetOralLabelarr(anim , stage , actorlist)
+	PenetrationLabelarr = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(anim , stage , actorlist)
+	EndingLabelarr  =SLOVE_Hentairim_Tags.GetEndingLabelarr(anim , stage , actorlist)
 
 	ApplyClimaxAnnotations(anim)
 
@@ -714,35 +949,55 @@ string function GetStimulationlabel(actor char)
 	if !CurrentThread
 		return ""
 	endif
-	return Stimulationlabelarr[CurrentThread.GetPositionIdx(char)]
+	int idx = CurrentThread.GetPositionIdx(char)
+	if idx < 0
+		return ""
+	endif
+	return Stimulationlabelarr[idx]
 endfunction
 
 string function GetPenisActionLabel(actor char)
 	if !CurrentThread
 		return ""
 	endif
-	return PenisActionLabelarr[CurrentThread.GetPositionIdx(char)]
+	int idx = CurrentThread.GetPositionIdx(char)
+	if idx < 0
+		return ""
+	endif
+	return PenisActionLabelarr[idx]
 endfunction
 
 string function GetOralLabel(actor char)
 	if !CurrentThread
 		return ""
 	endif
-	return OralLabelarr[CurrentThread.GetPositionIdx(char)]
+	int idx = CurrentThread.GetPositionIdx(char)
+	if idx < 0
+		return ""
+	endif
+	return OralLabelarr[idx]
 endfunction
 
 string function GetPenetrationLabel(actor char)
 	if !CurrentThread
 		return ""
 	endif
-	return PenetrationLabelarr[CurrentThread.GetPositionIdx(char)]
+	int idx = CurrentThread.GetPositionIdx(char)
+	if idx < 0
+		return ""
+	endif
+	return PenetrationLabelarr[idx]
 endfunction
 
 string function GetEndingLabel(actor char)
 	if !CurrentThread
 		return ""
 	endif
-	return EndingLabelarr[CurrentThread.GetPositionIdx(char)]
+	int idx = CurrentThread.GetPositionIdx(char)
+	if idx < 0
+		return ""
+	endif
+	return EndingLabelarr[idx]
 endfunction
 
 Bool Function ActorIsgettingTitfucked(actor char)
@@ -750,7 +1005,17 @@ Bool Function ActorIsgettingTitfucked(actor char)
 endfunction
 
 Bool Function ActorIsgivingtitfuck(actor char)
-	return  actorlist[0] == char && (Getpenisactionlabel(actorlist[1]) == "STF" ||  Getpenisactionlabel(actorlist[1]) == "FTF" ||  Getpenisactionlabel(actorlist[2]) == "FTF" ||  Getpenisactionlabel(actorlist[2]) == "FTF")
+	if actorlist[0] != char || actorlist.length < 2
+		return false
+	endif
+	if Getpenisactionlabel(actorlist[1]) == "STF" || Getpenisactionlabel(actorlist[1]) == "FTF"
+		return true
+	endif
+	;third position tested only when present (out-of-bounds guard); STF was a copy-paste of FTF before
+	if actorlist.length > 2 && (Getpenisactionlabel(actorlist[2]) == "STF" || Getpenisactionlabel(actorlist[2]) == "FTF")
+		return true
+	endif
+	return false
 endfunction
 
 Bool Function ActorIsgettingHandjobbed(actor char)
@@ -843,7 +1108,7 @@ int Function GetFinalStageNum()
 	int FinalStageNum = AllStages.length
 	int z = AllStages.length
 	while z > 0 && !Foundending
-		string tmpendinglabel = SLOVE_Tags.EndingLabel(CurrentSceneid , z , 0)
+		string tmpendinglabel = SLOVE_Hentairim_Tags.EndingLabel(CurrentSceneid , z , 0)
 		if tmpendinglabel == "ENO" || tmpendinglabel == "ENI"
 			Foundending = true
 			FinalStageNum = z
@@ -1013,66 +1278,3 @@ EndFunction
 Bool Function PCInSex()
 	return PCInSex
 EndFunction
-;---------------------------Scene API pass-throughs END------------------------
-
-;---------------------------Hentairim compatibility stubs START------------------------
-;SLO VE: neutral bodies with the original signatures so the voice/expressions ports
-;stay mechanical; the systems behind them (linear scenes, foreplay, stage timers,
-;HugePP addiction) are not part of SLO VE
-
-Bool Function isLinearScene()
-	return false ;SLO VE: stub - no linear scenes
-endfunction
-
-bool Function isShortenedScene()
-	return false ;SLO VE: stub - no shortened scenes
-EndFunction
-
-bool function isPlayingForeplayScene()
-	return false ;SLO VE: stub - no foreplay choreography
-endfunction
-
-Bool Function LinearSceneCanOrgasm(actor char)
-	return true ;SLO VE: stub - no linear scenes, nobody is orgasm-gated
-endFunction
-
-Bool Function CanActorSatisfyPCHugePPAddiction(Actor char)
-	return true ;SLO VE: stub - no adventure/addiction system
-EndFunction
-
-Function IVDTAllowsAdvance(bool allow = true)
-	;SLO VE: no-op stub - no stage-advance handshake
-EndFunction
-
-Function setLinearSceneIVDTDoneOrgasmHype(Bool Value)
-	;SLO VE: no-op stub - no linear-scene orgasm choreography
-endFunction
-
-Bool Function OrgasmBeforeLastStage()
-	Return false ;SLO VE: stub - no linear scenes
-Endfunction
-
-Bool Function DoneLinearSceneOrgasm()
-	return false ;SLO VE: stub - no linear scenes
-Endfunction
-
-bool function IsInLinearSceneOrgasm()
-	return false ;SLO VE: stub - no linear scenes
-endfunction
-
-Bool Function LinearSceneStageShouldOrgasm()
-	return false ;SLO VE: stub - no linear scenes
-Endfunction
-
-Bool function VictimPCCanOrgasm()
-	return true ;SLO VE: stub - no resistance module gating victim orgasms
-EndFunction
-
-Bool Function StageTimesUp()
-	return false ;SLO VE: stub - no stage-advance timers
-endFunction
-
-Float Function TimertoAdvance()
-	return 0.0 ;SLO VE: stub - no stage-advance timers
-endfunction
-;---------------------------Hentairim compatibility stubs END------------------------
