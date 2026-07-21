@@ -16,7 +16,10 @@ annotation-scheme-specific).
 | `SLOVE_Orgasm` | sender = orgasming Actor, numArg = thread id |
 | `SLOVE_SceneEnd` | strArg = thread id |
 
-Third-party events consumed raw (framework-independent): `_SLS_AhegaoStateChange`.
+Third-party events consumed raw (framework-independent): `_SLS_AhegaoStateChange` — by
+`SLOVE_Expressions` (pause face writes) and by `SLOVE_Director` (toggle
+`AudioUtil.SetLipSyncBlocked(player)` so PC moans don't drive the mouth over the SLS face;
+re-seeded from the `_SLS_IsAhegaoing` StorageUtil key in `Maintenance()`).
 
 ## Director API consumed by SLOVE_Voice / SLOVE_Expressions
 

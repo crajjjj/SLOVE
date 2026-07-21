@@ -132,6 +132,12 @@ Function Maintenance()
 	;Other Parameters
 	InitializeDirectorConfigs()
 
+	;the DLL clears lipsync blocks on game load - re-seed from SLS's saved
+	;ahegao state so a save made mid-ahegao stays yielded after the reload
+	if StorageUtil.GetIntValue(None, "_SLS_IsAhegaoing", 0) == 1
+		AudioUtil.SetLipSyncBlocked(playerref, true)
+	endif
+
 Endfunction
 
 Function PerformInitialization()
@@ -173,8 +179,16 @@ Function RegisterForTheEventsWeNeed()
 	RegisterForModEvent("AnimationStart", "DirectorSceneStart")
 	RegisterForModEvent("SexLabOrgasmSeparate", "DirectorOnOrgasm")
 	RegisterForModEvent("StageStart", "DirectorStageStart")
+	;SexLab Survival owns the player's face during its ahegao. SLOVE_Expressions
+	;pauses its own writes, but AudioUtil's lipsync would still drive (and then
+	;zero) the mouth phonemes on every PC moan - block it for the duration.
+	RegisterForModEvent("_SLS_AhegaoStateChange", "DirectorOnSLSAhegaoStateChange")
 
 EndFunction
+
+Event DirectorOnSLSAhegaoStateChange(string eventName, string argString, float argNum, form sender)
+	AudioUtil.SetLipSyncBlocked(playerref, argNum >= 0.5)
+EndEvent
 
 Function InitializeDirectorConfigs()
 
