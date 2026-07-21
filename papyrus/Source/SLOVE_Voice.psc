@@ -16,6 +16,7 @@ Actor mainFemaleActor = None
 Actor mainMaleActor = None
 ;--- voice-all-actors: every male in the scene may speak with his own AudioUtil slot
 Actor[] sceneMales                 ;all non-PC males (incl. schlonged females)
+Bool mainMaleIsVoiced = false      ;true only when mainMaleActor is a human male/schlonged futa; the partner fallback (e.g. a creature) must stay silent
 Actor lastMaleOrgasmActor = None   ;who climaxed last - post-nut lines come from him
 Float lastSecondaryLineTime        ;scene time a non-lead male last spoke
 Float secondaryLineCooldown        ;randomized pause between non-lead lines
@@ -252,12 +253,16 @@ Function FindActorsAndVoices()
 		If (MasterScript.IsMale(actorInQuestion) || hasSchlong(actorInQuestion)) && actorInQuestion != playerCharacter
 			If mainMaleActor == None
 				mainMaleActor = actorInQuestion
+				mainMaleIsVoiced = true
 			EndIf
 		EndIf
 
 		actorIndex += 1
 	EndWhile
 
+	;fallback keeps the enjoyment/scene logic fed, but a partner picked this way
+	;(creature scenes land here) has no human voice - mainMaleIsVoiced stays false
+	;so AllowMaleVoice() never gives him lines (Hentairim's mainMaleVoice!=None gate)
 	if mainMaleActor == None && actorList.length > 1
 		if mainFemaleActor == actorList[0]
 			mainMaleActor = actorList[1]
@@ -370,7 +375,8 @@ Event IVDTOnOrgasm(Form actorRef, Int thread)
 	EndIf
 	Actor actorHavingOrgasm = actorRef as Actor
 	printdebug("Actor having orgasm: " + actorHavingOrgasm)
-	if actorHavingOrgasm != mainFemaleActor
+	bool orgasmerIsVoicedMale = actorHavingOrgasm != mainFemaleActor && (MasterScript.IsMale(actorHavingOrgasm) || hasSchlong(actorHavingOrgasm))
+	if orgasmerIsVoicedMale
 		lastMaleOrgasmActor = actorHavingOrgasm ;post-nut lines resolve from his voice slot
 	endif
 
@@ -380,7 +386,7 @@ Event IVDTOnOrgasm(Form actorRef, Int thread)
 			printdebug("Male orgasm detected. Recording and reacting.")
 			RecordMaleOrgasm()
 
-			if IsSuckingoffOther() || IsgettingPenetrated()
+			if (IsSuckingoffOther() || IsgettingPenetrated()) && orgasmerIsVoicedMale ;creatures get no human orgasm grunt
 				printdebug("Playing DefaultMaleOrgasm sound.")
 				PlaySound("Orgasm", mainFemaleActor, requiredChemistry = 0, soundPriority = 3, waitForCompletion = False, debugtext ="DefaultMaleOrgasm", voiceActor = actorHavingOrgasm)
 			endif
@@ -812,6 +818,16 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 	if audioActor == None
 		audioActor = actorMakingSound
 	endif
+	;per-speaker exclusivity channel: AudioUtil natively stops the channel's
+	;previous occupant, so two lines from the SAME speaker can never overlay
+	;(priority>1 bypasses the counter gates by design, and the orgasm events run
+	;on their own threads - both slipped past the counters and stacked lines).
+	;Different speakers keep their own channels and still overlap deliberately
+	;(male comments over the PC's moans, group chatter between males).
+	String voiceChannel = "slove_pc"
+	if audioActor != playerCharacter
+		voiceChannel = "slove_np" + audioActor.GetFormID()
+	endif
 	If TrackerRemoved ;scene is over - don't start queued voice lines
 		Return
 	EndIf
@@ -828,7 +844,7 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 			if soundPriority > 1
 				partnerGroup = "partner_high"
 			endif
-			MasterScript.PlaySound(soundToPlay, audioActor, waitForCompletion, partnerGroup)
+			MasterScript.PlaySound(soundToPlay, audioActor, waitForCompletion, partnerGroup, voiceChannel)
 		endif
 
 		currentlyPlayingSoundCountMale = currentlyPlayingSoundCountMale - 1
@@ -866,7 +882,7 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 			if soundPriority > 1
 				pcGroup = "pc_high"
 			endif
-			MasterScript.PlaySound(soundToPlay, audioActor, waitForCompletion, pcGroup)
+			MasterScript.PlaySound(soundToPlay, audioActor, waitForCompletion, pcGroup, voiceChannel)
 		endif
 
 		currentlyPlayingSoundCount = currentlyPlayingSoundCount - 1
@@ -2651,6 +2667,9 @@ Bool function HasSchlong(Actor char)
   if !char
     return false
   endif
+  if sexlab.GetGender(char) > 1 ;creature - the TNG branch below returns true for anything not GetSex()==1, which included dogs
+    return false
+  endif
   if (schlongfaction)
     return char.isinfaction(schlongfaction)
   elseif (TNG_Gentlewoman)
@@ -2670,7 +2689,7 @@ endfunction
 
 Bool Function AllowMaleVoice()
 
-	return  Utility.RandomFloat(0.0, 1.0) <= ChanceForMaleToComment && EnableMaleVoice == 1 && Gender == 0 && mainMaleActor != None ;gender must be male only
+	return  Utility.RandomFloat(0.0, 1.0) <= ChanceForMaleToComment && EnableMaleVoice == 1 && Gender == 0 && mainMaleIsVoiced ;gender must be male only; fallback partners (creatures) have no human voice
 
 endfunction
 
