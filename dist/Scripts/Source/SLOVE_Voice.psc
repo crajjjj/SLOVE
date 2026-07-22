@@ -20,6 +20,13 @@ Bool mainMaleIsVoiced = false      ;true only when mainMaleActor is a human male
 Actor lastMaleOrgasmActor = None   ;who climaxed last - post-nut lines come from him
 Float lastSecondaryLineTime        ;scene time a non-lead male last spoke
 Float secondaryLineCooldown        ;randomized pause between non-lead lines
+;--- creature ambience: voiced creatures (C-slots via [race_map]) pant/growl on a cadence
+Actor[] sceneCreatures
+Float lastCreatureBreathTime
+Float creatureBreathCooldown
+int enablecreaturebreathing
+float creaturebreathmininterval
+float creaturebreathmaxinterval
 Int voiceAllActors = 1             ;SLOVE.toml "voice.voiceallactors"
 Actor playerCharacter = None
 
@@ -133,6 +140,9 @@ MaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.maleorgasmhypeenjoyment",0)
 EnableDDGagVoice = SLOVE_Config.GetInt("voice.enableddgagvoice",0)
 EnableMaleVoice = SLOVE_Config.GetInt("voice.enablemalevoice",0)
 ChanceForMaleToComment = SLOVE_Config.GetInt("voice.chanceformaletocomment",0) as float /100
+enablecreaturebreathing = SLOVE_Config.GetInt("voice.creaturebreathing", 1)
+creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 5) as float
+creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 12) as float
 
 VoiceVariation = SLOVE_Config.GetString("voice.voicevariation","NA")
 MoanOnly  = SLOVE_Config.GetInt("voice.moanonly",0)
@@ -301,6 +311,30 @@ Function FindActorsAndVoices()
 	lastSecondaryLineTime = 0.0
 	secondaryLineCooldown = Utility.RandomFloat(6.0, 14.0)
 
+	;collect voiced creatures (a resolvable AudioUtil slot = C1-C10 via [race_map])
+	;for the periodic Breathing ambience - humans are covered by the male rotation
+	int creatureCount = 0
+	actorIndex = 0
+	While actorIndex < actorCount
+		If actorList[actorIndex] != playerCharacter && Sexlab.GetGender(actorList[actorIndex]) > 1 && AudioUtil.GetSlotForActor(actorList[actorIndex]) != ""
+			creatureCount += 1
+		EndIf
+		actorIndex += 1
+	EndWhile
+	sceneCreatures = PapyrusUtil.ActorArray(creatureCount)
+	int creatureIndex = 0
+	actorIndex = 0
+	While actorIndex < actorCount
+		If actorList[actorIndex] != playerCharacter && Sexlab.GetGender(actorList[actorIndex]) > 1 && AudioUtil.GetSlotForActor(actorList[actorIndex]) != ""
+			sceneCreatures[creatureIndex] = actorList[actorIndex]
+			creatureIndex += 1
+		EndIf
+		actorIndex += 1
+	EndWhile
+	lastCreatureBreathTime = 0.0
+	creatureBreathCooldown = Utility.RandomFloat(2.0, 5.0) ;first breath comes early
+	printdebug("scene creatures voiced: " + sceneCreatures.length)
+
 	printdebug("mainfemaleactor :" + mainFemaleActor.getleveledactorbase().GetName())
 	printdebug("mainfemaleactor Voice Variation:" + VoiceVariation)
 	printdebug("mainmaleactor :" + mainMaleActor.getleveledactorbase().GetName())
@@ -329,6 +363,35 @@ Actor Function PickSpeakingMale()
 	lastSecondaryLineTime = now
 	secondaryLineCooldown = Utility.RandomFloat(6.0, 14.0)
 	return pick
+EndFunction
+
+;Voiced creatures pant/growl on their own randomized cadence (intense stages
+;halve the pause). Routed straight to the Director - the human PlaySound
+;gating (chemistry, comment counters) is about lines, not ambience. The
+;per-speaker channel is the same one the creature's Orgasm line uses, so a
+;climax roar replaces a running breath instead of stacking on it.
+Function PlayCreatureBreathing()
+	if enablecreaturebreathing != 1 || sceneCreatures.length == 0 || TrackerRemoved
+		return
+	endif
+	Float now = CurrentThread.GetTimeTotal()
+	if now - lastCreatureBreathTime < creatureBreathCooldown
+		return
+	endif
+	Actor creature = sceneCreatures[Utility.RandomInt(0, sceneCreatures.length - 1)]
+	if creature == None
+		return
+	endif
+	lastCreatureBreathTime = now
+	Float minPause = creaturebreathmininterval
+	Float maxPause = creaturebreathmaxinterval
+	if ASLCurrentlyintense
+		minPause = minPause / 2.0
+		maxPause = maxPause / 2.0
+	endif
+	creatureBreathCooldown = Utility.RandomFloat(minPause, maxPause)
+	printdebug("creature breathing: " + creature.getdisplayname())
+	MasterScript.PlaySound("Breathing", creature, False, "partner_low", "slove_np" + creature.GetFormID())
 EndFunction
 
 ;Post-nut lines belong to whoever actually climaxed
@@ -376,6 +439,10 @@ Event IVDTOnOrgasm(Form actorRef, Int thread)
 	Actor actorHavingOrgasm = actorRef as Actor
 	printdebug("Actor having orgasm: " + actorHavingOrgasm)
 	bool orgasmerIsVoicedMale = actorHavingOrgasm != mainFemaleActor && (MasterScript.IsMale(actorHavingOrgasm) || hasSchlong(actorHavingOrgasm))
+	;creatures with a mapped AudioUtil slot (C1-C10 via [race_map]) have a climax
+	;line too - but they must NOT become lastMaleOrgasmActor: post-nut talk would
+	;try to resolve human categories from a creature slot and come out silent
+	bool orgasmerIsVoicedCreature = actorHavingOrgasm != mainFemaleActor && Sexlab.GetGender(actorHavingOrgasm) > 1 && AudioUtil.GetSlotForActor(actorHavingOrgasm) != ""
 	if orgasmerIsVoicedMale
 		lastMaleOrgasmActor = actorHavingOrgasm ;post-nut lines resolve from his voice slot
 	endif
@@ -386,7 +453,7 @@ Event IVDTOnOrgasm(Form actorRef, Int thread)
 			printdebug("Male orgasm detected. Recording and reacting.")
 			RecordMaleOrgasm()
 
-			if (IsSuckingoffOther() || IsgettingPenetrated()) && orgasmerIsVoicedMale ;creatures get no human orgasm grunt
+			if (IsSuckingoffOther() || IsgettingPenetrated()) && (orgasmerIsVoicedMale || orgasmerIsVoicedCreature)
 				printdebug("Playing DefaultMaleOrgasm sound.")
 				PlaySound("Orgasm", mainFemaleActor, requiredChemistry = 0, soundPriority = 3, waitForCompletion = False, debugtext ="DefaultMaleOrgasm", voiceActor = actorHavingOrgasm)
 			endif
@@ -585,6 +652,8 @@ if actorWithSceneTrackerSpell == mainFemaleActor
 	if AllowMaleVoice()
 		PlayMaleComments()
 	endif
+	;creature partners pant/growl on their own cadence
+	PlayCreatureBreathing()
 	;SLO VE: dropped - the commented-out linear-scene pre/post orgasm choreography block
 	;(LinearScenePlay* functions) - dead even in the source, gated by isLinearScene()=false
 

@@ -26,6 +26,7 @@ float updaterate = 0.5
 ;Modules Spells (SLO VE: runtime-resolved from SLOVE.esp, not CK-filled)
 Spell ExpressionsSpell
 Spell VoiceSpell
+Spell SFXSpell
 ;others
 Faction schlongfaction
 keyword TNG_Gentlewoman
@@ -40,6 +41,7 @@ Bool PCInSex
 
 ;SLO VE: cached SLOVE.toml [director] settings (re-read on load and per scene start)
 int enablevoice
+int enablesfx
 int enableExpressions
 int enablepcexpression
 int enablefemalenpcexpression
@@ -114,13 +116,18 @@ Function ClearSpellsFromTrackedActors()
 	if VoiceSpell && playerref && playerref.HasSpell(VoiceSpell)
 		playerref.RemoveSpell(VoiceSpell)
 	endif
-	if !ExpressionsSpell || actorList == None
+	if actorList == None
 		return
 	endif
 	int z = 0
 	while z < actorList.length
-		if actorList[z] && actorList[z].HasSpell(ExpressionsSpell)
-			actorList[z].RemoveSpell(ExpressionsSpell)
+		if actorList[z]
+			if ExpressionsSpell && actorList[z].HasSpell(ExpressionsSpell)
+				actorList[z].RemoveSpell(ExpressionsSpell)
+			endif
+			if SFXSpell && actorList[z].HasSpell(SFXSpell)
+				actorList[z].RemoveSpell(SFXSpell)
+			endif
 		endif
 		z = z + 1
 	endwhile
@@ -149,6 +156,7 @@ Function PerformInitialization()
 if Game.GetModbyName("SLOVE.esp") != 255
 	ExpressionsSpell = Game.GetFormFromFile(0x800, "SLOVE.esp") as Spell
 	VoiceSpell = Game.GetFormFromFile(0x802, "SLOVE.esp") as Spell
+	SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as Spell
 endif
 
 if !ExpressionsSpell
@@ -157,6 +165,10 @@ endif
 
 if !VoiceSpell
 	WritetoErrorlogs("Director", "Voice Spell is Missing! Make Sure the Mod is properly installed and Plugin Enabled")
+endif
+
+if !SFXSpell
+	WritetoErrorlogs("Director", "SFX Spell is Missing! Make Sure the Mod is properly installed and Plugin Enabled")
 endif
 
 if Game.GetModbyName("devious devices - assets.esm") != 255
@@ -200,6 +212,7 @@ Function InitializeDirectorConfigs()
 	endif
 
 	enablevoice = SLOVE_Config.GetInt("director.enablevoice", 1)
+	enablesfx = SLOVE_Config.GetInt("sfx.enable", 0)
 	enableExpressions = SLOVE_Config.GetInt("director.enableexpressions", 1)
 	enablepcexpression = SLOVE_Config.GetInt("director.enablepcexpression", 1)
 	enablefemalenpcexpression = SLOVE_Config.GetInt("director.enablefemalenpcexpression", 1)
@@ -214,6 +227,7 @@ Function InitializeDirectorConfigs()
 	endif
 
 	printdebug(" enablevoice :" + enablevoice)
+	printdebug(" enablesfx :" + enablesfx)
 	printdebug(" enableExpressions :" + enableExpressions)
 	printdebug(" enablepcexpression :" + enablepcexpression)
 	printdebug(" enablefemalenpcexpression :" + enablefemalenpcexpression)
@@ -410,6 +424,10 @@ Event OnUpdate()
 		IsFinalStage = IsFinalStage()
 		updatelabelsarr(CurrentSceneID, CurrentStageNum)
 
+		if enablesfx == 1
+			LoadSchlongAdjustment() ;reapply saved SOSBend calibrations (SLOVE_SFX adaptive velocity)
+		endif
+
 		LastLabelUpdateTime = CurrentThread.GetTimeTotal()
 		UpdateNow = false
 	elseif usephysicslabels == 1 && CurrentThread.GetStatus() == 3 && CurrentThread.IsInteractionRegistered()
@@ -578,6 +596,19 @@ Function ApplySpells()
 			printdebug("playerref added SLO VE Voice Spell")
 			playerref.AddSpell(VoiceSpell, abVerbose = False)
 		endif
+	endif
+
+	;---------------Applying SFX Spell to Actors (all positions, creatures too)------------------
+	if enablesfx == 1 && SFXSpell
+		int y = 0
+		while y < actorList.length
+			if actorList[y].HasSpell(SFXSpell)
+				actorList[y].RemoveSpell(SFXSpell)
+			endif
+			printdebug(actorList[y].getdisplayname() + " added SFX Spell")
+			actorList[y].AddSpell(SFXSpell, abVerbose = False)
+			y += 1
+		EndWhile
 	endif
 
 	;---------------Applying Expressions Spell to Actors------------------
@@ -1213,6 +1244,91 @@ Bool function IshugePP(actor char)
     return false
   endif
 EndFunction
+
+Int Function GetNormalizedPenisSize(Actor char)
+	;0-4 scale (4 = huge); -1 = female / no sizing mod. Ported from
+	;IVDTControllerScript for the SFX module's ejaculation-sound pick.
+	int ModPenisSize = -1
+	int HugePPSchlongSize = SLOVE_Config.GetInt("director.soshugeppsize", 6)
+
+	Int Sex = Sexlab.GetSex(char)
+
+	if Sex == 1
+		return -1
+	endif
+
+	if Sex >= 3 ; creature
+		if IshugePP(char)
+			return 4
+		elseif IsSmallPP(Char)
+			return 0
+		else
+			return 2
+		endif
+	else
+		if SchlongFaction
+			int SchlongSize = char.GetFactionRank(SchlongFaction) ; 1 - 16
+			if SchlongSize < 1
+				SchlongSize = 1
+			elseif SchlongSize > 16
+				SchlongSize = 16
+			endif
+
+			if SchlongSize >= HugePPSchlongSize
+				ModPenisSize = 4
+			else
+				; Scale 0 -> 3 for ranks below threshold
+				ModPenisSize = Math.Floor((SchlongSize * 3.0) / HugePPSchlongSize)
+			endif
+
+		elseif PO3_SKSEFunctions.IsPluginFound("TheNewGentleman.esp")
+			ModPenisSize = TNG_PapyrusUtil.GetActorSize(char)
+		endif
+	endif
+
+	return ModPenisSize
+EndFunction
+
+Bool Function IsSmallPP(Actor Char)
+	Int Sex = Sexlab.GetSex(char)
+	if Sex <= 2
+		return GetNormalizedPenisSize(Char) <= 0
+	else
+		String charraceName = char.GetRace().GetName()
+		if stringutil.find(charraceName, "rabbit") > -1 || stringutil.find(charraceName, "fox") > -1 || stringutil.find(charraceName, "Skeever") > -1
+			return TRUE
+		else
+			return false
+		endIf
+	endif
+
+EndFunction
+
+;-----------Schlong alignment memory (SLOVE_SFX adaptive velocity)-----------
+;The SFX module's SOSBend calibration search records the bend that produced
+;SLPP collision data, keyed per scene|stage|position; the director reapplies
+;it on every stage change so the search doesn't repeat.
+
+Function SaveSchlongAdjustment(int schlongposition, int value)
+	string sceneName = SexlabRegistry.GetSceneName(CurrentSceneID)
+	string strkey = sceneName + "|" + CurrentStageNum + "|" + schlongposition
+	printdebug("SaveSchlongAdjustment: " + strkey + " = " + value)
+	jsonutil.SetIntValue("SLOVE/SchlongAdjustment.json", strkey, value)
+endFunction
+
+Function LoadSchlongAdjustment()
+	int z
+	string sceneName = SexlabRegistry.GetSceneName(CurrentSceneID)
+
+	while z < actorList.Length
+		Int Adjustment = jsonutil.GetIntValue("SLOVE/SchlongAdjustment.json", sceneName + "|" + CurrentStageNum + "|" + z, 0)
+		if Adjustment != 0
+			Debug.SendAnimationEvent(actorList[z], "SOSBend" + Adjustment as string)
+			printdebug("LoadSchlongAdjustment: position " + z + " -> SOSBend" + Adjustment)
+		endIf
+		z += 1
+	endwhile
+endFunction
 
 Bool Function IsWearingGag(Actor char)
 	if !zad_DeviousGag ;SLO VE: Devious Devices not installed

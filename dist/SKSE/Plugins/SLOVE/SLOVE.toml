@@ -32,6 +32,9 @@ maleorgasmhypeenjoyment = 75
 enablemalevoice = 1
 chanceformaletocomment = 20
 voiceallactors = 1             # every male speaks (rotation); 0 = lead male only
+creaturebreathing = 1          # creature partners (C-slots) pant/growl during the scene
+creaturebreathmininterval = 5  # seconds between creature breaths (halved on intense stages)
+creaturebreathmaxinterval = 12
 moanonly = 0                   # 1 = moans only, no spoken lines
 hypebeforeorgasm = 0
 useblowjobsoundforkissing = 1
@@ -56,6 +59,37 @@ enableahegao = 1               # huge partners trigger ahegao while penetrating
 chancetostickouttongueduringintense = 30
 chancetostickouttongueduringattacking = 30
 tonguemouthopenthreshold = 0.4 # jaw gate: min measured mouth-open for tongue
+printdebug = 0
+
+[sfx]
+# Body-SFX engine (SLOVE_SFX): slushing / impact / clap / kissing / blowjob
+# sounds, played through AudioUtil (the sound names map to folders in the
+# AudioUtil preset's [sfx] table; audio ships under Sound\fx\SloveSFX).
+# Defaults track this load order's patched HentairimSFX/Config.json, not base
+# Hentairim: the adaptive-velocity keys (useadaptivevelocity, timestosearch)
+# are patch additions and are not in the shipped Hentairim SFX config.
+enable = 1                     # master switch (applies the SFX effect to scene actors)
+volume = 60                    # 0-100, startup value for the "sfx" audio group
+usevelocity = 1                # thrust-synced sounds from SLPP collision velocity
+# SOSBend calibration search: spams Debug.SendAnimationEvent(SOSBend) with 0.3s
+# waits to hunt for a bend that yields velocity data. Heaviest path in the
+# engine and off by default - only turn on if a scene otherwise reports no
+# velocity (needs both keys: useadaptivevelocity=1 AND timestosearch>0).
+useadaptivevelocity = 0        # SOSBend calibration search when no velocity data
+timestosearch = 0              # adaptive: max calibration attempts per stage (0 = never search)
+usecontactsfx = 1              # one-shots on contact edges (insertion, pull-out gape, kiss, oral)
+usecontactvictimreactions = 1  # suppress tender kiss cues when a victim is involved
+# poll intervals (seconds). velocitypoll must stay tight to catch thrust
+# reversals; normalpoll paces the label/tag-driven loop (raise it to cut
+# script load further - the sound's own clip length already paces playback).
+velocitypoll = 0.1
+normalpoll = 0.5
+# measured-gape thresholds (PPA bridge): openings are unitless magic numbers,
+# 0.0 = closed; calibrate against the pull-out printdebug line in your scenes
+gapevaginalaverage = 2.0
+gapevaginalhuge = 2.7
+gapeanalaverage = 2.8
+gapeanalhuge = 4.0
 printdebug = 0
 
 [milk]

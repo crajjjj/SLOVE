@@ -1,6 +1,7 @@
 # SLO VE — Voices and Expressions
 
-Standalone scene **voices** and **facial expressions** for SexLab P+ scenes.
+Standalone scene **voices**, **facial expressions** and **body SFX**
+(slushing/impacts/claps, optionally thrust-synced) for SexLab P+ scenes.
 No gameplay systems, no MCM — all configuration lives in TOML files.
 "SLO" = SexLab / OStim (OStim backend planned; v1 is SexLab P+ only).
 
@@ -21,10 +22,17 @@ with Milk Mod Economy also installed, squirts require and drain her milk).
 
 ## External data dependencies (not bundled)
 
-- **Voice packs**: male packs M1–M8 and creature slots C1–C10 work out of the
-  box (creatures play straight from vanilla BSAs). The **female F1 pack is
-  bring-your-own**: drop WAVs into `Sound\fx\IVDT\F1\<Category>\` (see the
-  category list in `SKSE\Plugins\AudioUtil\AudioUtil.toml`).
+- **Voice packs**: male packs M1–M8, the Smack/PullOutGape one-shots and the
+  body-SFX library (`Sound\fx\SloveSFX`) are **bundled**, creature slots
+  C1–C10 play straight from vanilla BSAs, and **female voices default to
+  SexLab's own moan sets** (stock slots F0/F0B — files every SexLab P+
+  install already has) — everything works out of the box.
+  **Female slot scheme**: F0 = stock default (all females), F1 = the
+  player's pack slot, F2/F3 = partner/follower pack slots. Drop any
+  Hentairim/IVDT-convention female pack into `Sound\fx\IVDT\F1` (or F2/F3)
+  and it just plays — no config edits; categories the pack lacks backfill
+  from the stock moans per category. Route a follower to F2/F3 via
+  `[npc_overrides]` in `SKSE\Plugins\AudioUtil\AudioUtil.toml`.
 - **Scene tag data**: labels resolve from Hentairim-convention scene tags
   (`3asvp` = stage 3, actor A, vaginal penetration) in your SexLab P+ scene
   registry. Untagged animations fall back to lead-in behavior. Tag data comes
@@ -38,7 +46,7 @@ must win). **Mutually exclusive with full Hentairim p+** — disable one.
 ## Configuration
 
 - `SKSE\Plugins\SLOVE\SLOVE.toml` — all settings (`[director]`, `[voice]`,
-  `[expressions]`, `[milk]`). Live reload: `cgf "TomlUtil.Reload" "SKSE\Plugins\SLOVE\SLOVE.toml"`.
+  `[expressions]`, `[sfx]`, `[milk]`). Live reload: `cgf "TomlUtil.Reload" "SKSE\Plugins\SLOVE\SLOVE.toml"`.
 - `SKSE\Plugins\AudioUtil\AudioUtil.toml` — voice slots/mapping (AudioUtil
   preset; live reload via `cgf "AudioUtil.ReloadConfig"`).
 - `SKSE\Plugins\StorageUtilData\SLOVE\*.json` — expression preset data.

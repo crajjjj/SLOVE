@@ -37,8 +37,11 @@
         <Folder>.\papyrus\Source</Folder>
     </Folders>
     <!-- SLO VE ships: its 7 pex + sources, the ESP-FE + SEQ, its SLOVE.toml,
-         its AudioUtil voice-slot preset, and the expression preset JSONs.
-         Voice pack AUDIO and scene tag data are external dependencies. -->
+         its AudioUtil voice-slot preset, the expression preset JSONs, and the
+         bundled voice audio (male packs M1-M8 + the Smack/PullOutGape
+         one-shots + the SloveSFX body-SFX library, copied from Hentairim
+         into dist\Sound; git-ignored).
+         The F1 female pack and scene tag data remain external dependencies. -->
     <ZipFiles Output=".\Release">
         <ZipFile Name="@ModName" RootDir=".\dist" Compression="deflate">
             <Match In="Scripts">SLOVE_*.pex</Match>
@@ -48,6 +51,8 @@
             <Match In="SKSE\Plugins\SLOVE">*.toml</Match>
             <Match In="SKSE\Plugins\AudioUtil">*.toml</Match>
             <Match In="SKSE\Plugins\StorageUtilData\SLOVE">*.json</Match>
+            <Match In="Sound\fx\IVDT">*.wav</Match>
+            <Match In="Sound\fx\SloveSFX">*.wav</Match>
         </ZipFile>
     </ZipFiles>
 </PapyrusProject>

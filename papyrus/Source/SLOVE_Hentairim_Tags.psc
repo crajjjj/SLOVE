@@ -229,6 +229,29 @@ endfunction
 
 
 
+string Function GetSFX(string anim , int stage) Global
+	;SFX tag for the body-SFX engine (SLOVE_SFX): claps SC/MC/FC, slushes
+	;SS/MS/FS/RS, NA = explicitly silent. Ported from HentaiRimTags.GetSFX.
+	if HasASLTag(anim, stage+"SC")
+		return "SC"
+	elseif HasASLTag(anim, stage+"MC")
+		return "MC"
+	elseif HasASLTag(anim, stage+"FC")
+		return "FC"
+	elseif HasASLTag(anim, stage+"SS")
+		return "SS"
+	elseif HasASLTag(anim, stage+"MS")
+		return "MS"
+	elseif HasASLTag(anim, stage+"FS")
+		return "FS"
+	elseif HasASLTag(anim, stage+"RS")
+		return "RS"
+	elseif HasASLTag(anim, stage+"NA")
+		return "NA"
+	endif
+
+endfunction
+
 bool Function HasASLTag(string anim, string tag) Global
 	return SexLabRegistry.IsSceneTag(anim, tag)
 EndFunction

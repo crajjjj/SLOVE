@@ -1,8 +1,8 @@
 # Framework adapter contract (SexLab P+ today, OStim later)
 
 `SLOVE_Director` is the ONLY script allowed to reference `SexLabFramework`,
-`SexLabThread`, `SexlabRegistry`, or SLPP mod-event names. Voice and
-expressions consume the director's API and the SLOVE-owned mod events below.
+`SexLabThread`, `SexlabRegistry`, or SLPP mod-event names. Voice, expressions
+and SFX consume the director's API and the SLOVE-owned mod events below.
 An OStim backend = an alternative director (`SLOVE_DirectorOStim`) providing
 the same surface, plus a replacement `SLOVE_Hentairim_Tags` (labels are
 annotation-scheme-specific).
@@ -21,7 +21,7 @@ Third-party events consumed raw (framework-independent): `_SLS_AhegaoStateChange
 `AudioUtil.SetLipSyncBlocked(player)` so PC moans don't drive the mouth over the SLS face;
 re-seeded from the `_SLS_IsAhegaoing` StorageUtil key in `Maintenance()`).
 
-## Director API consumed by SLOVE_Voice / SLOVE_Expressions
+## Director API consumed by SLOVE_Voice / SLOVE_Expressions / SLOVE_SFX
 
 Scene state: `GetPositions()`, `GetPositionIdx(a)`, `GetEnjoyment(a)`,
 `GetTimeTotal()`, `HasSceneTag(t)`, `IsSubmissive(a)`, `GetActiveSceneId()`,
@@ -32,8 +32,14 @@ Labels: `GetStimulationlabel(a)`, `GetPenisActionLabel(a)`, `GetOralLabel(a)`,
 `GetDirectorLastLabelTime()`, `GetDirectorLastPhysicsLabelTime()`.
 
 Lifecycle/services: `AnimationisEnding()`, `isUpdating()`, `SceneisIntense()`,
-`IsHugePP(a)`, `PlaySound(category, actor, wait, group)`.
+`IsHugePP(a)`, `IsSmallPP(a)`, `PlaySound(category, actor, wait, group)`,
+`SaveSchlongAdjustment(pos, val)` (SFX adaptive-velocity SOSBend memory; the
+director replays it via `LoadSchlongAdjustment()` on stage change).
 
 Known leaks (documented, acceptable): `SLOVE_Hentairim_Tags.HasASLTag` calls
 `SexlabRegistry.IsSceneTag`; `GetLegacyStageNum` uses
-`SexlabRegistry.GetAllStages` (director-internal).
+`SexlabRegistry.GetAllStages` (director-internal). Pragmatic port leaks:
+`SLOVE_Voice` and `SLOVE_SFX` still hold their own `SexLabThread` handle for
+high-frequency reads (positions, velocity, interaction flags/partners, stage
+tags) — an OStim backend must give their director-equivalents the same data
+or these reads must move behind the director API first.
