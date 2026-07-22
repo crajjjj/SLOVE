@@ -55,6 +55,16 @@ sound_flags = 0x1A            # BuildSoundDataFromFile flags (experiment via Deb
 sound_priority = 128
 voice_root = 'Sound\fx\IVDT'
 sfx_root = 'Sound\fx\SloveSFX'
+# false = voices play flat/2D at full volume, so every speaker is equally
+# audible. With 3D on, the player's voice sits at the listener while partners
+# and creatures attenuate with distance and can sound faint even though their
+# source is louder. Lipsync is unaffected either way. SFX always play
+# 3D-positioned at the actor. Live-toggle: edit + cgf "AudioUtil.ReloadConfig".
+voice_3d = false
+# skip a new voice line when the speaker's channel is still playing one, so a
+# line finishes before the next starts (per speaker - different speakers still
+# overlap). Stops the PC cutting herself off mid-line.
+voice_no_interrupt = true
 default_female_slot = "F0"    # unrouted female NPCs speak the stock moans
 default_male_slot = "M1"
 # reserved player slots: the PC always speaks with this slot and no other actor
@@ -466,6 +476,13 @@ BreathySoft = "Breathy Intense"
 MaleOrgasmReactionLover = "Male Orgasm Reaction Soft"
 RefractoryPeriod = "Want More"
 MaleHalfwayIntense = "Male Close Notice"
+
+[category_fallbacks.male]
+# creatures (C1-C10, sex=male) only define an Orgasm sound list, so the
+# per-scene creature ambience (SLOVE_Voice requests "Breathing") falls back to
+# it - they growl/pant their own vanilla sounds during the scene. Give a C-slot
+# its own explicit "Breathing" category to override this with calmer idles.
+Breathing = "Orgasm"
 
 # ---------- startup group volumes (0.0 - 1.0) ----------
 # pc_* = player voice, partner_* = NPC voice, high/low = line priority tier,

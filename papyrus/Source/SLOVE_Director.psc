@@ -375,6 +375,10 @@ Function DirectorEndScene()
 	;SLO VE: no StopAnimation/armor/scaling/speed restore - the only end path here is
 	;the OnUpdate poll after the thread already ended
 	isEnding = true
+	;mute on scene end: a moan/line/SFX started just before the scene ended would
+	;otherwise keep playing over the aftermath. Hard-stop every SLO VE sound (voice,
+	;partner, creature, SFX) the moment the scene is gone.
+	AudioUtil.StopAllAudio()
 	PCInSex = false
 	LastLabelUpdateTime = 0
 	LastPhysicsLabelTime = 0
