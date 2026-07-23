@@ -88,6 +88,7 @@ int MaleOrgasmHypeEnjoyment
 int EnableDDGagVoice
 Int EnableMaleVoice
 float ChanceForMaleToComment
+int enablebrokenstatus
 
 Keyword TNG_Gentlewoman
 String VoiceVariation
@@ -124,7 +125,8 @@ Function InitializeConfigValues()
 
 ActorsInPlay = CurrentThread.GetPositions()
 ;SLO VE: dropped - donotadvance* keys (stage-advance handshake), chancetoorgasmsquirt /
-;enablebrokenstatus / enablethickcumleak / chancetoleakthickcum (cum shaders + resistance)
+;enablethickcumleak / chancetoleakthickcum (cum shaders)
+enablebrokenstatus = SLOVE_Config.GetInt("resistance.enablebrokenstatus", 1)
 EnableHugePPScenario = SLOVE_Config.GetInt("voice.enablehugeppscenario",0)
 EnableVictimscenario = SLOVE_Config.GetInt("voice.enablevictimscenario",0)
 ChanceToCommentUnamused = SLOVE_Config.GetInt("voice.chancetocommentunamused",0) as float/100
@@ -2707,7 +2709,10 @@ Function ASLRemoveCumPool()
 endfunction
 
 bool function ASLIsBroken()
-	return false ;SLO VE: dropped - HentairimResistance broken status (resistance module is not part of SLO VE)
+	;broken willpower (SLOVE_Resistance) gates the broken voice lines, but only
+	;when enablebrokenstatus is on - otherwise the broken FACE still shows while
+	;the voice stays normal. Read through the Director (firewall-clean).
+	return enablebrokenstatus == 1 && MasterScript.IsBroken(mainFemaleActor)
 endfunction
 
 Bool SomeoneNeedstoOrgasm = false

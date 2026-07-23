@@ -225,6 +225,7 @@ String GapeHuge = ""
 int usevelocity
 int useadaptivevelocity
 int usecontactsfx
+int victiminsertiontrauma
 int usecontactvictimreactions
 int timestosearch
 ;poll intervals (seconds). velocitypoll drives the thrust-reversal spinners
@@ -252,6 +253,7 @@ usevelocity = SLOVE_Config.GetInt("sfx.usevelocity", 0)
 useadaptivevelocity = SLOVE_Config.GetInt("sfx.useadaptivevelocity", 0)
 usecontactsfx = SLOVE_Config.GetInt("sfx.usecontactsfx", 1)
 usecontactvictimreactions = SLOVE_Config.GetInt("sfx.usecontactvictimreactions", 1)
+victiminsertiontrauma = SLOVE_Config.GetInt("resistance.victiminsertiontrauma", 5)
 timestosearch = SLOVE_Config.GetInt("sfx.timestosearch", 0)
 velocitypoll = SLOVE_Config.GetFloat("sfx.velocitypoll", 0.1)
 normalpoll = SLOVE_Config.GetFloat("sfx.normalpoll", 0.5)
@@ -954,6 +956,11 @@ Function ProcessContactEdges()
 			LastPenReceiver = CurrentThread.GetPartnerByType(actorref, 1)
 			if LastPenReceiver == none
 				LastPenReceiver = CurrentThread.GetPartnerByType(actorref, 2)
+			endif
+			;resistance system: a forced insertion onto a submissive receiver deposits
+			;trauma their SLOVE_Resistance drains into willpower loss on its next tick
+			if LastPenReceiver != none && victiminsertiontrauma > 0 && MasterScript.IsSubmissive(LastPenReceiver)
+				StorageUtil.AdjustFloatValue(LastPenReceiver, "SLOVE_ResDebt", victiminsertiontrauma as float)
 			endif
 			;insertion one-shot only when the label system hasn't classified this as penetration yet
 			if LastPenReceiver != none && !IsGivingVaginalPenetration() && !IsGivingAnalPenetration()

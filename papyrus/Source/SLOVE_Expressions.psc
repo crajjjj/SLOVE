@@ -1330,8 +1330,9 @@ Bool Function IsVictim(actor char)
 endFunction
 
 Bool Function IsBroken()
-	;SLO VE: no resistance system - never broken
-	return false
+	;resistance system: broken state is written to StorageUtil by SLOVE_Resistance
+	;and read back through the Director (firewall-clean)
+	return MasterScript.IsBroken(actorref)
 endfunction
 
 

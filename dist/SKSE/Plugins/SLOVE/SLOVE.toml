@@ -15,6 +15,34 @@ physicsslowfactor = 0.65       # hysteresis: drop back to Slow below fast*factor
 soshugeppsize = 6              # SOS size / TNG size counted as "huge"
 printdebug = 0
 
+[resistance]
+# Willpower -> break system (ported from Hentairim). Each actor starts at 100
+# willpower; being penetrated drains it by the RISE in SexLab enjoyment x the
+# multipliers below. At 0 the actor "breaks" (broken voice lines + broken/ahegao
+# face for the rest of the break). Broken points = game-hours of no-sex needed to
+# recover; willpower otherwise regenerates over hours between scenes.
+# Penetration is measured by the PPA bridge (AudioUtil) when present, falling
+# back to SexLab p+ position labels.
+enable = 1                     # master switch for the whole system
+enablepc = 1                   # PC loses willpower
+enablemalenpc = 1              # male NPCs lose willpower
+enablefemalenpc = 1            # female NPCs lose willpower
+enablecreaturenpc = 1          # creatures lose willpower
+enablebrokenstatus = 1         # play broken voice lines while broken (0 = broken face only)
+pcmaxresistance = 1000         # PC drain denominator - HIGHER = slower drain (NPCs use the race table)
+# damage multipliers (percent of the base drain)
+pcnonvictimmult = 20           # PC, willing
+npcnonvictimmult = 30          # NPC, willing
+pcvictimmult = 110             # PC, victim/submissive (drains faster)
+npcvictimmult = 130            # NPC, victim/submissive
+hugeppmult = 200               # extra multiplier when the PC's partner is huge
+# recovery (percent of willpower regained per game-hour of no sex) + break severity
+pcrecoverperhour = 10
+npcrecoverperhour = 5
+pcbrokenpoints = 60            # hours-to-recover set when the PC breaks
+npcbrokenpoints = 40           # hours-to-recover set when an NPC breaks
+victiminsertiontrauma = 5      # extra willpower hit when a submissive is forcibly entered (0 = off)
+
 [voice]
 # chances are percent (0-100)
 enablehugeppscenario = 1

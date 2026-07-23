@@ -27,6 +27,14 @@ float updaterate = 0.5
 Spell ExpressionsSpell
 Spell VoiceSpell
 Spell SFXSpell
+Spell ResistanceSpell
+; resistance system enables (SLOVE.toml [resistance]); state itself lives in
+; StorageUtil, written by SLOVE_Resistance and read via GetResistance/IsBroken
+int enableresistance
+int resenablepc
+int resenablemalenpc
+int resenablefemalenpc
+int resenablecreaturenpc
 ;others
 Faction schlongfaction
 keyword TNG_Gentlewoman
@@ -128,9 +136,25 @@ Function ClearSpellsFromTrackedActors()
 			if SFXSpell && actorList[z].HasSpell(SFXSpell)
 				actorList[z].RemoveSpell(SFXSpell)
 			endif
+			if ResistanceSpell && actorList[z].HasSpell(ResistanceSpell)
+				actorList[z].RemoveSpell(ResistanceSpell)
+			endif
 		endif
 		z = z + 1
 	endwhile
+EndFunction
+
+;-------- resistance state (written by SLOVE_Resistance in StorageUtil) --------
+;consumed by SLOVE_Voice.ASLIsBroken() and SLOVE_Expressions.IsBroken(); both
+;stay firewall-clean by reading through the Director rather than StorageUtil.
+int Function GetResistance(actor char)
+	return StorageUtil.GetIntValue(char, "SLOVE_Resistance", 100)
+EndFunction
+
+bool Function IsBroken(actor char)
+	; gated on the master switch so disabling resistance also drops any stale
+	; broken state (the engine is off, so broken points would never decay)
+	return enableresistance == 1 && StorageUtil.GetIntValue(char, "SLOVE_BrokenPoints", 0) > 0
 EndFunction
 
 Function Maintenance()
@@ -156,6 +180,7 @@ if Game.GetModbyName("SLOVE.esp") != 255
 	ExpressionsSpell = Game.GetFormFromFile(0x800, "SLOVE.esp") as Spell
 	VoiceSpell = Game.GetFormFromFile(0x802, "SLOVE.esp") as Spell
 	SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as Spell
+	ResistanceSpell = Game.GetFormFromFile(0x808, "SLOVE.esp") as Spell
 endif
 
 if !ExpressionsSpell
@@ -217,6 +242,11 @@ Function InitializeDirectorConfigs()
 	enablepcexpression = SLOVE_Config.GetInt("director.enablepcexpression", 1)
 	enablefemalenpcexpression = SLOVE_Config.GetInt("director.enablefemalenpcexpression", 1)
 	enablemalenpcexpression = SLOVE_Config.GetInt("director.enablemalenpcexpression", 1)
+	enableresistance = SLOVE_Config.GetInt("resistance.enable", 1)
+	resenablepc = SLOVE_Config.GetInt("resistance.enablepc", 1)
+	resenablemalenpc = SLOVE_Config.GetInt("resistance.enablemalenpc", 1)
+	resenablefemalenpc = SLOVE_Config.GetInt("resistance.enablefemalenpc", 1)
+	resenablecreaturenpc = SLOVE_Config.GetInt("resistance.enablecreaturenpc", 1)
 	usephysicslabels = SLOVE_Config.GetInt("director.usephysicslabels", 1)
 	physicsfastvelocity = SLOVE_Config.GetFloat("director.physicsfastvelocity", 25.0)
 	physicsslowfactor = SLOVE_Config.GetFloat("director.physicsslowfactor", 0.65)
@@ -641,6 +671,31 @@ Function ApplySpells()
 				endif
 			endif
 		z += 1
+		EndWhile
+	EndIf
+
+	;---------------Applying Resistance Spell to Actors (all positions incl. creatures)------------------
+	if enableresistance == 1 && ResistanceSpell
+		int r = 0
+		while r < actorList.length
+			bool apply = false
+			if actorList[r] == playerref
+				apply = resenablepc == 1
+			elseif sexlab.GetGender(actorList[r]) == 0
+				apply = resenablemalenpc == 1
+			elseif sexlab.GetGender(actorList[r]) == 1
+				apply = resenablefemalenpc == 1
+			else
+				apply = resenablecreaturenpc == 1
+			endif
+			if actorList[r].HasSpell(ResistanceSpell)
+				actorList[r].RemoveSpell(ResistanceSpell)
+			endif
+			if apply
+				printdebug(actorList[r].getdisplayname() + " added Resistance Spell")
+				actorList[r].AddSpell(ResistanceSpell, abVerbose = False)
+			endif
+		r += 1
 		EndWhile
 	EndIf
 EndFunction
