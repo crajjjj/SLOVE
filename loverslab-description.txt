@@ -1,0 +1,64 @@
+SLO VE — Voices and Expressions
+Dynamic scene voices, facial expressions, and body SFX for SexLab P+
+
+Your actors moan, react, and make a mess — driven live by the scene, configured entirely in text files. No MCM.
+
+
+WHAT IT DOES
+
+SLO VE is a standalone enhancement layer for SexLab P+ scenes. It watches the running animation and drives three things in sync with what's actually happening on screen — voices, facial expressions, and body sound effects — reacting to stage, intensity, position tags, partner size, and measured penetration. Everything is configured in simple TOML files and live-reloadable; there is no MCM and no new gameplay system to manage.
+
+
+FEATURES
+
+- Scene voices — moans and spoken lines picked per scene stage and tag, for the player and NPCs, male and female. Shuffled so lines don't repeat, with orgasm hype lines, a huge-partner reaction scenario (SOS/TNG), a victim scenario, a moans-only mode, and per-voice volume.
+
+- Multi-NPC and creature support — every participant in a group scene is voiced, not just the lead: partners rotate through their own lines so threesomes and orgies come alive, and each NPC keeps a consistent voice across scenes. Creature partners (C1–C10) pant and growl on their own timing, straight from vanilla creature sounds — no extra downloads.
+
+- Female voices work out of the box — they default to SexLab's own moan sets, so females are voiced with zero setup. Hentairim/IVDT female packs work out of the box too: install one and it plays on F1, the player's slot — no config edits, and any category the pack is missing backfills from the stock moans. You only need the SOUND FILES from a pack: SLO VE plays WAVs by folder path, so a pack's ESP, scripts, and sound-descriptor records aren't used — just drop in its audio folder.
+
+- Female partners and followers (F2, F3, …) — the same Hentairim packs voice NPCs, not just the player. A pack's audio is authored for the F1 folder, so to add another voice install those sound files into an F2 (or F3, …) folder — i.e. rename the pack's F1 to F2. From there SLO VE can AUTO-MAP female NPCs across your installed slots: they spread deterministically, so the same NPC always keeps the same voice, with no per-NPC setup. Want a specific follower on a specific pack? Pin her with [npc_overrides] in SLOVE_voices.toml. Either way, just add packs and go.
+
+- Bundled audio — male voice packs M1–M8, the smack / pull-out one-shots, and the full body-SFX library ship with the mod.
+
+- Facial expressions — live breathing, stage-intensity faces, tongue-out (sr_fillherup), and ahegao on huge partners / high yield (SexLab Survival), with a jaw-gate so the tongue only shows when the mouth is actually open.
+
+- Body SFX — slushing, impacts, claps, kissing and blowjob sounds, optionally thrust-synced to SexLab P+ collision velocity, plus contact one-shots on insertion, pull-out gape, kiss, and oral. Gape intensity reads from Accurate Penetration when present.
+
+- Gagged voice — when a speaker wears a mouth-owning device (Devious Devices), her voice switches to a muffled set automatically and lip movement hands off to the device.
+
+- Milk — optional nipple squirts during scenes via Oninus Lactis NG; with Milk Mod Economy also installed, squirts require and drain her milk reserve.
+
+- Lipsync — mouths move in time with the audio (via AudioUtil), on any loose voice file — no .lip baking.
+
+
+REQUIREMENTS
+
+Hard:
+- SKSE64 and SexLab P+ 2.17+ — the scene framework
+- AudioUtil — the folder-based audio / lipsync / TOML framework SLO VE is built on
+- PapyrusUtil — expression preset data
+- Mfg Fix NG (MfgConsoleFunc/Ext) — all face writes
+
+Soft (auto-detected, optional): MFEE, sr_fillherup (tongue), Devious Devices (gag voice), SexLab Survival (ahegao), SOS/TNG (huge-partner detection), Accurate Penetration via the AudioUtilPPA bridge (measured penetration/gape), Oninus Lactis NG + Milk Mod Economy (milk).
+
+Scene tags: stage/position labels resolve from Hentairim-convention SexLab P+ scene tags. Untagged animations fall back to generic lead-in behavior — you get the most out of SLO VE on a tagged setup.
+
+
+INSTALLATION
+
+Install with a mod manager. Load order: AudioUtil → voice-pack assets → SLO VE last (SLO VE's AudioUtil preset must win). Mutually exclusive with full Hentairim p+ — enable only one.
+
+
+CONFIGURATION
+
+Everything lives in TOML, no MCM:
+- SKSE\Plugins\SLOVE\SLOVE.toml — voices, expressions, SFX, milk. Live reload in-game.
+- SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml — the voice slots (female F0–F3, plus male and creature slots), where each pack's audio lives, and the actor→voice routing ([npc_overrides], voicetype/race maps, category mapping).
+- SKSE\Plugins\AudioUtil\AudioUtil.toml — engine globals only (lipsync, gag, PPA).
+
+
+CREDITS
+
+- ShimizuModding and the Hentairim ecosystem — SLO VE is a standalone port of Hentairim's IVDT scene-voice system, and it stays compatible with Hentairim/IVDT-convention voice packs. All credit for that ecosystem and its packs goes to ShimizuModding and its authors.
+- Built on the AudioUtil framework and CommonLibSSE-NG, and on SexLab P+.
