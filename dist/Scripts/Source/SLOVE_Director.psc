@@ -506,20 +506,25 @@ Function Lactate(Bool IsIntense)
 	endif
 
 	;----- Milk Mod Economy (MME) integration -----
-	;When MME is installed the squirt is driven by the milkmaid's actual reserve:
-	;no squirt when she is nearly empty, and squirting drains what she has.
+	;When MME is installed AND actually tracking this actor, the squirt is driven
+	;by the milkmaid's reserve: no squirt when she is nearly empty, and squirting
+	;drains what she has. A reserve of milkMax <= 0 means MME is NOT managing this
+	;actor (she isn't a registered milkmaid), so the gate must NOT apply - else a
+	;player who merely has MME installed would get fullness 0 and never squirt.
 	;MME_Storage calls are global functions - they resolve lazily, so this is
 	;safe to compile against with MME absent at runtime (guarded by HasMME).
 	bool isMME = HasMME()
 	if isMME
 		float milkMax = MME_Storage.getMilkMaximum(playerref)
-		int fullness = 0
 		if milkMax > 0.0
-			fullness = Math.Ceiling(MME_Storage.getMilkCurrent(playerref) / milkMax * 100)
-		endif
-		if fullness <= milkmmeminfullness
-			printdebug("Milk: MME fullness " + fullness + "% at/below " + milkmmeminfullness + "% - skipping squirt")
-			return
+			int fullness = Math.Ceiling(MME_Storage.getMilkCurrent(playerref) / milkMax * 100)
+			if fullness <= milkmmeminfullness
+				printdebug("Milk: MME fullness " + fullness + "% at/below " + milkmmeminfullness + "% - skipping squirt")
+				return
+			endif
+		else
+			;MME present but not managing this actor - squirt normally, don't drain
+			isMME = false
 		endif
 	endif
 
