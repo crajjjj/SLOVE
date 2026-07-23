@@ -39,10 +39,17 @@ Lifecycle/services: `AnimationisEnding()`, `isUpdating()`, `SceneisIntense()`,
 `SaveSchlongAdjustment(pos, val)` (SFX adaptive-velocity SOSBend memory; the
 director replays it via `LoadSchlongAdjustment()` on stage change).
 
+Resistance state (written by `SLOVE_Resistance` into StorageUtil, read back
+through the Director so consumers stay firewall-clean): `GetResistance(a)`,
+`IsBroken(a)` — both gated on `resistance.enable`, consumed by
+`SLOVE_Voice.ASLIsBroken()` and `SLOVE_Expressions.IsBroken()`.
+
 Known leaks (documented, acceptable): `SLOVE_Hentairim_Tags.HasASLTag` calls
 `SexlabRegistry.IsSceneTag`; `GetLegacyStageNum` uses
 `SexlabRegistry.GetAllStages` (director-internal). Pragmatic port leaks:
-`SLOVE_Voice` and `SLOVE_SFX` still hold their own `SexLabThread` handle for
-high-frequency reads (positions, velocity, interaction flags/partners, stage
-tags) — an OStim backend must give their director-equivalents the same data
-or these reads must move behind the director API first.
+`SLOVE_Voice`, `SLOVE_SFX` and `SLOVE_Resistance` still hold their own
+`SexLabThread` handle for high-frequency reads (positions, velocity, interaction
+flags/partners, stage tags, enjoyment) — an OStim backend must give their
+director-equivalents the same data or these reads must move behind the director
+API first. `SLOVE_Resistance` additionally resolves the Director alias and the
+SexLab quest by FormID at runtime (no CK-filled properties).

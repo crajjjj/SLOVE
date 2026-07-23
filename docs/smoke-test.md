@@ -142,7 +142,13 @@ SLOVE.toml (back to 0 afterwards). Static probes need ConsoleUtil.
    the SLS face); survives save→reload mid-ahegao (Director re-seeds
    `SLOVE_FaceOwnsMouth_SLS` from `_SLS_IsAhegaoing` in `Maintenance()`).
 6. **Mid-scene save/load:** scene re-adopts within ~3 s, no orphaned spells.
-7. **Log sweep:** `AudioUtil.log` free of `no slot resolvable` / `unknown slot`
+7. **Resistance** (`resistance.enable=1`; `director.printdebug=1` logs the drain):
+   sustained penetration drains willpower and eventually **breaks** the actor →
+   broken/begging voice lines + broken/ahegao face. `resistance.enablebrokenstatus=0`
+   keeps the broken face but not the broken voice. A mid-scene save→reload does
+   **not** reset the drain (willpower persists, no re-recovery); setting
+   `resistance.enable=0` + reload drops any broken state.
+8. **Log sweep:** `AudioUtil.log` free of `no slot resolvable` / `unknown slot`
    / `no readable PCM wav` spam.
 
 ---
