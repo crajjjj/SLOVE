@@ -1,105 +1,60 @@
-# AudioUtil BASE config — SLO VE preset (globals + routing).
+# AudioUtil BASE config — SLO VE preset (globals + voice routing).
 #
-# SLO VE ships this base AudioUtil.toml, overwriting AudioUtil's neutral default
-# via load order. The base file is the ONE place engine-wide globals live:
-# AudioUtil reads [general]/[ppa]/[lipsync]/[gag] toggles ONLY from here, never
-# from a config\*.toml overlay (an overlay that sets them is ignored + warned).
-# That way an add-on voice pack can't silently change your sound flags, lipsync,
-# or PPA settings.
-#
-# The bulky voice-slot content lives in the additive overlay
+# SLO VE ships this file to overwrite AudioUtil's neutral default via load order.
+# Engine-wide globals — [general]/[ppa]/[lipsync] and the [gag] enable/
+# default_category toggles — are read ONLY from this base, never from a
+# config\*.toml overlay (an overlay that sets them is ignored + warned). The bulk
+# voice-slot content lives in the additive overlay
 #   SKSE\Plugins\AudioUtil\config\SLOVE_slots.toml
-# and any other mod may drop its own config\*.toml to ADD slots / sfx / mappings
-# (those accumulate). Load order: this base first, then every config\*.toml in
-# sorted filename order. Re-read both in-game with cgf "AudioUtil.ReloadConfig".
+# and any mod may drop its own config\*.toml to ADD slots / sfx / mappings (they
+# accumulate). Re-read both in-game with  cgf "AudioUtil.ReloadConfig".
+# All key/name matching is case- and space-insensitive.
 #
-# ---------------------------------------------------------------------------
-# QUICK GUIDE — the tweaks people actually come here for (all in THIS file):
-#   change which voice a voicetype gets .... [voicetype_map]
-#   cover an unlisted voicetype ............ [voicetype_remap]
-#   pin one specific NPC to a slot ......... [npc_overrides]
-#   voice by race / creatures .............. [race_map]
-#   startup volumes ........................ [groups]  (MCM sliders override!)
-#   muffled voice + still mouth when gagged  [gag]  (+ a slot's gag_slot)
-#   add / edit a voice pack ................ [[slot]] in config\SLOVE_slots.toml
-#
-# HOW AN ACTOR FINDS THEIR VOICE (checked top to bottom, first hit wins):
-#   1. pc_female_slot / pc_male_slot   (player only; reserved from NPCs)
-#   2. [npc_overrides]                 (explicit per-NPC pin)
-#   3. [voicetype_remap]               (rename voicetype, then:)
-#   4. [voicetype_map]                 (voicetype -> slot)
-#   5. [race_map]                      (race substring -> slot)
-#   6. default_female_slot / default_male_slot
-#
-# HOW A CATEGORY FINDS ITS AUDIO (within the resolved slot):
-#   exact folder -> [category_aliases] -> [male_only_remap] (male slots only)
-#   -> [category_fallbacks] (one hop) -> the slot's fallback slot (same steps;
-#   how empty F1/F2 backfill from the F0* moan slots) -> [sfx] table last resort
-#
-# All name/key matching is case- and space-insensitive
-# ("About To Cum" == "AboutToCum" == "abouttocum").
-# ---------------------------------------------------------------------------
+# How an actor resolves to a slot, how a category resolves to audio, and every
+# key below are documented in full at: https://crajjjj.github.io/AudioUtil/
 
 [general]
 log_level = "info"            # trace | debug | info | warn | error
 sound_flags = 0x1A            # BuildSoundDataFromFile flags (experiment via DebugPlayFile)
 sound_priority = 128
-# false = voices play flat/2D at full volume, so every speaker is equally
-# audible. With 3D on, the player's voice sits at the listener while partners
-# and creatures attenuate with distance and can sound faint even though their
-# source is louder. Lipsync is unaffected either way. SFX always play
-# 3D-positioned at the actor. Live-toggle: edit + cgf "AudioUtil.ReloadConfig".
+# false = voices play flat/2D at full volume so every speaker is equally audible;
+# true = 3D at the speaker (partners/creatures attenuate with distance). Lipsync
+# unaffected either way; SFX always play 3D at the actor.
 voice_3d = true
-# skip a new voice line when the speaker's channel is still playing one, so a
-# line finishes before the next starts (per speaker - different speakers still
-# overlap). Stops the PC cutting herself off mid-line.
+# skip a new voice line while the speaker's channel is still playing one, so a
+# line finishes first (per speaker; different speakers still overlap).
 voice_no_interrupt = true
 default_female_slot = "F0"    # unrouted female NPCs speak the stock moans
 default_male_slot = "M1"
-# reserved player slots: the PC always speaks with this slot and no other actor
-# ever resolves to it. Set pc_male_slot = "M1" too when playing a male PC.
+# reserved player slots: the PC always speaks this slot and no NPC ever resolves
+# to it. Set pc_male_slot = "M1" too when playing a male PC.
 pc_female_slot = "F1"
 pc_male_slot = ""
 
 [ppa]
-enable = true                 # velocity/collision bridge (Accurate Penetration):
-                              # drives thrust-synced SFX and contact one-shots
-event_rate_ms = 2000          # min interval per receiver for AudioUtilPPA_Update mod events
-# GetPPAContext / AudioUtilPPA_Update context bitmask:
-#   1=Vaginal  2=Anal  4=Oral  8=Aggressive  16=FemDom  32=Loving
-#   64=Dirty  128=Boobjob  256=Handjob  512=Footjob  1024=Masturbation
+enable = true                 # Accurate Penetration bridge: drives thrust-synced SFX + contact one-shots
+event_rate_ms = 2000          # min interval per receiver for AudioUtilPPA_Update events (floored at 1000)
 
 [lipsync]
 # Mouths move with the moans: every PlayVoice line drives the speaker's MFG
-# Aah/BigAah phonemes from the wav's loudness envelope, per frame, natively.
-# Loose PCM wavs only (all IVDT voice packs qualify); BSA-packed creature
-# slots play fine without mouth movement. Runtime: SetLipSyncEnabled/Gain.
+# Aah/BigAah phonemes from the wav's loudness envelope, per frame. Loose PCM
+# wavs only; BSA-packed creature slots play fine without mouth movement.
 enable = true
 gain = 1.0                    # 0.0-2.0 mouth-open strength
 attack_ms = 30                # opening speed toward a louder level
 release_ms = 90               # closing speed on quiet / clip end
 min_level = 0.04              # levels below this keep the mouth closed
-# categories that never drive the mouth (matched on the requested name). Blowjob
-# action is oral SFX (slurping, not vocalization); Orgasm hands the mouth to the
-# climax/ahegao face. Applies across all slots that serve these categories.
+# categories that never drive the mouth: blowjob action is oral SFX (slurping,
+# not vocalization); Orgasm hands the mouth to the climax/ahegao face.
 block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "Orgasm"]
 
 [gag]
-# Gag / deepthroat / mouth-owning devices. When a speaking female wears any
-# keyword below, two things happen automatically:
-#   1. her voice routes through her slot's `gag_slot` (see F1/F2/F3 -> F1gag
-#      in config\SLOVE_slots.toml) so a muffled clip plays instead of the clear
-#      line, and
-#   2. lipsync is suppressed - the device owns the mouth, so the DLL won't
-#      fight it (this replaces the old MFG mouth-open guesswork).
-# F1gag holds one muffled pool ("GagMoan"); no SLO VE scene category exists
-# there, so every gagged line falls through to default_category - a muffled
-# clip, never silence, never a clear line.
-# Keywords are 'Plugin.esp|FormID' (hex), same form as [npc_overrides] keys.
-# A keyword whose mod you don't run is silently skipped, so leaving all of
-# these listed is harmless. enable = false turns the whole feature off.
-# (enable / default_category are globals -> base-only; the keywords list is
-# additive, so an add-on may contribute more gag markers from its overlay.)
+# When a speaking female wears a keyword below, her voice routes through her
+# slot's gag_slot (F1/F2/F3 -> F1gag in SLOVE_slots.toml) for a muffled clip and
+# lipsync is suppressed (the device owns the mouth). F1gag holds only "GagMoan",
+# so every gagged line falls through to default_category - muffled, never
+# silence, never a clear line. Keywords are 'Plugin.esp|FormID'; one whose mod
+# isn't installed is silently skipped, so listing them all is harmless.
 enable = true
 default_category = "GagMoan"
 keywords = [
@@ -110,22 +65,13 @@ keywords = [
   'SL Survival.esp|0B74B5',              # _SLS_TongueKeyword (tongue/deepthroat)
 ]
 
-# ---------- 2. per-NPC slot pin ----------
-# Beats voicetype and race resolution; may target any slot, even a reserved
-# one. Key is 'Plugin.esp|FormID'; for ESL-flagged plugins use the last
-# 3 hex digits ('MyEslMod.esp|D62'). This is how you give your partner or
-# follower her own voice: pin her to F2/F3 and (optionally) install a pack
-# into Sound\fx\IVDT\F2 - without a pack she speaks the F0B stock moans.
-
+# per-NPC slot pin: 'Plugin.esp|FormID' = "SlotId" (ESL: last 3 hex digits).
+# Beats voicetype/race; pin a follower to F2/F3 to give her her own voice.
 [npc_overrides]
 # 'MyFollower.esp|000D62' = "F2"
 
-# ---------- 3. VoiceType synonyms (was EnableReassigningMaleVoice) ----------
-# Renames voicetypes we have no pack for to one we do - each line reads as
-# the claim being made ("a guard sounds like a Nord"). Single hop: the target
-# must be a [voicetype_map] key. enable = false turns this layer off, so only
-# exact [voicetype_map] matches get voices.
-
+# VoiceType synonyms: rename a voicetype we have no pack for to one we do (single
+# hop; the target must be a [voicetype_map] key). enable = false turns it off.
 [voicetype_remap]
 enable = true
 MaleCommander = "MaleBrute"
@@ -145,10 +91,8 @@ MaleSlyCynical = "MaleCondescending"
 MaleDarkElfCynical = "MaleDarkElf"
 MaleKhajiitAccented = "MaleKhajitt"
 
-# ---------- 4. VoiceType -> slot (was GetVoiceForActor's if-ladder) ----------
-# A value may list several candidate slots - actors sharing the voicetype are
-# spread across them deterministically (same NPC = same slot, always).
-
+# VoiceType -> slot. A value may list several slots; actors sharing the
+# voicetype spread across them deterministically (same NPC = same slot).
 [voicetype_map]
 MaleEvenToned = "M1"
 MaleArgonian = "M2"
@@ -160,15 +104,9 @@ MaleDarkElf = "M6"
 MaleKhajitt = "M7"
 MaleOrc = "M8"
 
-# ---------- 5. race -> slot fallback (when no voicetype maps) ----------
-# For custom-voiced NPCs and creatures. Hints are substring-matched against
-# the race editor id ("Nord" matches NordRace and NordRaceVampire; "Troll"
-# matches TrollRace and TrollFrostRace); the most specific (longest) hint
-# wins, which is what keeps Werewolf and Wolf apart. Values may be slot
-# lists, same as [voicetype_map]. The C1-C10 creature slots (in
-# config\SLOVE_slots.toml) are sex = "all", so they match a creature whatever
-# sex the engine reports for it.
-
+# race -> slot fallback (when no voicetype maps). Substring-matched against the
+# race editor id, longest hint wins. Creature slots C1-C10 (in SLOVE_slots.toml)
+# are sex = "all" so they match whatever sex the engine reports.
 [race_map]
 Argonian = "M2"
 Nord = "M4"
@@ -189,10 +127,7 @@ Chaurus = "C8"           # includes Reaper and Hunter variants
 Spriggan = "C9"          # includes Matron
 Horse = "C10"
 
-# ---------- category aliases: script/property name -> on-disk folder ----------
-# Category names are the s* string properties in IVDTVoiceFemaleScript /
-# IVDTVoiceMaleScript. Aliases rename them to the actual folder names.
-
+# category aliases: script/property name -> on-disk folder name.
 [category_aliases.female]
 TeaseMaleCloseToOrgasmIntense = "Male Close Tease Intense"
 TeaseMaleCloseToOrgasmSoft = "Male Close Tease Soft"
@@ -206,11 +141,8 @@ TeaseFemaleOrgasm = "Tease Aggressive Partner"
 AfterFemaleOrgasm = "Post Nut Remark"
 MCMSampleSounds = "Orgasm"
 
-# ---------- male-only scenes: female-engine category -> male category ----------
-# When a male slot receives a category named after the female script set
-# (male-only scenes route female-engine decisions to male voices), this
-# substitutes the closest male category.
-
+# male-only scenes: substitute the closest male category for a female-engine
+# category name routed to a male slot.
 [male_only_remap]
 PenetrativeCommentsIntense = "Aggressive"
 PenetrativeCommentsSoft = "Tease Aggressive Partner"
@@ -232,8 +164,7 @@ AfterOrgasmArouse = "Joke After Orgasm"
 MaleOrgasmOral = "Orgasm"
 MaleOrgasmNonOral = "Orgasm"
 
-# ---------- fallbacks for script categories with no on-disk folder (one hop) ----------
-
+# fallbacks: substitute (one hop) when a script category has no on-disk folder.
 [category_fallbacks.female]
 GreetLover = "Greet Familiar"
 GreetLoadedFamiliar = "Greet Familiar"
@@ -257,18 +188,14 @@ RefractoryPeriod = "Want More"
 MaleHalfwayIntense = "Male Close Notice"
 
 [category_fallbacks.male]
-# creatures (C1-C10, sex=male) only define an Orgasm sound list, so the
-# per-scene creature ambience (SLOVE_Voice requests "Breathing") falls back to
-# it - they growl/pant their own vanilla sounds during the scene. Give a C-slot
-# its own explicit "Breathing" category to override this with calmer idles.
+# creatures (C1-C10) only define an Orgasm list, so per-scene creature ambience
+# (SLOVE_Voice requests "Breathing") falls back to it - they growl/pant their
+# vanilla sounds. Give a C-slot its own "Breathing" category to override.
 Breathing = "Orgasm"
 
-# ---------- startup group volumes (0.0 - 1.0) ----------
-# pc_* = player voice, partner_* = NPC voice, high/low = line priority tier,
-# sfx = body sounds, oneshot = out-of-scene one-shots (IVDTVoiceCall).
-# These are STARTUP values only - the MCM volume sliders override them at
-# runtime via SetGroupVolume; edit here for the pre-MCM default.
-
+# startup group volumes (0.0-1.0). STARTUP only - MCM sliders override at runtime
+# via SetGroupVolume. pc_* = player voice, partner_* = NPC voice, sfx = body
+# sounds, oneshot = out-of-scene one-shots.
 [groups]
 pc_high = 1.0
 pc_low = 1.0
