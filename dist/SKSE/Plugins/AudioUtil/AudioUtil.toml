@@ -9,6 +9,7 @@
 #   voice by race / creatures .............. [race_map]
 #   startup volumes ........................ [groups]  (MCM sliders override!)
 #   add a voice pack ....................... [[slot]] + folders (see below)
+#   muffled voice + still mouth when gagged  [gag]  (+ a slot's gag_slot)
 #
 # HOW AN ACTOR FINDS THEIR VOICE (checked top to bottom, first hit wins):
 #   1. pc_female_slot / pc_male_slot   (player only; reserved from NPCs)
@@ -60,7 +61,7 @@ sfx_root = 'Sound\fx\SloveSFX'
 # and creatures attenuate with distance and can sound faint even though their
 # source is louder. Lipsync is unaffected either way. SFX always play
 # 3D-positioned at the actor. Live-toggle: edit + cgf "AudioUtil.ReloadConfig".
-voice_3d = false
+voice_3d = true
 # skip a new voice line when the speaker's channel is still playing one, so a
 # line finishes before the next starts (per speaker - different speakers still
 # overlap). Stops the PC cutting herself off mid-line.
@@ -91,6 +92,29 @@ attack_ms = 30                # opening speed toward a louder level
 release_ms = 90               # closing speed on quiet / clip end
 min_level = 0.04              # levels below this keep the mouth closed
 
+[gag]
+# Gag / deepthroat / mouth-owning devices. When a speaking female wears any
+# keyword below, two things happen automatically:
+#   1. her voice routes through her slot's `gag_slot` (see F1/F2/F3 -> F1gag
+#      below) so a muffled clip plays instead of the clear line, and
+#   2. lipsync is suppressed - the device owns the mouth, so the DLL won't
+#      fight it (this replaces the old MFG mouth-open guesswork).
+# F1gag holds one muffled pool ("GagMoan"); no SLO VE scene category exists
+# there, so every gagged line falls through to default_category - a muffled
+# clip, never silence, never a clear line.
+# Keywords are 'Plugin.esp|FormID' (hex), same form as [npc_overrides] keys.
+# A keyword whose mod you don't run is silently skipped, so leaving all of
+# these listed is harmless. enable = false turns the whole feature off.
+enable = true
+default_category = "GagMoan"
+keywords = [
+  'Devious Devices - Assets.esm|7EB8',   # zad_DeviousGag
+  'ZaZAnimationPack.esm|8A4D',           # zbfWornGag
+  'ZaZAnimationPack.esm|8A35',           # zbfEffectOpenMouth
+  'Toys.esm|8C2',                        # ToysEffectMouthOpen
+  'SL Survival.esp|0B74B5',              # _SLS_TongueKeyword (tongue/deepthroat)
+]
+
 # ---------- voice slots ----------
 # Female voices work OUT OF THE BOX and with Hentairim/IVDT packs:
 #   F0  = the stock DEFAULT female voice: SexLab's own moan set (loose files
@@ -120,18 +144,29 @@ id = "F1"
 sex = "female"
 path = 'Sound\fx\IVDT\F1'
 fallback = "F0"
+gag_slot = "F1gag"    # muffled DD-gag voice when the actor wears a gag (see [gag])
 
 [[slot]]  # partner/follower pack slot (route via [npc_overrides] / [voicetype_map])
 id = "F2"
 sex = "female"
 path = 'Sound\fx\IVDT\F2'
 fallback = "F0B"
+gag_slot = "F1gag"    # shares the one bundled female gag pool
 
 [[slot]]  # second partner/follower pack slot
 id = "F3"
 sex = "female"
 path = 'Sound\fx\IVDT\F3'
 fallback = "F0B"
+gag_slot = "F1gag"
+
+[[slot]]  # gagged-female voice: one muffled pool (27 clips from "DD Gag Voice
+          # Cute"). No SLO VE category matches, so every gagged line falls through
+          # to [gag] default_category = "GagMoan". No fallback -> never leaks a
+          # clear line while gagged.
+id = "F1gag"
+sex = "female"
+path = 'Sound\fx\IVDT\F1gag'
 
 [[slot]]  # stock default female - SexLab voice vFemaleMoan01 (27 mild / 27 medium / 8 hot)
 id = "F0"
