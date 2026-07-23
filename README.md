@@ -33,7 +33,7 @@ with Milk Mod Economy also installed, squirts require and drain her milk).
   Hentairim/IVDT-convention female pack into `Sound\fx\IVDT\F1` (or F2/F3)
   and it just plays — no config edits; categories the pack lacks backfill
   from the stock moans per category. Route a follower to F2/F3 via
-  `[npc_overrides]` in `SKSE\Plugins\AudioUtil\AudioUtil.toml`.
+  `[npc_overrides]` in `SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml`.
 - **Scene tag data**: labels resolve from Hentairim-convention scene tags
   (`3asvp` = stage 3, actor A, vaginal penetration) in your SexLab P+ scene
   registry. Untagged animations fall back to lead-in behavior. Tag data comes
@@ -62,8 +62,9 @@ not the broken voice. State is per-actor (StorageUtil), driven by the
 
 - `SKSE\Plugins\SLOVE\SLOVE.toml` — all settings (`[director]`, `[voice]`,
   `[expressions]`, `[sfx]`, `[resistance]`, `[milk]`). Live reload: `cgf "TomlUtil.Reload" "SKSE\Plugins\SLOVE\SLOVE.toml"`.
-- `SKSE\Plugins\AudioUtil\AudioUtil.toml` — voice slots/mapping (AudioUtil
-  preset; live reload via `cgf "AudioUtil.ReloadConfig"`).
+- `SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml` — voice slots, actor→slot
+  routing, and SFX (AudioUtil preset content). `AudioUtil.toml` alongside it
+  holds only the engine globals. Live reload via `cgf "AudioUtil.ReloadConfig"`.
 - `SKSE\Plugins\StorageUtilData\SLOVE\*.json` — expression preset data, plus the
   `ResistanceRaceBase` / `ResistanceRacePCModifier` willpower race tables.
 

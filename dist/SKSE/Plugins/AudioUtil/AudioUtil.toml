@@ -1,11 +1,12 @@
-# AudioUtil BASE config — SLO VE preset (globals + voice routing).
+# AudioUtil BASE config — SLO VE preset (globals only).
 #
 # SLO VE ships this file to overwrite AudioUtil's neutral default via load order.
 # Engine-wide globals — [general]/[ppa]/[lipsync] and the [gag] enable/
 # default_category toggles — are read ONLY from this base, never from a
-# config\*.toml overlay (an overlay that sets them is ignored + warned). The bulk
-# voice-slot content lives in the additive overlay
-#   SKSE\Plugins\AudioUtil\config\SLOVE_slots.toml
+# config\*.toml overlay (an overlay that sets them is ignored + warned). All the
+# voice CONTENT — the slots, the actor->slot routing maps, the category maps and
+# SFX — lives in the additive overlay
+#   SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml
 # and any mod may drop its own config\*.toml to ADD slots / sfx / mappings (they
 # accumulate). Re-read both in-game with  cgf "AudioUtil.ReloadConfig".
 # All key/name matching is case- and space-insensitive.
@@ -50,7 +51,7 @@ block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "Orgasm"]
 
 [gag]
 # When a speaking female wears a keyword below, her voice routes through her
-# slot's gag_slot (F1/F2/F3 -> F1gag in SLOVE_slots.toml) for a muffled clip and
+# slot's gag_slot (F1/F2/F3 -> F1gag in SLOVE_voices.toml) for a muffled clip and
 # lipsync is suppressed (the device owns the mouth). F1gag holds only "GagMoan",
 # so every gagged line falls through to default_category - muffled, never
 # silence, never a clear line. Keywords are 'Plugin.esp|FormID'; one whose mod
@@ -64,142 +65,3 @@ keywords = [
   'Toys.esm|8C2',                        # ToysEffectMouthOpen
   'SL Survival.esp|0B74B5',              # _SLS_TongueKeyword (tongue/deepthroat)
 ]
-
-# per-NPC slot pin: 'Plugin.esp|FormID' = "SlotId" (ESL: last 3 hex digits).
-# Beats voicetype/race; pin a follower to F2/F3 to give her her own voice.
-[npc_overrides]
-# 'MyFollower.esp|000D62' = "F2"
-
-# VoiceType synonyms: rename a voicetype we have no pack for to one we do (single
-# hop; the target must be a [voicetype_map] key). enable = false turns it off.
-[voicetype_remap]
-enable = true
-MaleCommander = "MaleBrute"
-MaleSoldier = "MaleBrute"
-MaleCommoner = "MaleEvenToned"
-MaleCommonerAccented = "MaleEvenToned"
-MaleEvenTonedAccented = "MaleEvenToned"
-MaleYoungEager = "MaleEvenToned"
-MaleDrunk = "MaleEvenToned"
-MaleElfHaughty = "MaleCondescending"
-MaleGuard = "MaleNord"
-MaleNordCommander = "MaleNord"
-MaleWarlock = "MaleCondescending"
-MaleOldGrumpy = "MaleBrute"
-MaleOldKindly = "MaleEvenToned"
-MaleSlyCynical = "MaleCondescending"
-MaleDarkElfCynical = "MaleDarkElf"
-MaleKhajiitAccented = "MaleKhajitt"
-
-# VoiceType -> slot. A value may list several slots; actors sharing the
-# voicetype spread across them deterministically (same NPC = same slot).
-[voicetype_map]
-MaleEvenToned = "M1"
-MaleArgonian = "M2"
-MaleBrute = "M3"
-MaleNord = "M4"
-MaleBandit = ["M3", "M4"]
-MaleCondescending = "M5"
-MaleDarkElf = "M6"
-MaleKhajitt = "M7"
-MaleOrc = "M8"
-
-# race -> slot fallback (when no voicetype maps). Substring-matched against the
-# race editor id, longest hint wins. Creature slots C1-C10 (in SLOVE_slots.toml)
-# are sex = "all" so they match whatever sex the engine reports.
-[race_map]
-Argonian = "M2"
-Nord = "M4"
-DarkElf = "M6"
-HighElf = "M5"
-Khajiit = "M7"
-Orc = "M8"
-# creatures (slots C1-C10, defined in config\SLOVE_slots.toml)
-Werewolf = "C1"
-Draugr = "C2"            # skeletons are NOT covered - add a Skeleton hint if wanted
-Falmer = "C3"
-Troll = "C4"
-Giant = "C5"
-Wolf = "C6"
-Dog = "C7"
-Husky = "C7"             # DLC1HuskyRace / armored huskies don't contain "Dog"
-Chaurus = "C8"           # includes Reaper and Hunter variants
-Spriggan = "C9"          # includes Matron
-Horse = "C10"
-
-# category aliases: script/property name -> on-disk folder name.
-[category_aliases.female]
-TeaseMaleCloseToOrgasmIntense = "Male Close Tease Intense"
-TeaseMaleCloseToOrgasmSoft = "Male Close Tease Soft"
-MCMSampleSounds = "Orgasm"
-
-[category_aliases.male]
-# the 5 male script properties whose descriptors reuse other folders' audio
-StrugglingOvert = "Struggling Early"
-JokeAroused = "Joke After Orgasm"
-TeaseFemaleOrgasm = "Tease Aggressive Partner"
-AfterFemaleOrgasm = "Post Nut Remark"
-MCMSampleSounds = "Orgasm"
-
-# male-only scenes: substitute the closest male category for a female-engine
-# category name routed to a male slot.
-[male_only_remap]
-PenetrativeCommentsIntense = "Aggressive"
-PenetrativeCommentsSoft = "Tease Aggressive Partner"
-PenetrativeGrunts = "Aroused"
-SensitivePleasure = "Struggling Subtle"
-ForeplayIntense = "Aroused"
-ForeplaySoft = "Aroused"
-InsertionGeneric = "Struggling Subtle"
-InsertionAnalExcited = "Struggling Subtle"
-InsertionAnalSlow = "Struggling Subtle"
-NearOrgasmNoises = "Struggling Subtle"
-NearOrgasmExclamations = "Struggling Early"
-BreathyIntense = "Aroused"
-BreathySoft = "Aroused"
-LoveyDovey = "Lovey Dovey"
-AfterOrgasmRemarks = "Post Nut Remark"
-AfterOrgasmExclamations = "Post Nut Remark"
-AfterOrgasmArouse = "Joke After Orgasm"
-MaleOrgasmOral = "Orgasm"
-MaleOrgasmNonOral = "Orgasm"
-
-# fallbacks: substitute (one hop) when a script category has no on-disk folder.
-[category_fallbacks.female]
-GreetLover = "Greet Familiar"
-GreetLoadedFamiliar = "Greet Familiar"
-MissMaleLover = "Greet Familiar"
-WantToBeLover = "Greet Familiar"
-RomanceMaleThane = "Greet Familiar"
-AppreciatePartner = "Satisfied"
-LoveyDovey = "Satisfied"
-ReadyToResume = "Ready To Get Going"
-AssToMouth = "Blowjob Remarks"
-InsertionAnalExcited = "Insertion Anal Slow"
-AskForPacingBreak = "Penetrative Comments Soft"
-BeforeGape = "Intense Anal"
-AssFlattering = "On The Attack"
-MadeMeCumSoMuch = "After Orgasm Remarks"
-AskForAnal = "Tease Aggressive Partner"
-TeaseAnal = "Tease Aggressive Partner"
-BreathySoft = "Breathy Intense"
-MaleOrgasmReactionLover = "Male Orgasm Reaction Soft"
-RefractoryPeriod = "Want More"
-MaleHalfwayIntense = "Male Close Notice"
-
-[category_fallbacks.male]
-# creatures (C1-C10) only define an Orgasm list, so per-scene creature ambience
-# (SLOVE_Voice requests "Breathing") falls back to it - they growl/pant their
-# vanilla sounds. Give a C-slot its own "Breathing" category to override.
-Breathing = "Orgasm"
-
-# startup group volumes (0.0-1.0). STARTUP only - MCM sliders override at runtime
-# via SetGroupVolume. pc_* = player voice, partner_* = NPC voice, sfx = body
-# sounds, oneshot = out-of-scene one-shots.
-[groups]
-pc_high = 1.0
-pc_low = 1.0
-partner_high = 1.0
-partner_low = 1.0
-sfx = 1.0
-oneshot = 1.0
