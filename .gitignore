@@ -5,3 +5,4 @@ dist/Sound/
 .vscode/
 
 dist/SLOVE.esp.bak-preresist
+*.ppj
