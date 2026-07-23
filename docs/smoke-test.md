@@ -138,8 +138,9 @@ SLOVE.toml (back to 0 afterwards). Static probes need ConsoleUtil.
 4. **Body SFX** (`sfx.enable=1`): slush/impact track thrusts, successive
    slushes replace, ejac one-shot at climax, kiss SFX, all stop at scene end.
 5. **SLS ahegao** (SLS ≥ 0.707): face + moan-lipsync yield while active
-   (moans stay audible); `AudioUtil.log` shows `SetLipSyncBlocked: block/unblock
-   ... by 'SLOVE_Director'`; survives save→reload mid-ahegao.
+   (moans stay audible — played with `blockLipSync=true`, so the mouth stays on
+   the SLS face); survives save→reload mid-ahegao (Director re-seeds
+   `SLOVE_FaceOwnsMouth_SLS` from `_SLS_IsAhegaoing` in `Maintenance()`).
 6. **Mid-scene save/load:** scene re-adopts within ~3 s, no orphaned spells.
 7. **Log sweep:** `AudioUtil.log` free of `no slot resolvable` / `unknown slot`
    / `no readable PCM wav` spam.

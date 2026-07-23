@@ -1,15 +1,27 @@
-# AudioUtil — SLO VE preset (voice slots and category mapping).
-# Overwrites AudioUtil's neutral default via load order - install SLO VE last.
+# AudioUtil BASE config — SLO VE preset (globals + routing).
+#
+# SLO VE ships this base AudioUtil.toml, overwriting AudioUtil's neutral default
+# via load order. The base file is the ONE place engine-wide globals live:
+# AudioUtil reads [general]/[ppa]/[lipsync]/[gag] toggles ONLY from here, never
+# from a config\*.toml overlay (an overlay that sets them is ignored + warned).
+# That way an add-on voice pack can't silently change your sound flags, lipsync,
+# or PPA settings.
+#
+# The bulky voice-slot content lives in the additive overlay
+#   SKSE\Plugins\AudioUtil\config\SLOVE_slots.toml
+# and any other mod may drop its own config\*.toml to ADD slots / sfx / mappings
+# (those accumulate). Load order: this base first, then every config\*.toml in
+# sorted filename order. Re-read both in-game with cgf "AudioUtil.ReloadConfig".
 #
 # ---------------------------------------------------------------------------
-# QUICK GUIDE — the tweaks people actually come here for:
+# QUICK GUIDE — the tweaks people actually come here for (all in THIS file):
 #   change which voice a voicetype gets .... [voicetype_map]
 #   cover an unlisted voicetype ............ [voicetype_remap]
 #   pin one specific NPC to a slot ......... [npc_overrides]
 #   voice by race / creatures .............. [race_map]
 #   startup volumes ........................ [groups]  (MCM sliders override!)
-#   add a voice pack ....................... [[slot]] + folders (see below)
 #   muffled voice + still mouth when gagged  [gag]  (+ a slot's gag_slot)
+#   add / edit a voice pack ................ [[slot]] in config\SLOVE_slots.toml
 #
 # HOW AN ACTOR FINDS THEIR VOICE (checked top to bottom, first hit wins):
 #   1. pc_female_slot / pc_male_slot   (player only; reserved from NPCs)
@@ -26,36 +38,12 @@
 #
 # All name/key matching is case- and space-insensitive
 # ("About To Cum" == "AboutToCum" == "abouttocum").
-#
-# Slots are defined by any mix of:
-#   - a scanned folder tree (path = 'Sound\fx\IVDT\<Id>' holding
-#     <Category>\*.wav subfolders),
-#   - explicit per-category FILE lists ([slot.categories] array values) which
-#     need no loose files and may point into BSA archives — see the creature
-#     slots at the BOTTOM of this file,
-#   - per-category FOLDER references ([slot.categories] string values,
-#     'Sound\...' = full Data path, else relative to the slot's path; loose
-#     files only) — see the F1/F2 SexLab-moan defaults below.
-# Explicit categories win over same-named scanned folders.
-#
-# PAPYRUS QUICK REFERENCE (full API in Scripts\Source\AudioUtil.psc):
-#   int h = AudioUtil.PlayVoice(npc, "Aroused")                ; slot auto-resolved
-#   AudioUtil.PlayVoice(npc, "Aggressive", 1.0, "partner_low") ; + volume, group
-#   AudioUtil.PlayVoiceAndWait(mainFemale, "Orgasm", 1.0, "pc_high")  ; blocks
-#   AudioUtil.PlaySFX("LightSlushing", npc, 1.0, "sfx", "sfx_main_2") ; channel
-#                              ; replaces that channel's previous sound
-#   AudioUtil.PlayVoiceFromSlot("M4", "Aroused", npc)          ; skip resolution
-#   AudioUtil.GetSlotForActor(npc)                             ; -> "M7" etc.
-#   AudioUtil.ReloadConfig()   ; re-read this file in-game (console:
-#                              ; cgf "AudioUtil.ReloadConfig")
 # ---------------------------------------------------------------------------
 
 [general]
 log_level = "info"            # trace | debug | info | warn | error
 sound_flags = 0x1A            # BuildSoundDataFromFile flags (experiment via DebugPlayFile)
 sound_priority = 128
-voice_root = 'Sound\fx\IVDT'
-sfx_root = 'Sound\fx\SloveSFX'
 # false = voices play flat/2D at full volume, so every speaker is equally
 # audible. With 3D on, the player's voice sits at the listener while partners
 # and creatures attenuate with distance and can sound faint even though their
@@ -91,12 +79,17 @@ gain = 1.0                    # 0.0-2.0 mouth-open strength
 attack_ms = 30                # opening speed toward a louder level
 release_ms = 90               # closing speed on quiet / clip end
 min_level = 0.04              # levels below this keep the mouth closed
+# categories that never drive the mouth (matched on the requested name). Blowjob
+# action is oral SFX (slurping, not vocalization); Orgasm hands the mouth to the
+# climax/ahegao face. Applies across all slots that serve these categories.
+block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "Orgasm"]
 
 [gag]
 # Gag / deepthroat / mouth-owning devices. When a speaking female wears any
 # keyword below, two things happen automatically:
 #   1. her voice routes through her slot's `gag_slot` (see F1/F2/F3 -> F1gag
-#      below) so a muffled clip plays instead of the clear line, and
+#      in config\SLOVE_slots.toml) so a muffled clip plays instead of the clear
+#      line, and
 #   2. lipsync is suppressed - the device owns the mouth, so the DLL won't
 #      fight it (this replaces the old MFG mouth-open guesswork).
 # F1gag holds one muffled pool ("GagMoan"); no SLO VE scene category exists
@@ -105,6 +98,8 @@ min_level = 0.04              # levels below this keep the mouth closed
 # Keywords are 'Plugin.esp|FormID' (hex), same form as [npc_overrides] keys.
 # A keyword whose mod you don't run is silently skipped, so leaving all of
 # these listed is harmless. enable = false turns the whole feature off.
+# (enable / default_category are globals -> base-only; the keywords list is
+# additive, so an add-on may contribute more gag markers from its overlay.)
 enable = true
 default_category = "GagMoan"
 keywords = [
@@ -114,258 +109,6 @@ keywords = [
   'Toys.esm|8C2',                        # ToysEffectMouthOpen
   'SL Survival.esp|0B74B5',              # _SLS_TongueKeyword (tongue/deepthroat)
 ]
-
-# ---------- voice slots ----------
-# Female voices work OUT OF THE BOX and with Hentairim/IVDT packs:
-#   F0  = the stock DEFAULT female voice: SexLab's own moan set (loose files
-#         every SexLab P+ install already has - nothing bundled, plain PCM so
-#         lipsync works), mapped per category by intensity. All females speak
-#         this until a pack or a pin says otherwise. (F0B = second stock
-#         voice, used as the backfill for the partner/follower slots.)
-#   F1  = the PLAYER pack slot (reserved above): scans Sound\fx\IVDT\F1 -
-#         drop ANY Hentairim-convention female pack there and it just plays,
-#         no config edits. Categories the pack lacks (or the whole slot, when
-#         no pack is installed) backfill per-category from F0 via `fallback`.
-#   F2, F3 = partner/follower pack slots: same mechanics (scan IVDT\F2/F3,
-#         backfill from F0B). Nothing routes to them by default - pin your
-#         partner or follower via [npc_overrides] below, or map a female
-#         voicetype to them in [voicetype_map].
-# Categories a stock slot doesn't list resolve via [category_aliases.female]
-# / [category_fallbacks.female]. Audit any slot in-game:
-# cgf "SLOVE_Test.AuditVoicePack" "F1".
-# M1-M8 are the bundled male packs (Hentairim voice pack assets, shipped
-# with SLO VE under Sound\fx\IVDT):
-# M1 Even Toned, M2 Argonian, M3 Brute, M4 Nord, M5 Condescending,
-# M6 Dark Elf, M7 Khajiit, M8 Orc. Creature slots C1-C10 are defined at the
-# bottom of the file (explicit BSA file lists, no folders).
-
-[[slot]]  # player pack slot - any female pack dropped here wins per category
-id = "F1"
-sex = "female"
-path = 'Sound\fx\IVDT\F1'
-fallback = "F0"
-gag_slot = "F1gag"    # muffled DD-gag voice when the actor wears a gag (see [gag])
-
-[[slot]]  # partner/follower pack slot (route via [npc_overrides] / [voicetype_map])
-id = "F2"
-sex = "female"
-path = 'Sound\fx\IVDT\F2'
-fallback = "F0B"
-gag_slot = "F1gag"    # shares the one bundled female gag pool
-
-[[slot]]  # second partner/follower pack slot
-id = "F3"
-sex = "female"
-path = 'Sound\fx\IVDT\F3'
-fallback = "F0B"
-gag_slot = "F1gag"
-
-[[slot]]  # gagged-female voice: one muffled pool (27 clips from "DD Gag Voice
-          # Cute"). No SLO VE category matches, so every gagged line falls through
-          # to [gag] default_category = "GagMoan". No fallback -> never leaks a
-          # clear line while gagged.
-id = "F1gag"
-sex = "female"
-path = 'Sound\fx\IVDT\F1gag'
-
-[[slot]]  # stock default female - SexLab voice vFemaleMoan01 (27 mild / 27 medium / 8 hot)
-id = "F0"
-sex = "female"
-[slot.categories]
-# mild: greetings / soft / afterglow
-GreetFamiliar = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-Satisfied = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-SensitivePleasure = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-ForeplaySoft = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-ReadyToGetGoing = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-BlowjobRemarks = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-PenetrativeCommentsSoft = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-AfterOrgasmArouse = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-AfterOrgasmExclamations = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-AfterOrgasmRemarks = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-NoticeMaleWantsMore = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-Amused = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-Unamused = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-UnamusedEnd = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-Oh = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-MaleOrgasmReactionSoft = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-MaleCloseTeaseSoft = 'Sound\fx\SexLab\vFemaleMoan01\mild'
-# medium: active / penetrative / reactions
-ForeplayIntense = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-InsertionGeneric = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-InsertionAnalSlow = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-PenetrativeGrunts = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-PenetrativeCommentsIntense = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-OnTheAttack = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-AfterGape = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-MaleCloseAlready = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-MaleCloseNotice = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-AskForVaginalCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-AskForAnalCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-AskForOralCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-PullOut = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-MaleOrgasmOral = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-MaleOrgasmNonOral = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-CameInAss = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-CameInMouth = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-CameInPussy = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-WantMore = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-BreathyIntense = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-InAwe = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-TeaseAggressivePartner = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-MaleCloseTeaseIntense = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-# hot: near-orgasm / climax-adjacent
-IntenseAnal = 'Sound\fx\SexLab\vFemaleMoan01\hot'
-NearOrgasmNoises = 'Sound\fx\SexLab\vFemaleMoan01\hot'
-NearOrgasmExclamations = 'Sound\fx\SexLab\vFemaleMoan01\hot'
-CumTogetherTease = 'Sound\fx\SexLab\vFemaleMoan01\hot'
-MyTurnToCum = 'Sound\fx\SexLab\vFemaleMoan01\hot'
-SurprisedByMaleOrgasm = 'Sound\fx\SexLab\vFemaleMoan01\hot'
-MaleOrgasmReactionIntense = 'Sound\fx\SexLab\vFemaleMoan01\hot'
-# blowjob action = SexLab's oral sfx; Orgasm = hot moans + dedicated cries
-BlowjobActionSoft = [
-  'Sound\fx\SexLab\fxOral01\cyupa01.wav',
-  'Sound\fx\SexLab\fxOral01\cyupa02.wav',
-  'Sound\fx\SexLab\fxOral01\cyupa03.wav',
-  'Sound\fx\SexLab\fxOral01\cyupa04.wav',
-]
-BlowjobActionIntense = [
-  'Sound\fx\SexLab\fxOral01\fera01.wav',
-  'Sound\fx\SexLab\fxOral01\fera02.wav',
-  'Sound\fx\SexLab\fxOral01\fera03.wav',
-]
-Orgasm = [
-  'Sound\fx\SexLab\vFemaleMoan01\hot\hot_moans_01.wav',
-  'Sound\fx\SexLab\vFemaleMoan01\hot\hot_moans_02.wav',
-  'Sound\fx\SexLab\vFemaleMoan01\hot\hot_moans_03.wav',
-  'Sound\fx\SexLab\vFemaleMoan01\hot\hot_moans_04.wav',
-  'Sound\fx\SexLab\vFemaleMoan01\hot\hot_moans_05.wav',
-  'Sound\fx\SexLab\vFemaleMoan01\hot\hot_moans_06.wav',
-  'Sound\fx\SexLab\vFemaleMoan01\hot\hot_moans_07.wav',
-  'Sound\fx\SexLab\vFemaleMoan01\hot\hot_moans_08.wav',
-  'Sound\fx\SexLab\fxOrgasm01\01.wav',
-  'Sound\fx\SexLab\fxOrgasm01\02.wav',
-]
-
-[[slot]]  # stock partner/follower moans - SexLab voice vFemaleMoan03 (20 mild / 10 medium / 9 hot)
-id = "F0B"
-sex = "female"
-[slot.categories]
-# mild: greetings / soft / afterglow
-GreetFamiliar = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-Satisfied = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-SensitivePleasure = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-ForeplaySoft = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-ReadyToGetGoing = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-BlowjobRemarks = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-PenetrativeCommentsSoft = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-AfterOrgasmArouse = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-AfterOrgasmExclamations = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-AfterOrgasmRemarks = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-NoticeMaleWantsMore = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-Amused = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-Unamused = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-UnamusedEnd = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-Oh = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-MaleOrgasmReactionSoft = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-MaleCloseTeaseSoft = 'Sound\fx\SexLab\vFemaleMoan03\mild'
-# medium: active / penetrative / reactions
-ForeplayIntense = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-InsertionGeneric = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-InsertionAnalSlow = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-PenetrativeGrunts = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-PenetrativeCommentsIntense = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-OnTheAttack = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-AfterGape = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-MaleCloseAlready = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-MaleCloseNotice = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-AskForVaginalCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-AskForAnalCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-AskForOralCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-PullOut = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-MaleOrgasmOral = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-MaleOrgasmNonOral = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-CameInAss = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-CameInMouth = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-CameInPussy = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-WantMore = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-BreathyIntense = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-InAwe = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-TeaseAggressivePartner = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-MaleCloseTeaseIntense = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-# hot: near-orgasm / climax-adjacent
-IntenseAnal = 'Sound\fx\SexLab\vFemaleMoan03\hot'
-NearOrgasmNoises = 'Sound\fx\SexLab\vFemaleMoan03\hot'
-NearOrgasmExclamations = 'Sound\fx\SexLab\vFemaleMoan03\hot'
-CumTogetherTease = 'Sound\fx\SexLab\vFemaleMoan03\hot'
-MyTurnToCum = 'Sound\fx\SexLab\vFemaleMoan03\hot'
-SurprisedByMaleOrgasm = 'Sound\fx\SexLab\vFemaleMoan03\hot'
-MaleOrgasmReactionIntense = 'Sound\fx\SexLab\vFemaleMoan03\hot'
-# blowjob action = SexLab's oral sfx; Orgasm = hot moans + dedicated cries
-BlowjobActionSoft = [
-  'Sound\fx\SexLab\fxOral01\cyupa01.wav',
-  'Sound\fx\SexLab\fxOral01\cyupa02.wav',
-  'Sound\fx\SexLab\fxOral01\cyupa03.wav',
-  'Sound\fx\SexLab\fxOral01\cyupa04.wav',
-]
-BlowjobActionIntense = [
-  'Sound\fx\SexLab\fxOral01\fera01.wav',
-  'Sound\fx\SexLab\fxOral01\fera02.wav',
-  'Sound\fx\SexLab\fxOral01\fera03.wav',
-]
-Orgasm = [
-  'Sound\fx\SexLab\vFemaleMoan03\hot\000.wav',
-  'Sound\fx\SexLab\vFemaleMoan03\hot\002.wav',
-  'Sound\fx\SexLab\vFemaleMoan03\hot\003.wav',
-  'Sound\fx\SexLab\vFemaleMoan03\hot\004.wav',
-  'Sound\fx\SexLab\vFemaleMoan03\hot\005.wav',
-  'Sound\fx\SexLab\vFemaleMoan03\hot\006.wav',
-  'Sound\fx\SexLab\vFemaleMoan03\hot\007.wav',
-  'Sound\fx\SexLab\vFemaleMoan03\hot\008.wav',
-  'Sound\fx\SexLab\vFemaleMoan03\hot\009.wav',
-  'Sound\fx\SexLab\fxOrgasm01\01.wav',
-  'Sound\fx\SexLab\fxOrgasm01\02.wav',
-]
-
-[[slot]]
-id = "M1"
-sex = "male"
-path = 'Sound\fx\IVDT\M1'
-
-[[slot]]
-id = "M2"
-sex = "male"
-path = 'Sound\fx\IVDT\M2'
-
-[[slot]]
-id = "M3"
-sex = "male"
-path = 'Sound\fx\IVDT\M3'
-
-[[slot]]
-id = "M4"
-sex = "male"
-path = 'Sound\fx\IVDT\M4'
-
-[[slot]]
-id = "M5"
-sex = "male"
-path = 'Sound\fx\IVDT\M5'
-
-[[slot]]
-id = "M6"
-sex = "male"
-path = 'Sound\fx\IVDT\M6'
-
-[[slot]]
-id = "M7"
-sex = "male"
-path = 'Sound\fx\IVDT\M7'
-
-[[slot]]
-id = "M8"
-sex = "male"
-path = 'Sound\fx\IVDT\M8'
 
 # ---------- 2. per-NPC slot pin ----------
 # Beats voicetype and race resolution; may target any slot, even a reserved
@@ -422,8 +165,9 @@ MaleOrc = "M8"
 # the race editor id ("Nord" matches NordRace and NordRaceVampire; "Troll"
 # matches TrollRace and TrollFrostRace); the most specific (longest) hint
 # wins, which is what keeps Werewolf and Wolf apart. Values may be slot
-# lists, same as [voicetype_map]. Creatures have no ActorBase sex and
-# resolve as male.
+# lists, same as [voicetype_map]. The C1-C10 creature slots (in
+# config\SLOVE_slots.toml) are sex = "all", so they match a creature whatever
+# sex the engine reports for it.
 
 [race_map]
 Argonian = "M2"
@@ -432,7 +176,7 @@ DarkElf = "M6"
 HighElf = "M5"
 Khajiit = "M7"
 Orc = "M8"
-# creatures (slots C1-C10, defined at the bottom of the file)
+# creatures (slots C1-C10, defined in config\SLOVE_slots.toml)
 Werewolf = "C1"
 Draugr = "C2"            # skeletons are NOT covered - add a Skeleton hint if wanted
 Falmer = "C3"
@@ -532,244 +276,3 @@ partner_high = 1.0
 partner_low = 1.0
 sfx = 1.0
 oneshot = 1.0
-
-# ---------- SFX name -> folder (relative to sfx_root; 'Sound\...' = full Data path) ----------
-# Folder-name case does not matter (matching is case-insensitive).
-
-[sfx]
-# Full Hentairim body-SFX table; the audio ships with SLO VE under
-# Sound\fx\SloveSFX and is driven by the SLOVE_SFX body-SFX engine
-# (toggle/tune it in SKSE\Plugins\SLOVE\SLOVE.toml [sfx]). Smack and
-# PullOutGape are also requested by the voice engine via the category
-# last-resort. Everything here is playable via AudioUtil.PlaySFX too.
-SmallWetSlush = 'WetSlush\small'
-SmallWetSlush2 = 'WetSlush\Small2'
-SmallFastSlush = 'WetSlush\SmallFast'
-SmallFastSlush2 = 'WetSlush\SmallFast2'
-MediumSlush = 'WetSlush\medium'
-FastSlush = 'WetSlush\Fast'
-BigSlush = 'WetSlush\Big'
-SmallImpact = 'Impact\small'
-MediumImpact1 = 'Impact\medium\type1'
-MediumImpact2 = 'Impact\medium\type2'
-MediumImpact3 = 'Impact\medium\type3'
-MediumImpact4 = 'Impact\medium\type4'
-MediumImpact5Wet = 'Impact\medium\type5wet'
-FastImpact1 = 'Impact\Fast\type1'
-FastImpact2 = 'Impact\Fast\type2'
-FastImpact3 = 'Impact\Fast\type3'
-FastClap = 'FastClap'
-HeavySlushing = 'HeavySlushing'
-LightSlushing = 'LightSlushing'
-MediumClap = 'MediumClap'
-MediumSlushing = 'MediumSlushing'
-RapidSlushing = 'RapidSlushing'
-SlowClap = 'SlowClap'
-Kiss1 = 'KIssing\Kiss1'
-Kiss2 = 'KIssing\Kiss2'
-Kiss3 = 'KIssing\KIss3'
-Kiss4 = 'KIssing\kiss4'
-Kiss5 = 'KIssing\kiss5'
-Kiss6 = 'KIssing\Kiss6'
-Blowjob1 = 'blowjob\blowjob1'
-Blowjob2 = 'blowjob\blowjob2'
-Blowjob3 = 'blowjob\blowjob3'
-Blowjob4 = 'blowjob\blowjob4'
-Blowjob5 = 'blowjob\blowjob5'
-Blowjob6 = 'blowjob\blowjob6'
-FastBlowjob1 = 'blowjob\FastBlowjob1'
-FastBlowjob2 = 'blowjob\FastBlowjob2'
-FastBlowjob3 = 'blowjob\FastBlowjob3'
-FastBlowjob4 = 'blowjob\FastBlowjob4'
-FastBlowjob5 = 'blowjob\Fastblowjob5'
-EjacHeavy = 'Ejaculation\Heavy'
-EjacHeavySharp = 'Ejaculation\Heavy Sharp'
-EjacHeavyWet = 'Ejaculation\Heavy Wet'
-EjacNormal = 'Ejaculation\Normal'
-EjacNormalDeep = 'Ejaculation\Normal Deep'
-EjacSharp = 'Ejaculation\Sharp'
-EjacSmall = 'Ejaculation\Small'
-EjacSmallDeep = 'Ejaculation\Small Deep'
-GapeAverage = 'Gape\Average'
-GapeHuge = 'Gape\Huge'
-Smack = 'Sound\fx\IVDT\Sounds\Smack'
-PullOutGape = 'Sound\fx\IVDT\Sounds\Pull Out Gape'
-
-# ===========================================================================
-# APPENDIX: creature slot data (referenced by [race_map] above)
-# ===========================================================================
-# Explicit file lists playing straight out of the vanilla archives
-# (Skyrim - Sounds.bsa; dlc01 paths are the Dawnguard files merged into it).
-# Explicit [slot.categories] need no folders on disk: the engine's resource
-# loader resolves BSA-packed paths that folder scans cannot see.
-# Two categories per slot: Orgasm fires at climax, Breathing is rolled
-# periodically by SLOVE_Voice during the scene (see SLOVE.toml [voice]
-# creaturebreathing*). Slots without usable ambience material simply omit
-# Breathing - the play resolves nothing and stays silent.
-# Every path below is verified against the SE archive listing; vanilla ships
-# no Sound\FX material at all for some creatures (Falmer and Spriggan combat
-# barks live in the voice archives, not fx), which is why some lists are thin.
-
-[[slot]]  # Werewolf
-id = "C1"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Werewolf\Growl\NPC_Werewolf_Growl_01.wav',
-  'Sound\FX\NPC\Werewolf\Growl\NPC_Werewolf_Growl_02.wav',
-  'Sound\FX\NPC\Werewolf\Growl\NPC_Werewolf_Growl_03.wav',
-  'Sound\FX\NPC\Werewolf\Breathe\NPC_Werewolf_Breathe_Out_01.wav',
-  'Sound\FX\NPC\Werewolf\Breathe\NPC_Werewolf_Breathe_Out_02.wav',
-]
-Breathing = [
-  'Sound\FX\NPC\Werewolf\Breathe\NPC_Werewolf_Breathe_In_01.wav',
-  'Sound\FX\NPC\Werewolf\Breathe\NPC_Werewolf_Breathe_In_02.wav',
-  'Sound\FX\NPC\Werewolf\Breathe\NPC_Werewolf_Breathe_Out_01.wav',
-  'Sound\FX\NPC\Werewolf\Breathe\NPC_Werewolf_Breathe_Out_02.wav',
-  'Sound\FX\NPC\Werewolf\Growl\NPC_Werewolf_Growl_01.wav',
-]
-
-[[slot]]  # Draugr
-id = "C2"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Draugr\CombatIdle\NPC_Draugr_CombatIdle_1HMTauntA_01.wav',
-  'Sound\FX\NPC\Draugr\CombatIdle\NPC_Draugr_CombatIdle_1HMTauntB_01.wav',
-  'Sound\FX\NPC\Draugr\CombatIdle\NPC_Draugr_CombatIdle_1HMTauntC_01.wav',
-  'Sound\FX\NPC\Draugr\CombatIdle\NPC_Draugr_CombatIdle_2GSTauntA_01.wav',
-  'Sound\FX\NPC\Draugr\Aware\NPC_Draugr_Aware_01.wav',
-  'Sound\FX\NPC\Draugr\Aware\NPC_Draugr_Aware_02.wav',
-  'Sound\FX\NPC\Draugr\Aware\NPC_Draugr_Aware_03.wav',
-]
-Breathing = [
-  'Sound\FX\NPC\Draugr\ConsciousLP\NPC_Draugr_Conscious_01_LP.wav',
-  'Sound\FX\NPC\Draugr\ConsciousLP\NPC_Draugr_Conscious_02_LP.wav',
-  'Sound\FX\NPC\Draugr\ConsciousLP\NPC_Draugr_Conscious_03_LP.wav',
-]
-
-[[slot]]  # Falmer (vanilla ships only three falmer fx files - combat barks are dialogue)
-id = "C3"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Falmer\NPC_Falmer_Idle_Detection_01.wav',
-]
-Breathing = [
-  'Sound\FX\NPC\Falmer\NPC_Falmer_Breathe_LP.wav',
-]
-
-[[slot]]  # Troll
-id = "C4"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\fx\npc\troll\attack\a\npc_troll_attack_a_01.wav',
-  'Sound\fx\npc\troll\attack\a\npc_troll_attack_a_02.wav',
-  'Sound\fx\npc\troll\attack\a\npc_troll_attack_a_03.wav',
-  'Sound\fx\npc\troll\attack\b\npc_troll_attack_b_01.wav',
-  'Sound\fx\npc\troll\attack\b\npc_troll_attack_b_02.wav',
-  'Sound\fx\npc\troll\attack\b\npc_troll_attack_b_03.wav',
-  'Sound\fx\npc\troll\npc_troll_idlecombat_roar.wav',
-]
-Breathing = [
-  'Sound\fx\npc\troll\npc_troll_breathe_lp.wav',
-  'Sound\fx\npc\troll\idle\npc_troll_idle_01.wav',
-  'Sound\fx\npc\troll\npc_troll_idlecombat_intimidate.wav',
-]
-
-[[slot]]  # Giant
-id = "C5"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Giant\AttackVocal\NPC_Giant_AttackVocal_01.wav',
-  'Sound\FX\NPC\Giant\AttackVocal\NPC_Giant_AttackVocal_02.wav',
-  'Sound\FX\NPC\Giant\AttackVocal\NPC_Giant_AttackVocal_03.wav',
-  'Sound\FX\NPC\Giant\AttackVocal\NPC_Giant_AttackVocal_04.wav',
-  'Sound\FX\NPC\Giant\AttackVocal\NPC_Giant_AttackVocal_05.wav',
-  'Sound\FX\NPC\Giant\AttackVocal\NPC_Giant_AttackVocal_06.wav',
-  'Sound\FX\NPC\Giant\AttackVocal\NPC_Giant_AttackVocal_07.wav',
-]
-Breathing = [
-  'Sound\FX\NPC\Giant\NPC_Giant_Conscious_01_LP.wav',
-  'Sound\FX\NPC\Giant\NPC_Giant_Conscious_02_LP.wav',
-  'Sound\FX\NPC\Giant\NPC_Giant_IdleSearching_01.wav',
-]
-
-[[slot]]  # Wolf
-id = "C6"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Wolf\Howl\NPC_Wolf_Howl_01.wav',
-  'Sound\FX\NPC\Wolf\Howl\NPC_Wolf_Howl_02.wav',
-  'Sound\FX\NPC\Wolf\Howl\NPC_Wolf_Howl_03.wav',
-  'Sound\FX\NPC\Wolf\AttackPower\NPC_Wolf_AttackPower_01.wav',
-  'Sound\FX\NPC\Wolf\AttackPower\NPC_Wolf_AttackPower_02.wav',
-]
-Breathing = [
-  'Sound\FX\NPC\Wolf\Breathe\NPC_Wolf_Breathe_01.wav',
-  'Sound\FX\NPC\Wolf\Breathe\NPC_Wolf_Breathe_02.wav',
-  'Sound\FX\NPC\Wolf\Breathe\NPC_Wolf_Breathe_03.wav',
-  'Sound\FX\NPC\Wolf\Breathe\NPC_Wolf_Breathe_04.wav',
-]
-
-[[slot]]  # Dog (vanilla dog has no whines - the idle whines/pant are the Dawnguard husky files)
-id = "C7"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Dog\Injured\NPC_Dog_Injured_01.wav',
-  'Sound\FX\NPC\Dog\Injured\NPC_Dog_Injured_02.wav',
-  'Sound\FX\NPC\Dog\Injured\NPC_Dog_Injured_03.wav',
-  'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Idle_Whine_01.wav',
-  'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Idle_Whine_02.wav',
-  'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Idle_Whine_03.wav',
-  'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Idle_Whine_05.wav',
-]
-Breathing = [
-  'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Pant_LPM.wav',
-  'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Idle_Whine_06.wav',
-  'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Idle_Whine_07.wav',
-  'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Idle_Whine_08.wav',
-]
-
-[[slot]]  # Chaurus (vanilla folder is misspelled 'Charus'; only three fx files exist)
-id = "C8"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Charus\Injured\NPC_Chaurus_Injured_01.wav',
-  'Sound\FX\NPC\Charus\Injured\NPC_Chaurus_Injured_02.wav',
-  'Sound\fx\npc\charus\attack\npc_chaurus_attack_01.wav',
-]
-
-[[slot]]  # Spriggan (a single fx file exists - spriggan voices are dialogue-side)
-id = "C9"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Spriggan\NPC_Spriggan_Conscious_LP.wav',
-]
-Breathing = [
-  'Sound\FX\NPC\Spriggan\NPC_Spriggan_Conscious_LP.wav',
-]
-
-[[slot]]  # Horse
-id = "C10"
-sex = "male"
-[slot.categories]
-Orgasm = [
-  'Sound\FX\NPC\Horse\NPC_Horse_RearUp_01.wav',
-  'Sound\FX\NPC\Horse\NPC_Horse_RearUp_02.wav',
-  'Sound\FX\NPC\Horse\NPC_Horse_RearUp_03.wav',
-  'Sound\FX\NPC\Horse\Injured\NPC_Horse_Injured_01.wav',
-  'Sound\FX\NPC\Horse\Injured\NPC_Horse_Injured_02.wav',
-  'Sound\FX\NPC\Horse\Injured\NPC_Horse_Injured_03.wav',
-]
-Breathing = [
-  'Sound\FX\NPC\Horse\NPC_Horse_Breathe_01_LP.wav',
-  'Sound\FX\NPC\Horse\NPC_Horse_Breathe_02_LP.wav',
-  'Sound\FX\NPC\Horse\NPC_Horse_Idle_Paw_01.wav',
-]

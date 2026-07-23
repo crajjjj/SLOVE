@@ -139,11 +139,10 @@ Function Maintenance()
 	;Other Parameters
 	InitializeDirectorConfigs()
 
-	;the DLL clears lipsync blocks on game load - re-seed from SLS's saved
-	;ahegao state so a save made mid-ahegao stays yielded after the reload
-	if StorageUtil.GetIntValue(None, "_SLS_IsAhegaoing", 0) == 1
-		AudioUtil.SetLipSyncBlocked(playerref, true, "SLOVE_Director")
-	endif
+	;re-seed the face-owns-mouth marker from SLS's saved ahegao state so a save
+	;made mid-ahegao keeps PC moans off the mouth after the reload (PlaySound
+	;reads this marker per line; nothing is latched in the DLL)
+	StorageUtil.SetIntValue(playerref, "SLOVE_FaceOwnsMouth_SLS", StorageUtil.GetIntValue(None, "_SLS_IsAhegaoing", 0))
 
 Endfunction
 
@@ -199,7 +198,8 @@ Function RegisterForTheEventsWeNeed()
 EndFunction
 
 Event DirectorOnSLSAhegaoStateChange(string eventName, string argString, float argNum, form sender)
-	AudioUtil.SetLipSyncBlocked(playerref, argNum >= 0.5, "SLOVE_Director")
+	;mark the player while SLS owns the face; PlaySound reads this per line
+	StorageUtil.SetIntValue(playerref, "SLOVE_FaceOwnsMouth_SLS", (argNum >= 0.5) as int)
 EndEvent
 
 Function InitializeDirectorConfigs()
@@ -650,8 +650,18 @@ Function RegisterThatSceneIsEnding(Bool maleOnlyScene)
 EndFunction
 
 Function PlaySound(String theSound, Actor actorMakingSound, Bool waitForCompletion = True, String group = "", String channel = "")
-	;theSound is a AudioUtil category name; slot is resolved from the actor by the DLL
-	AudioUtil.Play(theSound, actorMakingSound, waitForCompletion, 1.0, group, channel)
+	;theSound is a AudioUtil category name; slot is resolved from the actor by the DLL.
+	;blockLipSync per line when a face (SLS ahegao or our own climax face) owns the
+	;actor's mouth, so the moan can't flap the jaw over it. Decided per call - there
+	;is no standing block in AudioUtil.
+	AudioUtil.Play(theSound, actorMakingSound, waitForCompletion, 1.0, group, channel, FaceOwnsMouth(actorMakingSound))
+EndFunction
+
+;true while any SLO VE face owns this actor's mouth - the Director's SLS ahegao
+;marker OR SLOVE_Expressions' climax-face marker. Either being set means a voice
+;line should play without driving the mouth.
+bool Function FaceOwnsMouth(Actor a)
+	return StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_SLS", 0) == 1 || StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_Expr", 0) == 1
 EndFunction
 
 bool function IsMale(actor char)

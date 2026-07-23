@@ -17,9 +17,12 @@ annotation-scheme-specific).
 | `SLOVE_SceneEnd` | strArg = thread id |
 
 Third-party events consumed raw (framework-independent): `_SLS_AhegaoStateChange` — by
-`SLOVE_Expressions` (pause face writes) and by `SLOVE_Director` (toggle
-`AudioUtil.SetLipSyncBlocked(player)` so PC moans don't drive the mouth over the SLS face;
-re-seeded from the `_SLS_IsAhegaoing` StorageUtil key in `Maintenance()`).
+`SLOVE_Expressions` (pause face writes) and by `SLOVE_Director` (set the
+`SLOVE_FaceOwnsMouth_SLS` marker on the player so `PlaySound` plays PC moans with
+`blockLipSync=true` and they don't drive the mouth over the SLS face; re-seeded from the
+`_SLS_IsAhegaoing` StorageUtil key in `Maintenance()`). `PlaySound` blocks lipsync per line
+when `FaceOwnsMouth(actor)` — the union of the SLS marker and `SLOVE_Expressions`'
+`SLOVE_FaceOwnsMouth_Expr` marker — is set; AudioUtil has no standing per-actor block.
 
 ## Director API consumed by SLOVE_Voice / SLOVE_Expressions / SLOVE_SFX
 

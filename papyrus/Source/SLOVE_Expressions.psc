@@ -15,15 +15,18 @@ string LabelGroup
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	Actorref = akTarget
-	PrintDebug("Effect Start for " + Actorref.getdisplayname() )	
-		
+	PrintDebug("Effect Start for " + Actorref.getdisplayname() )
+	;start from a known-clean marker so a fresh instance (LipSyncBlockedForFace
+	;defaults false) never inherits a stale 1 left by an abnormal prior teardown
+	StorageUtil.SetIntValue(Actorref, "SLOVE_FaceOwnsMouth_Expr", 0)
 	PerformInitialization()
-	
+
 EndEvent
 
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
 	;last-resort cleanup: fires whenever the spell is removed, even if the
 	;OnUpdate chain died and RemoveExpressions never ran for this instance
+	ApplyFaceMouthOwnership(false) ;release any lipsync block we placed
 	resetexpressions()
 	RemoveTongue()
 EndEvent
@@ -69,6 +72,10 @@ EndFunction
 
 ;-----------------------SLS ahegao yield-----------------------
 bool SLSAhegaoActive = false
+;true while the orgasm / huge-partner ahegao face owns the open mouth and we've
+;told AudioUtil to block this actor's lipsync so a playing line can't flap the
+;jaw over the climax face (see ApplyFaceMouthOwnership)
+bool LipSyncBlockedForFace = false
 
 Event OnSLSAhegaoStateChange(string eventName, string argString, float argNum, form sender)
 	;SLS ahegao is a player-only face; ignore for NPC instances
@@ -80,12 +87,30 @@ Event OnSLSAhegaoStateChange(string eventName, string argString, float argNum, f
 		printdebug("SLS ahegao started - pausing Hentairim expressions")
 		;drop our own tongue so it doesn't clash with the ahegao face SLS applies
 		RemoveTongue()
+		;the Director owns the mouth marker during the SLS ahegao. Clear our own
+		;contribution so PlaySound sees only the Director's; the next full pass on
+		;resume re-asserts it if a climax face is still up.
+		LipSyncBlockedForFace = false
+		StorageUtil.SetIntValue(actorref, "SLOVE_FaceOwnsMouth_Expr", 0)
 	else
 		SLSAhegaoActive = false
 		printdebug("SLS ahegao ended - resuming Hentairim expressions")
 		CachedLabelGroup = "" ;force a fresh full pass on resume
 	endif
 EndEvent
+
+Function ApplyFaceMouthOwnership(bool faceOwnsMouth)
+	;while the orgasm / huge-partner ahegao face owns the open mouth, mark this
+	;actor so PlaySound plays voice lines with blockLipSync=true - a line can't
+	;then move the jaw over the climax face. Cleared when the face ends. No-op
+	;while the state hasn't changed. The Director ORs this with its own SLS flag.
+	if faceOwnsMouth == LipSyncBlockedForFace
+		return
+	endif
+	LipSyncBlockedForFace = faceOwnsMouth
+	StorageUtil.SetIntValue(actorref, "SLOVE_FaceOwnsMouth_Expr", faceOwnsMouth as int)
+	printdebug("Climax/ahegao face mouth ownership - lipsync blocked = " + faceOwnsMouth)
+EndFunction
 
 bool SceneEnded = false
 Event ExpressionsSceneEnd(string eventName, string argString, float argNum, form sender)
@@ -308,6 +333,11 @@ Bool Function FullExpressionPass()
 	;drive it then)
 	bool brokenface = (enableahegao == 1 && ishugepp && IsgettingPenetrated() && MeasuredPenetrationActive()) || (IsBroken() && (PenisActionlabel != "LDI" || Penetrationlabel != "LDI" || StimulationLabel != "LDI" || OralLabel != "LDI"))
 
+	;the orgasm / huge-partner ahegao face owns the open mouth this pass - hand it
+	;the jaw by blocking lipsync (else a playing line lipsyncs over the climax
+	;face). Released automatically once neither is active any more.
+	ApplyFaceMouthOwnership(IsOrgasming || brokenface || MFEEAddAhegao)
+
 	float[] result = BuildTickPreset(GetCachedPhase(Phase), varPct, mouthblowjob, brokenface)
 
 	;MFEE side effects, hoisted out of the per-cell loops so they run once per cycle
@@ -343,8 +373,9 @@ Bool Function FullExpressionPass()
 	;lipsync yield (AudioUtil contract): while the DLL drives this actor's mouth
 	;from the playing clip's envelope, don't fight it over the jaw - retarget the
 	;two channels it owns (0 Aah / 1 BigAah) to their CURRENT values so the smooth
-	;apply is a no-op on them while the rest of the face still updates
-	if AudioUtil.IsLipSyncActive(actorref)
+	;apply is a no-op on them while the rest of the face still updates. Skipped when
+	;the climax face owns the mouth (lipsync is blocked): apply the face's mouth in full.
+	if AudioUtil.IsLipSyncActive(actorref) && !LipSyncBlockedForFace
 		int curAah = MfgConsoleFunc.GetPhoneme(actorref, 0)
 		int curBigAah = MfgConsoleFunc.GetPhoneme(actorref, 1)
 		if curAah >= 0
@@ -646,6 +677,7 @@ EndFunction
 
 ;-------------------------------Hentairim Expressions Functions START---------------------------------
 function RemoveExpressions()
+	ApplyFaceMouthOwnership(false) ;release any lipsync block we placed
 	resetexpressions()
 	RemoveTongue()
 	Spell ExpressionsSpell = Game.GetFormFromFile(0x800, "SLOVE.esp") as Spell

@@ -50,6 +50,7 @@
             <Match In="Seq">*.seq</Match>
             <Match In="SKSE\Plugins\SLOVE">*.toml</Match>
             <Match In="SKSE\Plugins\AudioUtil">*.toml</Match>
+            <Match In="SKSE\Plugins\AudioUtil\config">*.toml</Match>
             <Match In="SKSE\Plugins\StorageUtilData\SLOVE">*.json</Match>
             <Match In="Sound\fx\IVDT">*.wav</Match>
             <Match In="Sound\fx\SloveSFX">*.wav</Match>
