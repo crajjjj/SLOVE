@@ -159,6 +159,7 @@ EndFunction
 
 Function Maintenance()
 
+	SLOVE_Log.InitLog()  ; open the SLOVE user log (OnInit + every reload)
 	PerformInitialization()
 	;Other Parameters
 	InitializeDirectorConfigs()
@@ -758,7 +759,7 @@ function printdebug(string contents = "")
 endfunction
 
 function WritetoErrorlogs(string Header = "Not Specified" ,String contents = "")
-	JsonUtil.StringListAdd("ErrorLog.json", Header, " : " + contents, TRUE)
+	SLOVE_Log.WriteLog(Header + " : " + contents, 2)
 endfunction
 
 ;---------------------------Label Engine START------------------------

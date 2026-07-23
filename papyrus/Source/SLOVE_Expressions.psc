@@ -1363,5 +1363,5 @@ Int Function FindInt(Int[] arr, Int target)
 EndFunction
 ;-----------------------Hentairim Common Utilities END--------------------------------------
 function WritetoErrorlogs(string Header = "Not Specified" ,String contents = "")
-	JsonUtil.StringListAdd("ErrorLog.json", Header, " : " + contents, TRUE)
+	SLOVE_Log.WriteLog(Header + " : " + contents, 2)
 endfunction

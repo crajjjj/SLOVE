@@ -1366,6 +1366,6 @@ Bool Function HasCreature()
 endfunction
 
 function WritetoErrorlogs(string Header = "Not Specified" ,String contents = "")
-	JsonUtil.StringListAdd("ErrorLog.json", Header, " : " + contents, TRUE)
+	SLOVE_Log.WriteLog(Header + " : " + contents, 2)
 endfunction
 ;-----------------------Hentairim Common Utilities END--------------------------------------

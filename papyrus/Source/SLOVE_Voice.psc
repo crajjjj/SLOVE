@@ -3159,7 +3159,7 @@ EndFunction
 
 
 function WritetoErrorlogs(string Header = "Not Specified" ,String contents = "")
-	JsonUtil.StringListAdd("ErrorLog.json", Header, " : " + contents, TRUE)
+	SLOVE_Log.WriteLog(Header + " : " + contents, 2)
 endfunction
 
 int Function GetLegacyStageNum(String asScene, String asStage)
