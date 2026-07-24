@@ -6,6 +6,9 @@ Standalone scene **voices**, **facial expressions**, **body SFX**
 configuration lives in TOML files.
 "SLO" = SexLab / OStim (OStim backend planned; v1 is SexLab P+ only).
 
+**📖 Full documentation: <https://crajjjj.github.io/SLOVE/>** — voice packs, TOML
+reference, troubleshooting.
+
 ## Requirements (hard)
 
 | Dependency | Why |
@@ -59,6 +62,8 @@ not the broken voice. State is per-actor (StorageUtil), driven by the
 `SLOVE_Resistance` ability the Director applies to scene actors.
 
 ## Configuration
+
+Full reference: <https://crajjjj.github.io/SLOVE/config/>
 
 - `SKSE\Plugins\SLOVE\SLOVE.toml` — all settings (`[director]`, `[voice]`,
   `[expressions]`, `[sfx]`, `[resistance]`, `[milk]`). Live reload: `cgf "TomlUtil.Reload" "SKSE\Plugins\SLOVE\SLOVE.toml"`.

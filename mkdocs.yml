@@ -1,0 +1,87 @@
+site_name: SLO VE
+site_description: Scene voices, facial expressions, body SFX and an optional willpower system for SexLab P+ — configured entirely in TOML, no MCM. Voice-pack and configuration reference.
+site_url: https://crajjjj.github.io/SLOVE/
+repo_name: crajjjj/SLOVE
+repo_url: https://github.com/crajjjj/SLOVE
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - content.action.edit
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Voice Packs:
+    - How Voices Work: packs/index.md
+    - Installing & Routing Female Packs: packs/female.md
+    - Male, Creature, Gag & SFX Slots: packs/slots.md
+    - Category Reference: packs/categories.md
+  - TOML Configuration:
+    - Overview — the three files: config/index.md
+    - SLOVE.toml — behaviour: config/slove.md
+    - SLOVE_voices.toml — slots & routing: config/voices.md
+    - AudioUtil.toml — engine globals: config/audioutil.md
+  - Willpower / Resistance: resistance.md
+  - Troubleshooting & Logs: troubleshooting.md
+  - For Mod Authors: authors/integration.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+# internal design notes, kept in-repo but not part of the published site
+exclude_docs: |
+  framework-adapter.md
+  smoke-test.md
+  classic-sexlab-port.md
+
+validation:
+  links:
+    not_found: warn
+    anchors: warn
+
+plugins:
+  - search
