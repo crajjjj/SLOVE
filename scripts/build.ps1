@@ -131,7 +131,14 @@ function Build-Fomod {
         Write-Warning 'dist-classic not built - FOMOD will offer only the P+ option'
     }
 
-    $zip = Join-Path $root 'Release\SLOVE-FOMOD.zip'
+    # Release archives are named SLO_VE_v<version>.zip. The version is read from
+    # fomod\info.xml so there is a single source of truth and the archive name can
+    # never drift from what the installer reports.
+    [xml]$info = Get-Content (Join-Path $root 'fomod\info.xml') -Raw
+    $ver = $info.fomod.Version.InnerText.Trim()
+    if (-not $ver) { throw 'could not read <Version> from fomod\info.xml' }
+
+    $zip = Join-Path $root "Release\SLO_VE_v$ver.zip"
     if (Test-Path $zip) { Remove-Item $zip -Force }
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
     Write-Host "FOMOD archive: $zip" -ForegroundColor Green
