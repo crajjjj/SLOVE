@@ -55,13 +55,31 @@ The thread type changes from `SexLabThread` (P+) to **`sslThreadController`**
 1. **SLPP physics / node-collision bridge.** `GetCurrentInteractionFlags`,
    `IsInteractionRegistered`, `GetVelocity`, `GetPartnerByType`/`Rev` are P+-only.
    The Director's physics-label overlay (`ApplyPhysicsLabels`) and `SLOVE_SFX`'s
-   contact-SFX + SOSBend adaptive-velocity search are removed. Labels and SFX fall
-   back to **tags + timers** only. `director.usephysicslabels` and
-   `sfx.usecontactsfx` become inert on this branch (they are forced to `0` at load
-   regardless of `SLOVE.toml`). Practical effect: intensity is no longer *measured*
+   SOSBend adaptive-velocity search are removed; `director.usephysicslabels`,
+   `sfx.usevelocity` and `sfx.useadaptivevelocity` are forced to `0` at load
+   regardless of `SLOVE.toml`. Practical effect: intensity is no longer *measured*
    from live thrust speed — the F/S prefix comes from the authored SLATE label
    itself (`SVP` vs `FVP`), so it tracks the tag database rather than the real
    animation speed or any AnimSpeed override.
+
+   **`sfx.usecontactsfx` is still honoured.** The PPA bridge (Accurate Penetration
+   via AudioUtil) is framework-independent — only the *edge detection* and the
+   receiver lookup ever used SLPP. `ProcessContactEdges()` therefore derives its
+   penetration edge from the label system (`IsGivingVaginalPenetration` /
+   `IsGivingAnalPenetration`) and resolves the receiver via
+   `ResolvePenetrationReceiver()` — the other position carrying a penetration
+   label — instead of `GetPartnerByType`. That preserves both:
+
+     - the **PPA-measured pull-out gape** SFX, with the existing `IsHugePP`
+       fallback when PPA is absent, and
+     - the **victim-insertion trauma** hook that writes `SLOVE_ResDebt`, which
+       `SLOVE_Resistance` consumes — a gameplay feature, not just audio.
+
+   Not ported: the insertion / kiss / oral contact one-shots. On P+ those fire
+   *only when the label system has not already classified the act* — they exist to
+   catch what labels miss. Deriving the edge from labels makes that guard
+   unreachable by construction, so firing them here would be new behaviour rather
+   than a port.
 
 That is the **only** dropped subsystem. In particular, per-stage/per-position
 labels are **not** lost — see below.
