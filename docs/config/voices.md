@@ -7,7 +7,7 @@ It is an **additive overlay**. AudioUtil loads the base `AudioUtil.toml` first, 
 Live reload (also rescans folders):
 
 ```
-cgf "AudioUtil.ReloadConfig"
+au reload
 ```
 
 !!! note "Conventions"
@@ -220,9 +220,9 @@ id = "Serana"                       # ← WRONG: a second block with the same id
 Then:
 
 ```
-cgf "AudioUtil.ReloadConfig"
-cgf "SLOVE_Test.AuditVoicePack" "Serana"
-cgf "SLOVE_Test.SampleCategory" "Serana" "Orgasm"
+au reload
+SLOVE_Test AuditVoicePack Serana
+SLOVE_Test SampleCategory Serana Orgasm
 ```
 
 For the engine-level detail behind all of this, see AudioUtil's [Voice & Category Resolution](https://crajjjj.github.io/AudioUtil/config/resolution/) and [Config Reference](https://crajjjj.github.io/AudioUtil/config/reference/).

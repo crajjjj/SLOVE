@@ -132,8 +132,8 @@ Report this list to the user after §1–§8 pass. Debug toggles first:
 `director.printdebug=1`, `voice.printdebug=1`, `sfx.printdebug=1` in
 SLOVE.toml (back to 0 afterwards). Static probes need ConsoleUtil.
 
-1. **Probes:** `cgf "SLOVE_Test.DumpState"`, `cgf "SLOVE_Test.SampleCategory"
-   "F1" "Moan"`, `... "C7" "Orgasm"`, `... "C7" "Breathing"` — each plays audibly.
+1. **Probes:** `SLOVE_Test DumpState`, `SLOVE_Test SampleCategory F1 Moan`,
+   `... C7 Orgasm`, `... C7 Breathing` — each plays audibly.
 2. **Human scene:** PC moans + lipsync mouth; male comments in own voice; no
    same-speaker overlap; orgasm lines both sexes; silence + neutral face at end.
 3. **Dog/husky scene:** console `scene creatures voiced: 1`; pant/whine every

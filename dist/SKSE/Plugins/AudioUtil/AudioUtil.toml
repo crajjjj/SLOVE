@@ -8,7 +8,7 @@
 # SFX — lives in the additive overlay
 #   SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml
 # and any mod may drop its own config\*.toml to ADD slots / sfx / mappings (they
-# accumulate). Re-read both in-game with  cgf "AudioUtil.ReloadConfig".
+# accumulate). Re-read both in-game with  au reload.
 # All key/name matching is case- and space-insensitive.
 #
 # How an actor resolves to a slot, how a category resolves to audio, and every

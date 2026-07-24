@@ -53,8 +53,8 @@ Data\
 Reload either side after an edit without leaving the game:
 
 ```
-cgf "SLOVE_Config.Reload"     ; SLOVE.toml
-cgf "AudioUtil.ReloadConfig"  ; slots, routing, SFX — also rescans the folders
+SLOVE_Config Reload     ; SLOVE.toml
+au reload  ; slots, routing, SFX — also rescans the folders
 ```
 
 ## Credits & license

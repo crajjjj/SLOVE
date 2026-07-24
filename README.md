@@ -66,10 +66,10 @@ not the broken voice. State is per-actor (StorageUtil), driven by the
 Full reference: <https://crajjjj.github.io/SLOVE/config/>
 
 - `SKSE\Plugins\SLOVE\SLOVE.toml` — all settings (`[director]`, `[voice]`,
-  `[expressions]`, `[sfx]`, `[resistance]`, `[milk]`). Live reload: `cgf "TomlUtil.Reload" "SKSE\Plugins\SLOVE\SLOVE.toml"`.
+  `[expressions]`, `[sfx]`, `[resistance]`, `[milk]`). Live reload: `toml reload "SKSE\Plugins\SLOVE\SLOVE.toml"`.
 - `SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml` — voice slots, actor→slot
   routing, and SFX (AudioUtil preset content). `AudioUtil.toml` alongside it
-  holds only the engine globals. Live reload via `cgf "AudioUtil.ReloadConfig"`.
+  holds only the engine globals. Live reload via `au reload`.
 - `SKSE\Plugins\StorageUtilData\SLOVE\*.json` — expression preset data, plus the
   `ResistanceRaceBase` / `ResistanceRacePCModifier` willpower race tables.
 

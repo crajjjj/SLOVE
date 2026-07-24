@@ -1,8 +1,8 @@
 Scriptname SLOVE_Test Hidden
 {Console-callable diagnostics. Examples:
-   cgf "SLOVE_Test.AuditVoicePack" "M1"
-   cgf "SLOVE_Test.SampleCategory" "M4" "Aroused"
-   cgf "SLOVE_Test.DumpState"}
+   SLOVE_Test AuditVoicePack M1
+   SLOVE_Test SampleCategory M4 Aroused
+   SLOVE_Test DumpState}
 
 ;Check every category the engines can request against an installed slot.
 ;Prints missing ones to the console; ends with a found/total summary.

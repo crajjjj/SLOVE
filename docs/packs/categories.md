@@ -187,7 +187,7 @@ The Papyrus layer (`SLOVE_VoiceCategories.MaleOnlyRemap`) does the same mapping 
 ## Auditing a pack
 
 ```
-cgf "SLOVE_Test.AuditVoicePack" "F1"
+SLOVE_Test AuditVoicePack F1
 ```
 
 Prints every category that does **not** resolve, then a summary like `SLOVE audit F1: 71/71 categories resolve`. It picks the female or male list from the slot id's first letter (`F…` → female, anything else → male), and it checks resolution **after** aliases, fallbacks and the slot's `fallback` chain — so `71/71` on a small pack means the backfill is working, not that the pack has 71 folders.

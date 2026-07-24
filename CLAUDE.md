@@ -60,7 +60,7 @@ Nine scripts in `papyrus/Source/`, all prefixed `SLOVE_`. Pattern: **one framewo
 | `SLOVE_Hentairim_Tags` | `Hidden` (globals). The **label engine**: classifies SexLab P+ stages into label **codes** by reading scene tags via `SexlabRegistry.IsSceneTag`. Tag convention `<stage><ActorLetter><code>` (e.g. `3A SVP` = stage 3, pos 0, slow vaginal penetration). Position index → letter A–E |
 | `SLOVE_VoiceCategories` | `Hidden`. Static tables: `MaleOnlyRemap`, `AllFemaleCategories` (71), `AllMaleCategories` (15). Category names are AudioUtil folder names — no Sound forms or voice aliases exist anywhere |
 | `SLOVE_Config` | `Hidden`. Thin wrapper over **AudioUtil's TomlUtil API**; reads `SKSE/Plugins/SLOVE/SLOVE.toml` with dotted keys (`"voice.pcvolume"`). **Fail-open** — if the AudioUtil DLL is missing every getter returns the caller's default. `Available()` gates one warning; `Reload()` for live tuning |
-| `SLOVE_Test` | `Hidden`. Console diagnostics: `cgf "SLOVE_Test.AuditVoicePack" "M1"`, `SampleCategory`, `DumpState` |
+| `SLOVE_Test` | `Hidden`. Console diagnostics: `SLOVE_Test AuditVoicePack M1`, `SampleCategory`, `DumpState` |
 
 **Label code vocabulary** (used throughout): `LDI`=lead-in; `S*`/`F*` prefix = Slow/Fast intensity; `VP/AP/CG/AC/DP` = vaginal/anal/cowgirl/anal-cowgirl/double penetration; `MF/HJ/FJ/TF/DV/DA` = penis actions; `SBJ/FBJ/KIS/CUN` = oral; `ENI/ENO` = ending inside/outside; `SST/FST/BST` = stimulation. "Intense" = the concatenated label string contains `"1F"`.
 
@@ -122,4 +122,4 @@ Female voices default to SexLab's own moan sets (referenced in place, not bundle
 - **Preset split follows AudioUtil's base-only-globals rule.** AudioUtil reads global sections (`[general]`/`[ppa]`/`[lipsync]`/`[gag]` toggles) **only from the base `AudioUtil.toml`** — an overlay that sets them is ignored + warned. That's why the base `AudioUtil.toml` holds **only** the globals, and every additive section — the routing/category maps, `[groups]`, and all `[[slot]]`/`[sfx]` content — lives together in `config\SLOVE_voices.toml`. `[gag].keywords` is additive so it *could* move too, but is kept with the rest of `[gag]` in the base for readability. The preset sets **no `voice_root`/`sfx_root`** — every slot `path` and every `[sfx]` value is a full `Sound\...` path, so nothing depends on a shared root global.
 - The **ESP is authored/edited through houseCARL**, outside the Pyro build.
 - Voice categories are **strings that must match AudioUtil folder names / TOML keys** — the `AllFemale/AllMaleCategories` tables in `SLOVE_VoiceCategories.psc` are the source of truth (audit with `SLOVE_Test.AuditVoicePack`).
-- Live config reload in-game: `cgf "SLOVE_Config.Reload"` (SLOVE.toml) and `cgf "AudioUtil.ReloadConfig"` (voice slots).
+- Live config reload in-game: `SLOVE_Config Reload` (SLOVE.toml) and `au reload` (voice slots).

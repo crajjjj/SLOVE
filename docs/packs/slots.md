@@ -116,7 +116,7 @@ Breathing = [
 Paths are Data-relative and case-insensitive, and **must be exact** — a wrong path silently resolves nothing. Verify with:
 
 ```
-cgf "SLOVE_Test.SampleCategory" "C11" "Orgasm"
+SLOVE_Test SampleCategory C11 Orgasm
 ```
 
 Creature audio is BSA-packed, so **lipsync does not run** on it (and creatures generally have no facegen anyway). That is expected, not a fault.
@@ -189,7 +189,7 @@ MediumClap = 'Sound\fx\MyPack\Claps\medium'
 Preview any of them in-game:
 
 ```
-cgf "SLOVE_Test.SampleCategory" "SFX0" "MediumClap"
+SLOVE_Test SampleCategory SFX0 MediumClap
 ```
 
 The whole SFX engine can be turned off with `sfx.enable = 0`, and its level set with `sfx.volume` — see [`SLOVE.toml [sfx]`](../config/slove.md#sfx).

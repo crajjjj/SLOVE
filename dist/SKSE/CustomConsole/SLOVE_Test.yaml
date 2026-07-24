@@ -1,0 +1,38 @@
+# ConsoleUtil Extended (CUE) command config for SLO VE's console diagnostics.
+# Requires: ConsoleUtil Extended  https://www.nexusmods.com/skyrimspecialedition/mods/133569
+# Drops into Data\SKSE\CustomConsole\ ; maps console subcommands onto the global
+# functions in SLOVE_Test.psc. Output prints to the console (MiscUtil.PrintConsole).
+#
+# Usage:  SLOVE_Test DumpState        (alias)  slovetest dump
+version: 1
+name: SLOVE_Test
+alias: slovetest
+script: SLOVE_Test
+help: SLO VE console diagnostics
+subs:
+  - name: DumpState
+    alias: dump
+    func: DumpState
+    help: Print config flags, the player's resolved slot, and whether SLOVE.esp is loaded
+  - name: AuditVoicePack
+    alias: audit
+    func: AuditVoicePack
+    help: List which categories a slot resolves and which are MISSING
+    args:
+      - name: slot
+        type: String
+        required: true
+        help: Slot id, e.g. F1
+  - name: SampleCategory
+    alias: sample
+    func: SampleCategory
+    help: Play one clip from an explicit slot/category at the player (handle=0 = nothing resolved)
+    args:
+      - name: slot
+        type: String
+        required: true
+        help: Slot id, e.g. F1
+      - name: category
+        type: String
+        required: true
+        help: Category name, e.g. Orgasm

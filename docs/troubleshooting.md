@@ -25,19 +25,22 @@ and turn on the live console play-by-play with `printdebug = 1` in the relevant 
 
 ## Console diagnostics
 
+!!! note "These commands need ConsoleUtil Extended"
+    The console commands below are provided by [ConsoleUtil Extended](https://www.nexusmods.com/skyrimspecialedition/mods/133569), an **optional** dependency. SLO VE itself runs fine without it — CUE is only needed to run these diagnostics.
+
 ```
-cgf "SLOVE_Test.DumpState"                       ; config flags, the player's slot, esp loaded?
-cgf "SLOVE_Test.AuditVoicePack" "F1"             ; which categories a slot resolves / is MISSING
-cgf "SLOVE_Test.SampleCategory" "F1" "Orgasm"    ; play one clip now (handle=0 means nothing resolved)
-cgf "SLOVE_Config.Reload"                        ; re-read SLOVE.toml
-cgf "AudioUtil.ReloadConfig"                     ; re-read the AudioUtil TOMLs and rescan folders
+SLOVE_Test DumpState                       ; config flags, the player's slot, esp loaded?
+SLOVE_Test AuditVoicePack F1             ; which categories a slot resolves / is MISSING
+SLOVE_Test SampleCategory F1 Orgasm    ; play one clip now (handle=0 means nothing resolved)
+SLOVE_Config Reload                        ; re-read SLOVE.toml
+au reload                     ; re-read the AudioUtil TOMLs and rescan folders
 ```
 
-`SLOVE_Test` needs **ConsoleUtil** to print. `AuditVoicePack` picks the female or male category list from the slot id's first letter (`F…` → female, otherwise male).
+`AuditVoicePack` picks the female or male category list from the slot id's first letter (`F…` → female, otherwise male).
 
 ## Nothing happens at all
 
-1. **Is `SLOVE.esp` enabled?** `cgf "SLOVE_Test.DumpState"` prints `esp loaded=`. If it's `False`, the plugin isn't active.
+1. **Is `SLOVE.esp` enabled?** `SLOVE_Test DumpState` prints `esp loaded=`. If it's `False`, the plugin isn't active.
 2. **Is AudioUtil installed and loading?** If `SKSE\AudioUtil.log` doesn't exist, the DLL never loaded — check `skse64.log` for why (usually a game-version or Address Library mismatch). SLO VE fails *open*: without the DLL every setting falls back to its default and nothing plays.
 3. **Are you launching through SKSE?**
 4. **Did the quest start?** SLO VE's quest is start-game-enabled and ships `Seq\SLOVE.seq`. On an existing save give it a few seconds after load. If the SEQ file is missing from your install, the quest won't auto-start.
@@ -48,10 +51,10 @@ cgf "AudioUtil.ReloadConfig"                     ; re-read the AudioUtil TOMLs a
 
 Work down the resolution chain:
 
-1. `cgf "SLOVE_Test.DumpState"` — does the player have a slot? An **empty** slot line means the routing config never loaded.
+1. `SLOVE_Test DumpState` — does the player have a slot? An **empty** slot line means the routing config never loaded.
 2. **Check the TOML conflict winner.** The most common cause of an empty slot is AudioUtil's SFW-neutral `AudioUtil.toml` winning over SLO VE's. SLO VE must sit **below** AudioUtil in MO2's left pane. `AudioUtil.log` will show zero slots parsed.
-3. `cgf "AudioUtil.ReloadConfig"` then read `AudioUtil.log` — a parse error names the file and line. A file that fails to parse is skipped entirely.
-4. `cgf "SLOVE_Test.AuditVoicePack" "F1"` — if everything is `MISSING`, the slot resolved but its audio didn't.
+3. `au reload` then read `AudioUtil.log` — a parse error names the file and line. A file that fails to parse is skipped entirely.
+4. `SLOVE_Test AuditVoicePack F1` — if everything is `MISSING`, the slot resolved but its audio didn't.
 5. **Is `voice.enablevoice`/`director.enablevoice` on?** `DumpState` prints them.
 6. **Volume:** `voice.pcvolume` / `voice.partnervolume` in `SLOVE.toml`, and `[groups]` startup levels.
 
@@ -59,9 +62,9 @@ Work down the resolution chain:
 
 1. Are the WAVs **loose** — not inside a BSA? Folder scans cannot see into archives.
 2. Are they at exactly `Data\Sound\fx\IVDT\F1\<Category>\*.wav`? A pack that installs one level too deep (`…\F1\F1\…`) scans as nothing.
-3. `cgf "AudioUtil.ReloadConfig"` — a fresh install needs a rescan (or a game restart).
-4. `cgf "SLOVE_Test.AuditVoicePack" "F1"` — a healthy pack reports a high `n/71`, because missing categories backfill from the stock moans. **All** missing means the path is wrong.
-5. `cgf "SLOVE_Test.SampleCategory" "F1" "Orgasm"` — `handle=0` = nothing resolved for that category.
+3. `au reload` — a fresh install needs a rescan (or a game restart).
+4. `SLOVE_Test AuditVoicePack F1` — a healthy pack reports a high `n/71`, because missing categories backfill from the stock moans. **All** missing means the path is wrong.
+5. `SLOVE_Test SampleCategory F1 Orgasm` — `handle=0` = nothing resolved for that category.
 6. Did an update overwrite your `SLOVE_voices.toml` edits? Move them into [your own overlay](packs/female.md#keeping-your-edits-across-updates).
 
 ## The wrong actor has the wrong voice
@@ -102,4 +105,4 @@ Attach both logs:
 - `Documents\My Games\Skyrim Special Edition\Logs\Script\User\SLOVE.0.log`
 - `Documents\My Games\Skyrim Special Edition\SKSE\AudioUtil.log`
 
-plus your load order and the output of `cgf "SLOVE_Test.DumpState"`. If it's a voice-resolution problem, set `log_level = "debug"`, reproduce, and send the `AudioUtil.log` from that run.
+plus your load order and the output of `SLOVE_Test DumpState`. If it's a voice-resolution problem, set `log_level = "debug"`, reproduce, and send the `AudioUtil.log` from that run.

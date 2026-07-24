@@ -13,7 +13,7 @@
 Live reload:
 
 ```
-cgf "AudioUtil.ReloadConfig"
+au reload
 ```
 
 ## `[general]`
@@ -91,8 +91,8 @@ Why the three shipped blocks: **blowjob action** clips are oral SFX (slurping, n
 Runtime control from the console:
 
 ```
-cgf "AudioUtil.SetLipSyncEnabled" 0
-cgf "AudioUtil.SetLipSyncGain" 0.8
+SLOVE_LipSync Enabled 0
+SLOVE_LipSync Gain 0.8
 ```
 
 ## `[gag]`

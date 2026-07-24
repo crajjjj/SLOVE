@@ -1,0 +1,32 @@
+# ConsoleUtil Extended (CUE) command config: live lipsync tuning.
+# Requires: ConsoleUtil Extended  https://www.nexusmods.com/skyrimspecialedition/mods/133569
+# Convenience commands that call AudioUtil's global lipsync functions directly
+# (AudioUtil is a hard dependency of SLO VE, so its script is always present).
+# A distinct command name avoids clashing with AudioUtil's own `au` config.
+#
+# Usage:  SLOVE_LipSync Enabled 0        (alias)  slovelip enable 0
+#         SLOVE_LipSync Gain 0.8         (alias)  slovelip gain 0.8
+version: 1
+name: SLOVE_LipSync
+alias: slovelip
+script: AudioUtil
+help: Live lipsync tuning (calls AudioUtil)
+subs:
+  - name: Enabled
+    alias: enable
+    func: SetLipSyncEnabled
+    help: Enable or disable lipsync globally (1 = on, 0 = off)
+    args:
+      - name: on
+        type: bool
+        required: true
+        help: 1 = on, 0 = off
+  - name: Gain
+    alias: gain
+    func: SetLipSyncGain
+    help: Set the lipsync gain multiplier, e.g. 0.8
+    args:
+      - name: value
+        type: float
+        required: true
+        help: Gain multiplier (e.g. 0.8)

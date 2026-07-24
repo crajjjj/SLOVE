@@ -1,0 +1,16 @@
+# ConsoleUtil Extended (CUE) command config for SLO VE's behaviour config.
+# Requires: ConsoleUtil Extended  https://www.nexusmods.com/skyrimspecialedition/mods/133569
+# Drops into Data\SKSE\CustomConsole\ ; maps console subcommands onto the global
+# functions in SLOVE_Config.psc (the SLOVE.toml reader).
+#
+# Usage:  SLOVE_Config Reload        (alias)  sloveconfig reload
+version: 1
+name: SLOVE_Config
+alias: sloveconfig
+script: SLOVE_Config
+help: SLO VE behaviour config (SLOVE.toml)
+subs:
+  - name: Reload
+    alias: reload
+    func: Reload
+    help: Re-read SLOVE.toml (live tuning); prints true on success, false (and keeps cached values) on parse failure

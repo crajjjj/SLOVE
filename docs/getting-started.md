@@ -68,8 +68,10 @@ Voice packs only add loose WAVs under `Sound\fx\IVDT` and don't conflict with an
 Open the console (`~`) and run:
 
 ```
-cgf "SLOVE_Test.DumpState"
+SLOVE_Test DumpState
 ```
+
+This command is provided by [ConsoleUtil Extended](https://www.nexusmods.com/skyrimspecialedition/mods/133569), an optional dependency — SLO VE runs without it, but you need CUE to run the console diagnostics.
 
 You should see the config flags, the player's resolved voice slot (normally `F1`), and `esp loaded=True`. If the slot line is empty or `esp loaded=False`, go to [Troubleshooting](troubleshooting.md).
 

@@ -37,9 +37,9 @@ SLO VE stays compatible with **Hentairim / IVDT-convention female packs**. You o
 Verify without restarting:
 
 ```
-cgf "AudioUtil.ReloadConfig"
-cgf "SLOVE_Test.AuditVoicePack" "F1"
-cgf "SLOVE_Test.SampleCategory" "F1" "Orgasm"
+au reload
+SLOVE_Test AuditVoicePack F1
+SLOVE_Test SampleCategory F1 Orgasm
 ```
 
 !!! tip "Partial packs are fine"
@@ -110,8 +110,8 @@ FemaleSultry = "F4"
 Then install the pack's folders into `Data\Sound\fx\IVDT\F4\`, reload, and audit:
 
 ```
-cgf "AudioUtil.ReloadConfig"
-cgf "SLOVE_Test.AuditVoicePack" "F4"
+au reload
+SLOVE_Test AuditVoicePack F4
 ```
 
 Slot ids are arbitrary strings — `F4`, `Serana`, `MyPack` all work. Only the **sex** field and the routing tables matter to the engine.
@@ -165,10 +165,10 @@ Full details: [Configuration Overview](../config/index.md).
 
 ## Checklist when a pack doesn't play
 
-1. `cgf "AudioUtil.ReloadConfig"` — did the parse succeed? (check `AudioUtil.log`)
-2. `cgf "SLOVE_Test.DumpState"` — is the player actually on `F1`?
-3. `cgf "SLOVE_Test.AuditVoicePack" "F1"` — which categories are `MISSING`?
-4. `cgf "SLOVE_Test.SampleCategory" "F1" "Orgasm"` — `handle=0` means nothing resolved.
+1. `au reload` — did the parse succeed? (check `AudioUtil.log`)
+2. `SLOVE_Test DumpState` — is the player actually on `F1`?
+3. `SLOVE_Test AuditVoicePack F1` — which categories are `MISSING`?
+4. `SLOVE_Test SampleCategory F1 Orgasm` — `handle=0` means nothing resolved.
 5. Are the WAVs **loose** (not in a BSA) and under exactly `Data\Sound\fx\IVDT\F1\<Category>\`?
 6. Is SLO VE still winning the `.toml` conflict after your last install?
 

@@ -1,5 +1,5 @@
 # SLO VE — all settings. Read via TomlUtil (hosted by AudioUtil.dll).
-# Live reload in-game:  cgf "SLOVE_Config.Reload"
+# Live reload in-game:  SLOVE_Config Reload
 # Voice SLOT mapping (which voice an actor gets) lives in the separate
 # AudioUtil preset: SKSE\Plugins\AudioUtil\AudioUtil.toml.
 

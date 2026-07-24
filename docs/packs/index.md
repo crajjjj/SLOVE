@@ -63,7 +63,7 @@ Then one final check: if the actor **wears a gag device** and their slot names a
 `GetSlotForActor(actor)` returns exactly what this chain produces. Check it live:
 
 ```
-cgf "SLOVE_Test.DumpState"            ; prints the player's slot
+SLOVE_Test DumpState            ; prints the player's slot
 ```
 
 ### Spreading NPCs across several slots
@@ -175,10 +175,10 @@ Every voice line plays into a **group** (a live volume bus) and optionally a **c
 Three console commands answer nearly every "why is she silent" question:
 
 ```
-cgf "SLOVE_Test.DumpState"                          ; config flags + the player's resolved slot
-cgf "SLOVE_Test.AuditVoicePack" "F1"                ; every category a slot resolves, and what's MISSING
-cgf "SLOVE_Test.SampleCategory" "F1" "Orgasm"       ; play one clip from a slot/category right now
-cgf "AudioUtil.ReloadConfig"                        ; re-read the TOMLs and rescan folders, live
+SLOVE_Test DumpState                          ; config flags + the player's resolved slot
+SLOVE_Test AuditVoicePack F1                ; every category a slot resolves, and what's MISSING
+SLOVE_Test SampleCategory F1 Orgasm       ; play one clip from a slot/category right now
+au reload                        ; re-read the TOMLs and rescan folders, live
 ```
 
 `AuditVoicePack` loops the full category list for that sex (71 female / 15 male) against the slot **after** aliases and fallbacks, so a healthy pack reports `71/71 categories resolve` even if the pack itself only ships 20 folders.

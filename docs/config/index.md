@@ -6,9 +6,9 @@ There are three files, in two different systems. Knowing which file owns what sa
 
 | File | Owns | Read by | Live reload |
 |---|---|---|---|
-| `SKSE\Plugins\SLOVE\SLOVE.toml` | **Behaviour** — what plays, how often, how strongly: voice, expressions, sfx, resistance, milk | SLO VE's scripts (via AudioUtil's TomlUtil) | `cgf "SLOVE_Config.Reload"` |
-| `SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml` | **Content** — the voice slots, the actor→voice routing, the category maps, the SFX table | the AudioUtil DLL | `cgf "AudioUtil.ReloadConfig"` |
-| `SKSE\Plugins\AudioUtil\AudioUtil.toml` | **Engine globals** — lipsync, gag, PPA bridge, default/reserved slots, sound flags | the AudioUtil DLL | `cgf "AudioUtil.ReloadConfig"` |
+| `SKSE\Plugins\SLOVE\SLOVE.toml` | **Behaviour** — what plays, how often, how strongly: voice, expressions, sfx, resistance, milk | SLO VE's scripts (via AudioUtil's TomlUtil) | `SLOVE_Config Reload` |
+| `SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml` | **Content** — the voice slots, the actor→voice routing, the category maps, the SFX table | the AudioUtil DLL | `au reload` |
+| `SKSE\Plugins\AudioUtil\AudioUtil.toml` | **Engine globals** — lipsync, gag, PPA bridge, default/reserved slots, sound flags | the AudioUtil DLL | `au reload` |
 
 Rule of thumb:
 
@@ -53,8 +53,8 @@ The one thing you **cannot** do from an overlay is change a global — `pc_male_
 Both sides reload without restarting the game:
 
 ```
-cgf "SLOVE_Config.Reload"      ; re-read SLOVE.toml
-cgf "AudioUtil.ReloadConfig"   ; re-read the AudioUtil base + all overlays, and rescan the folders
+SLOVE_Config Reload      ; re-read SLOVE.toml
+au reload   ; re-read the AudioUtil base + all overlays, and rescan the folders
 ```
 
 `AudioUtil.ReloadConfig` also **rescans the sound folders**, so it picks up a voice pack you just installed — you don't need to restart to test one.

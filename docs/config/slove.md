@@ -5,7 +5,7 @@
 It is read through AudioUtil's TomlUtil API with dotted keys (`voice.pcvolume`). Live reload:
 
 ```
-cgf "SLOVE_Config.Reload"
+SLOVE_Config Reload
 ```
 
 !!! note "Fail-open"

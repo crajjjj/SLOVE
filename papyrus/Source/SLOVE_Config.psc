@@ -33,7 +33,7 @@ Bool Function GetBool(String asKey, Bool def = false) Global
 	return TomlUtil.GetBool(File(), asKey, def)
 EndFunction
 
-;Live tuning: edit SLOVE.toml, then console cgf "SLOVE_Config.Reload"
+;Live tuning: edit SLOVE.toml, then console SLOVE_Config Reload
 Bool Function Reload() Global
 	return TomlUtil.Reload(File())
 EndFunction

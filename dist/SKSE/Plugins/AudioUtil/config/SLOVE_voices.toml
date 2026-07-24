@@ -189,7 +189,7 @@ oneshot = 1.0
 #         a female voicetype to them in [voicetype_map].
 # Categories a stock slot doesn't list resolve via [category_aliases.female]
 # / [category_fallbacks.female] (both in the base AudioUtil.toml). Audit any
-# slot in-game: cgf "SLOVE_Test.AuditVoicePack" "F1".
+# slot in-game: SLOVE_Test AuditVoicePack F1.
 # M1-M8 are the bundled male packs (Hentairim voice pack assets, shipped
 # with SLO VE under Sound\fx\IVDT):
 # M1 Even Toned, M2 Argonian, M3 Brute, M4 Nord, M5 Condescending,
