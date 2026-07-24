@@ -1,6 +1,6 @@
 # SLO VE — Voices and Expressions
 
-**SLO VE** ("SexLab / OStim — Voices and Expressions") is a standalone enhancement layer for **SexLab P+** scenes. It watches the running animation and drives four things in sync with what is happening on screen: **voices**, **facial expressions**, **body SFX**, and an optional **willpower / resistance** system.
+**SLO VE** ("SexLab / OStim — Voices and Expressions") is a standalone enhancement layer for **SexLab** scenes — it supports both **SexLab P+** and **classic SexLab 1.63** (the installer picks the right script set; see [SexLab Flavours](sexlab-flavours.md)). It watches the running animation and drives four things in sync with what is happening on screen: **voices**, **facial expressions**, **body SFX**, and an optional **willpower / resistance** system.
 
 Everything is configured in plain **TOML** files that reload live from the console. **There is no MCM.**
 
@@ -16,7 +16,7 @@ Everything is configured in plain **TOML** files that reload live from the conso
 - **Every participant is voiced** — not just the lead. Partners rotate through their own lines and each NPC keeps a consistent voice across scenes. Creature partners pant and growl on their own timing, straight out of the vanilla BSAs.
 - **Female voices work out of the box** — they default to SexLab's own moan sets. Any Hentairim/IVDT female pack is a drop-in upgrade: install its WAVs and it plays, and any category the pack lacks backfills from the stock moans.
 - **Facial expressions** — live breathing, stage-intensity faces, tongue-out (sr_fillherup) and ahegao on huge partners, with a jaw-gate so a tongue only shows when the mouth is actually open.
-- **Body SFX** — slushing, impacts, claps, kissing and blowjob sounds, optionally thrust-synced to SexLab P+ collision velocity, plus contact one-shots on insertion, pull-out gape, kiss and oral.
+- **Body SFX** — slushing, impacts, claps, kissing and blowjob sounds, optionally thrust-synced to collision velocity on **SexLab P+**, plus contact one-shots on insertion, pull-out gape, kiss and oral. (The gape and insertion sounds work on classic too; thrust-syncing is P+ only — see [SexLab Flavours](sexlab-flavours.md).)
 - **Gagged voice** — a speaker wearing a mouth-owning device switches to a muffled pool automatically, and lip movement hands off to the device.
 - **Lipsync** — mouths move in time with the audio, on any loose PCM wav. No `.lip` baking.
 - **Willpower / resistance** *(optional)* — the one gameplay system carried over from Hentairim, or switch it off entirely.
@@ -24,6 +24,7 @@ Everything is configured in plain **TOML** files that reload live from the conso
 ## Where to start
 
 - [Getting Started](getting-started.md) — requirements, mod-manager order (SLO VE must win the TOML files), first run, updating
+- [SexLab Flavours](sexlab-flavours.md) — P+ vs classic 1.63, what each needs, and what differs
 - [How Voices Work](packs/index.md) — the slot model, how an actor picks a voice, and how a category becomes a file
 - [Installing & Routing Female Packs](packs/female.md) — the drop-in pack workflow, giving a follower her own voice, adding new slots
 - [Male, Creature, Gag & SFX Slots](packs/slots.md) — the bundled male packs, vanilla-BSA creature voices, the gag pool and the body-SFX library
@@ -58,7 +59,7 @@ cgf "AudioUtil.ReloadConfig"  ; slots, routing, SFX — also rescans the folders
 
 ## Credits & license
 
-SLO VE is a standalone port of **ShimizuModding's** Hentairim IVDT scene-voice system and stays compatible with Hentairim/IVDT-convention voice packs — full credit for the original system goes to ShimizuModding and to the community authors of those packs. Built on **AudioUtil**, **CommonLibSSE-NG** and **SexLab P+**.
+SLO VE is a standalone port of **ShimizuModding's** Hentairim IVDT scene-voice system and stays compatible with Hentairim/IVDT-convention voice packs — full credit for the original system goes to ShimizuModding and to the community authors of those packs. Built on **AudioUtil**, **CommonLibSSE-NG** and **SexLab**.
 
 **Mutually exclusive with full Hentairim p+** — run one or the other, never both.
 

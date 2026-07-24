@@ -11,7 +11,7 @@ Every scene participant holds a **willpower** value from `0` to `100`.
 - Breaking sets **broken points** — the number of game-hours without sex needed to recover.
 - Between scenes, willpower regenerates lazily over game time.
 
-Penetration is measured by the **Accurate Penetration bridge** when it is tracking the actor (context bit set *and* depth > 0), and falls back to SexLab P+ position labels otherwise.
+Penetration is measured by the **Accurate Penetration bridge** when it is tracking the actor (context bit set *and* depth > 0), and falls back to SexLab position labels otherwise (Scene Builder on P+, SLATE tags on classic).
 
 ## The drain formula
 

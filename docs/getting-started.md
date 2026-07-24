@@ -9,7 +9,7 @@ SLO VE is mostly loose scripts, sounds and TOML config plus one small ESL-flagge
 | Requirement | Why |
 |---|---|
 | **SKSE64** | script extender; launch the game through it |
-| **SexLab Framework P+ 2.17+** | the scene framework SLO VE reads |
+| **SexLab** — either **P+ 2.17+** *or* **SE 1.63 (classic)** | the scene framework SLO VE reads. The installer asks which one you run and installs the matching script set. Classic additionally requires **SLSO** and **SLATE + a tag database** — see [SexLab Flavours](sexlab-flavours.md) |
 | **[AudioUtil](https://crajjjj.github.io/AudioUtil/)** | the audio engine: folder-based voice playback, lipsync, and the TOML reader every SLO VE setting is read through. **Without it there is no voice engine.** |
 | **PapyrusUtil** | JSON preset data (expression faces) and per-actor state storage |
 | **Mfg Fix NG** (MfgConsoleFunc/Ext) | every facial-expression write goes through it |
@@ -27,7 +27,7 @@ SLO VE is mostly loose scripts, sounds and TOML config plus one small ESL-flagge
 **Recommended:** SexLab Cumshot for visible ejaculation — SLO VE voices, faces and SFX the scene but leaves cum visuals to it.
 
 !!! note "Scene tags"
-    Stage/position labels resolve from **Hentairim-convention SexLab P+ scene tags** (`3asvp` = stage 3, actor A, slow vaginal penetration). Untagged animations fall back to generic lead-in behaviour — you get the most out of SLO VE on a tagged setup.
+    Stage/position labels resolve from **Hentairim-convention scene tags** (`3asvp` = stage 3, actor A, slow vaginal penetration) — from the Scene Builder on **P+**, or from **SLATE** animation tags on **classic**. Untagged animations fall back to generic lead-in behaviour, so you get the most out of SLO VE on a tagged setup.
 
 ## Installation
 
@@ -35,16 +35,21 @@ SLO VE ships as a **FOMOD installer**. Use a mod manager (MO2 recommended).
 
 1. **Install the hard requirements first**, each per its own instructions.
 2. **(Optional) Add female voice packs.** Females already work out of the box on SexLab's stock moans, but any Hentairim/IVDT pack is a drop-in upgrade. See [Installing & Routing Female Packs](packs/female.md). Male packs M1–M8 and the body-SFX library are **already bundled**.
-3. **Install SLO VE and enable `SLOVE.esp`.** It is ESL-flagged (ESP-FE), so it costs no regular plugin slot and can sit anywhere in the plugin order.
+3. **Install SLO VE and pick your SexLab flavour.** The installer's **SexLab Framework** page offers *P+ (2.x)* or *SE 1.63 (classic) + SLSO* — see [SexLab Flavours](sexlab-flavours.md). Then enable `SLOVE.esp`; it is ESL-flagged (ESP-FE), so it costs no regular plugin slot and can sit anywhere in the plugin order.
 4. **Set the conflict/priority order so SLO VE wins its files** — see below.
 5. **(Optional) Install soft dependencies** for the extra behaviour you want.
-6. **Start or load your game.** SLO VE's quest is start-game-enabled and ships a SEQ file, so it registers itself automatically — immediately on a new game, or within a few seconds of loading an existing save. Start any SexLab P+ scene to hear it.
+6. **Start or load your game.** SLO VE's quest is start-game-enabled and ships a SEQ file, so it registers itself automatically — immediately on a new game, or within a few seconds of loading an existing save. Start any SexLab scene to hear it.
 
 ### Install order — this part matters
 
 ```
 AudioUtil  →  voice-pack assets  →  SLO VE (last)
 ```
+
+!!! info "On classic SexLab"
+    SLSO and SLATE come earlier in the chain — the full order is
+    `SexLab 1.63 → SLSO → SLATE + tag database → AudioUtil → voice packs → SLO VE (last)`.
+    See [SexLab Flavours](sexlab-flavours.md#install-order).
 
 SLO VE ships its own AudioUtil preset:
 

@@ -1,7 +1,13 @@
-# Framework adapter contract (SexLab P+ today, OStim later)
+# Framework adapter contract (SexLab P+ and classic 1.63 today, OStim later)
 
 `SLOVE_Director` is the ONLY script allowed to reference `SexLabFramework`,
-`SexLabThread`, `SexlabRegistry`, or SLPP mod-event names. Voice, expressions
+`SexLabThread` / `sslThreadController`, `SexlabRegistry`, or raw SexLab
+mod-event names.
+
+A second backend already exists: the classic SexLab 1.63 script set under
+`papyrus/classic/Source` (see `classic-sexlab-port.md`). It is a parallel copy of
+the six framework-facing scripts rather than an alternative director, because the
+consumers hold their own thread handles (the "pragmatic port leaks" below). Voice, expressions
 and SFX consume the director's API and the SLOVE-owned mod events below.
 An OStim backend = an alternative director (`SLOVE_DirectorOStim`) providing
 the same surface, plus a replacement `SLOVE_Hentairim_Tags` (labels are
