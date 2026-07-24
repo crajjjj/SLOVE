@@ -249,12 +249,14 @@ float gapeanalhuge
 Bool SearchingFoundVelocity
 Function InitializeConfigandForms()
 volume = SLOVE_Config.GetInt("sfx.volume", 100) as float / 100
-;classic: these three drive the node-collision paths, which do not exist here.
-;They are forced off regardless of SLOVE.toml so the poll never switches to the
-;velocity rate for data that will never arrive. See docs\classic-sexlab-port.md.
+;classic: the two velocity paths need node-collision data that does not exist
+;here, so they are forced off regardless of SLOVE.toml - otherwise the poll would
+;switch to the velocity rate waiting for samples that never arrive.
+;usecontactsfx IS honoured: ProcessContactEdges below derives its edges from the
+;label system instead of collision flags. See docs\classic-sexlab-port.md.
 usevelocity = 0
 useadaptivevelocity = 0
-usecontactsfx = 0
+usecontactsfx = SLOVE_Config.GetInt("sfx.usecontactsfx", 1)
 usecontactvictimreactions = SLOVE_Config.GetInt("sfx.usecontactvictimreactions", 1)
 victiminsertiontrauma = SLOVE_Config.GetInt("resistance.victiminsertiontrauma", 5)
 timestosearch = SLOVE_Config.GetInt("sfx.timestosearch", 0)
@@ -638,8 +640,83 @@ Function PlayContactSound(String theSound, Actor actorMakingSound)
 EndFunction
 
 Function ProcessContactEdges()
-	;contact one-shots (insertion, pull-out gape, kiss, oral) are driven by
-	;collision edges, which classic cannot provide
+	;classic: SLPP interaction flags and GetPartnerByType do not exist, so the
+	;penetration edge is derived from the LABEL system (SLATE per-stage tags)
+	;rather than node collisions. The AudioUtil PPA bridge is framework-independent,
+	;so the measured pull-out gape survives unchanged.
+	;
+	;Not ported: the insertion / kiss / oral one-shots. On P+ those fire only when
+	;the label system has NOT already classified the act - they exist to catch what
+	;labels miss. Deriving the edge from labels makes that guard unreachable by
+	;construction, so firing them here would be new behaviour, not a port.
+	if usecontactsfx != 1 || position <= 0 || CurrentThread == none
+		return
+	endif
+	float now = CurrentThread.TotalTime
+
+	;--- penetration edges (actorref as giver, per the labels) ---
+	bool pen = IsGivingVaginalPenetration() || IsGivingAnalPenetration()
+	if pen
+		ContactPenLastSeen = now
+		if !PrevContactPenetrating
+			PrevContactPenetrating = true
+			ContactPenStartTime = now
+			LastPenReceiver = ResolvePenetrationReceiver()
+			;resistance system: a forced insertion onto a submissive receiver deposits
+			;trauma their SLOVE_Resistance drains into willpower loss on its next tick
+			if LastPenReceiver != none && victiminsertiontrauma > 0 && MasterScript.IsSubmissive(LastPenReceiver)
+				StorageUtil.AdjustFloatValue(LastPenReceiver, "SLOVE_ResDebt", victiminsertiontrauma as float)
+			endif
+		endif
+	elseif PrevContactPenetrating && now - ContactPenLastSeen >= 0.5
+		PrevContactPenetrating = false
+		;pull-out gape after sustained penetration, measured to the last confirmed
+		;contact so the debounce window doesn't inflate the requirement
+		if LastPenReceiver != none && ContactPenLastSeen - ContactPenStartTime >= 4.0
+			;prefer the actual measured openings from the AudioUtil PPA bridge over
+			;the partner-size guess: right after pull-out the opening is still
+			;elevated, so it reflects what really happened to the receiver. Each
+			;orifice is judged against its own scale (anal rests wider than
+			;vaginal ever stretches), and the stronger result wins
+			float vagopening = 0.0
+			float analopening = 0.0
+			if AudioUtilPPA.IsConnected()
+				vagopening = AudioUtilPPA.GetVaginalOpening(LastPenReceiver)
+				analopening = AudioUtilPPA.GetAnalOpening(LastPenReceiver)
+			endif
+			printdebug("Contact edge: pull-out detected, vagopening=" + vagopening + " analopening=" + analopening)
+			if vagopening > 0.0 || analopening > 0.0
+				if (vagopening >= gapevaginalhuge || analopening >= gapeanalhuge) && GapeHuge != ""
+					PlayContactSound(GapeHuge, LastPenReceiver)
+				elseif (vagopening >= gapevaginalaverage || analopening >= gapeanalaverage) && GapeAverage != ""
+					PlayContactSound(GapeAverage, LastPenReceiver)
+				endif
+				;below both average thresholds: barely stretched, no gape sound
+			elseif IsHugePP && GapeHuge != ""
+				PlayContactSound(GapeHuge, LastPenReceiver)
+			elseif GapeAverage != ""
+				PlayContactSound(GapeAverage, LastPenReceiver)
+			endif
+		endif
+	endif
+EndFunction
+
+;classic replacement for SLPP GetPartnerByType: the actor this one is penetrating
+;is whichever OTHER position currently carries a penetration label. Exact for the
+;usual single-receiver scene; in a group scene it takes the first such position.
+Actor Function ResolvePenetrationReceiver()
+	Actor[] pos = MasterScript.GetPositions()
+	int z = 0
+	while z < pos.Length
+		if pos[z] != none && pos[z] != actorref
+			string lbl = MasterScript.GetPenetrationLabel(pos[z])
+			if lbl != "" && lbl != "LDI"
+				return pos[z]
+			endif
+		endif
+		z += 1
+	endwhile
+	return none
 EndFunction
 
 Function SFXRefreshSound()
