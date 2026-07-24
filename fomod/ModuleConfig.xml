@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+
+  <moduleName>SLO VE</moduleName>
+
+  <!-- Everything that is framework-independent: the ESP-FE + SEQ, the TOML
+       presets, the expression/resistance JSONs, the bundled audio, and the
+       four framework-free scripts plus the default (P+) script set. -->
+  <requiredInstallFiles>
+    <folder source="Core" destination="" priority="0" />
+  </requiredInstallFiles>
+
+  <installSteps order="Explicit">
+
+    <installStep name="SexLab Framework">
+      <optionalFileGroups order="Explicit">
+
+        <group name="Which SexLab Framework do you run?" type="SelectExactlyOne">
+          <plugins order="Explicit">
+
+            <plugin name="SexLab Framework P+ (2.x)">
+              <description>
+Default. For SexLab Framework P+ 2.17 or newer (the SLPP fork with SexLab Scene
+Builder and node-collision physics).
+
+This build uses the full feature set: per-stage/per-position scene annotations,
+measured thrust-speed intensity (the F/S label prefix), physics-driven contact
+SFX, and SLSB climax annotations.
+
+Requires: SexLab Framework P+ 2.17+.
+              </description>
+              <typeDescriptor>
+                <type name="Recommended" />
+              </typeDescriptor>
+            </plugin>
+
+            <plugin name="SexLab Framework SE 1.63 (classic) + SLSO">
+              <description>
+For classic SexLab Framework SE 1.63. Installs the classic script set, which
+replaces the six framework-facing scripts.
+
+THIS OPTION HAS TWO EXTRA HARD REQUIREMENTS:
+
+  1. SexLab Separate Orgasm (SLSO). Classic SexLab only fires a per-thread orgasm
+     event; SLSO republishes the per-actor event that SLO VE's voice, expressions,
+     SFX and milk triggers all key off. Let SLSO overwrite SexLab - its
+     sslActorAlias override is what emits that event.
+
+  2. SLATE plus a Hentairim-convention tag database (e.g. "Hentairim tags.json"
+     in SKSE\Plugins\SLATE). SLATE applies the per-stage/per-position label codes
+     (1ASVP, 5BENI, ...) as SexLab animation tags, and those tags ARE the label
+     engine on classic. Without a tag database every label falls back to lead-in
+     and you will hear only generic behaviour.
+
+With both installed, label fidelity matches the P+ build. The one genuine
+difference is that classic has no node-collision physics, so physics-driven
+contact SFX and the adaptive-velocity search are disabled (tag- and timer-driven
+body SFX work normally), and the fast/slow intensity prefix comes from the
+authored tag rather than measured thrust speed.
+
+Install order: SexLab 1.63 - SLSO - SLATE + tags - AudioUtil - voice packs - SLO VE last.
+              </description>
+              <files>
+                <folder source="ClassicScripts" destination="" priority="1" />
+              </files>
+              <typeDescriptor>
+                <type name="Optional" />
+              </typeDescriptor>
+            </plugin>
+
+          </plugins>
+        </group>
+
+      </optionalFileGroups>
+    </installStep>
+
+  </installSteps>
+</config>

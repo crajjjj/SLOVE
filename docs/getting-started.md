@@ -31,7 +31,7 @@ SLO VE is mostly loose scripts, sounds and TOML config plus one small ESL-flagge
 
 ## Installation
 
-Use a mod manager (MO2 recommended).
+SLO VE ships as a **FOMOD installer**. Use a mod manager (MO2 recommended).
 
 1. **Install the hard requirements first**, each per its own instructions.
 2. **(Optional) Add female voice packs.** Females already work out of the box on SexLab's stock moans, but any Hentairim/IVDT pack is a drop-in upgrade. See [Installing & Routing Female Packs](packs/female.md). Male packs M1–M8 and the body-SFX library are **already bundled**.
