@@ -60,6 +60,14 @@ Work down the resolution chain:
 
 ## A voice pack I installed isn't playing
 
+**First, read `AudioUtil.log`.** Since AudioUtil 0.9.2 it reports the outcome of every pack slot on load — one line usually names the problem faster than the console commands can:
+
+- `Slot F1: 27 category folders scanned under Data\Sound\fx\IVDT\F1` — the pack **was** picked up. If the count looks low for the pack, some folders are mis-named and fall back to the stock moans one category at a time.
+- `Slot F1: 0 category folders under … — folder exists but has no <Category> subfolders` — the pack landed in the wrong place, so the slot silently falls back to the stock `F0` moans (which is why audio still plays but the pack never does). Almost always an **extra nesting level** (`…\F1\F1\…` or `…\F1\<PackName>\…`), **non-standard folder names**, or **BSA-packed audio** a folder scan can't see.
+- `Slot F2: has audio but nothing routes to it` — the pack installed fine, but **no actor can reach the slot**. You dropped a follower pack into `F2`/`F3`/`F4` and never routed anyone: pin an NPC in `[npc_overrides]` or map a voicetype in `[voicetype_map]` (see [Give a follower her own voice](packs/female.md#give-a-follower-or-partner-her-own-voice)).
+
+If those lines look healthy and you still hear nothing, work the console commands:
+
 1. Are the WAVs **loose** — not inside a BSA? Folder scans cannot see into archives.
 2. Are they at exactly `Data\Sound\fx\IVDT\F1\<Category>\*.wav`? A pack that installs one level too deep (`…\F1\F1\…`) scans as nothing.
 3. `au reload` — a fresh install needs a rescan (or a game restart).
