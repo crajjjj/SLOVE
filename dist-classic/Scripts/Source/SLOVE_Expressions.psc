@@ -361,7 +361,10 @@ Bool Function FullExpressionPass()
 				MuFacialExpressionExtended.SetExpressionByNumber(actorref,8,2,100) ;tongue down
 			endif
 		endif
-		if brokenface && HasMFEEVanillaRace && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 100
+		;enableahegao is the master switch for the MFEE mood-ahegao overlay: with it
+		;off, a broken actor still gets the broken-face PRESET (built above), just not
+		;the MFEE expression-0 ahegao painted on top here
+		if enableahegao == 1 && brokenface && HasMFEEVanillaRace && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 100
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,100) ;ahegao 1
 		endif
 	endif
