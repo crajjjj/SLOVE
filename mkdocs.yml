@@ -79,6 +79,7 @@ exclude_docs: |
   smoke-test.md
   use-cases.md
   classic-sexlab-port.md
+  hentairim-tags.md
 
 validation:
   links:

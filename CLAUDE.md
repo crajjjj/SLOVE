@@ -68,6 +68,8 @@ Nine scripts in `papyrus/Source/`, all prefixed `SLOVE_`. Pattern: **one framewo
 
 **Label code vocabulary** (used throughout): `LDI`=lead-in; `S*`/`F*` prefix = Slow/Fast intensity; `VP/AP/CG/AC/DP` = vaginal/anal/cowgirl/anal-cowgirl/double penetration; `MF/HJ/FJ/TF/DV/DA` = penis actions; `SBJ/FBJ/KIS/CUN` = oral; `ENI/ENO` = ending inside/outside; `SST/FST/BST` = stimulation. "Intense" = the concatenated label string contains `"1F"`.
 
+The raw SLSB scene-tag scheme these codes derive from (the `<stage><ActorLetter><code>` convention `SLOVE_Hentairim_Tags` classifies, full action-code list, and the `-`/`~`/`@` tag-string syntax) is documented in [`docs/hentairim-tags.md`](docs/hentairim-tags.md) — porting reference from the *Hentairim P+ Guide*, excluded from the published docs site.
+
 ## Framework Adapter — the firewall rule
 
 `docs/framework-adapter.md` defines the seam that makes a future OStim backend possible. **This is a hard invariant — preserve it in every edit:**
