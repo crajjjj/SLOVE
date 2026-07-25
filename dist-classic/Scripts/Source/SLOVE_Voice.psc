@@ -802,33 +802,35 @@ EndEvent
 bool TrackerRemoved = false
 Function RemoveTracker()
 
+	if TrackerRemoved ;re-entry guard: IVDTSceneEnd and the OnUpdate end-check can both call this
+		return
+	endif
 	TrackerRemoved = true
 	StorageUtil.unSetStringvalue(None, "Scenario")
-	;silence voice lines still playing or about to start behind a pre-delay.
-	;Instances are tracked natively now, so in-flight lines can simply be stopped;
-	;the groups stay ducked for a moment so a line that slips past the
-	;TrackerRemoved check plays silent, then everything is restored
+	;stop the update loop first so nothing re-enters teardown during the grace wait
+	UnregisterForUpdate()
+	;silence stragglers on the ambient/mundane groups immediately, but do NOT duck
+	;the *_high groups: a climax cry (orgasm lines play at priority>1 on *_high) is
+	;usually starting right now, on the same stage that ends the scene. Ducking it
+	;here (as this code used to) is why the Orgasm folder seemed to "never play".
+	;Let it ring out at full volume for a short grace, then stop it.
 	AudioUtil.DuckGroup("pc_low")
-	AudioUtil.DuckGroup("pc_high")
 	AudioUtil.DuckGroup("partner_low")
-	AudioUtil.DuckGroup("partner_high")
 	AudioUtil.StopGroup("pc_low")
-	AudioUtil.StopGroup("pc_high")
 	AudioUtil.StopGroup("partner_low")
-	AudioUtil.StopGroup("partner_high")
 	ASLRemoveOrgasmSSquirt()
 	ASLRemoveThickCumleak()
 	ASLRemoveCumPool()
-	;Perform needed clean up first
-	UnregisterForUpdate()
 	StorageUtil.Unsetintvalue(MainFemaleActor ,"HandlingMaleOrgasm")
 	StorageUtil.Unsetintvalue(MainFemaleActor ,"Orgasming")
-	;keep the silence window briefly for stragglers, then restore the groups
-	Utility.Wait(4.0)
+	;grace: let the in-flight climax cry finish before cutting the *_high groups
+	Utility.Wait(2.0)
+	AudioUtil.StopGroup("pc_high")
+	AudioUtil.StopGroup("partner_high")
+	;brief extra silence window for any last straggler, then restore + remove
+	Utility.Wait(2.0)
 	AudioUtil.UnduckGroup("pc_low")
-	AudioUtil.UnduckGroup("pc_high")
 	AudioUtil.UnduckGroup("partner_low")
-	AudioUtil.UnduckGroup("partner_high")
 	;Do this very last, but make sure to do it (it's what actually removes the tracker)
 	actorWithSceneTrackerSpell.RemoveSpell(SceneTrackerSpell)
 
@@ -900,6 +902,7 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 		voiceChannel = "slove_np" + audioActor.GetFormID()
 	endif
 	If TrackerRemoved ;scene is over - don't start queued voice lines
+		Printdebug("Voice line skipped (scene ended / tracker removed) : " + debugtext)
 		Return
 	EndIf
 	; male or other playing sound
@@ -966,6 +969,10 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 			endif
 		endif
 	else
+		;line dropped because another line from this speaker is still playing and this
+		;one isn't high-priority - logged so the drop isn't silently invisible (this is
+		;why printdebug seemed to only explain a fraction of the plays)
+		Printdebug("Voice line skipped (busy: another line playing, priority<=1) : " + debugtext)
 		Utility.Wait(Utility.RandomFloat(1, 2))
 	EndIf
 

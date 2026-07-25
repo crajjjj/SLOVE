@@ -219,6 +219,11 @@ Function RegisterForTheEventsWeNeed()
 	RegisterForModEvent("AnimationStart", "DirectorSceneStart")
 	RegisterForModEvent("SexLabOrgasmSeparate", "DirectorOnOrgasm")
 	RegisterForModEvent("StageStart", "DirectorStageStart")
+	;deterministic scene-end: the OnUpdate poll is not a reliable end-detector
+	;(RegisterForSingleUpdate dies on save/load and can be starved by script lag, and
+	;on classic GetPlayerController() may not go None between scenes), so end on
+	;SexLab's own AnimationEnd too - see DirectorSceneEnd
+	RegisterForModEvent("AnimationEnd", "DirectorSceneEnd")
 	;SexLab Survival owns the player's face during its ahegao. SLOVE_Expressions
 	;pauses its own writes, but AudioUtil's lipsync would still drive (and then
 	;zero) the mouth phonemes on every PC moan - block it for the duration.
@@ -318,15 +323,27 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 
 	printdebug("Sexlab Scene Detected")
 
-
-	if PlayerInScene && !Sexlab.GetPlayerController()
-		PlayerInScene = false
-	endif
-
-	if PlayerInScene || !Sexlab.GetPlayerController()
+	sslThreadController newThread = Sexlab.GetPlayerController()
+	if !newThread
 		printdebug("Sexlab Scene Does not Involve Player.Ignored")
 		Return
-	endIf
+	endif
+
+	;self-heal: if we still think a scene is running, decide whether this is a
+	;duplicate AnimationStart for the SAME thread (ignore) or a NEW scene whose end
+	;we missed. The OnUpdate poll can die (save/load, script lag, back-to-back
+	;scenes) and classic GetPlayerController() may not go None between scenes,
+	;latching PlayerInScene true forever - the old guard only cleared it when NO
+	;controller existed, so at a real new scene it never cleared and every future
+	;scene was ignored. Re-adopting on a thread-id change is the safety net.
+	if PlayerInScene
+		if CurrentThread && newThread.tid == CurrentThreadID
+			printdebug("Same scene already adopted - ignoring duplicate AnimationStart")
+			Return
+		endif
+		printdebug("Stale scene state (missed end) - reconciling before adopting the new scene")
+		DirectorEndScene()
+	endif
 
 	AdoptScene()
 EndEvent
@@ -397,14 +414,38 @@ Event DirectorOnOrgasm(Form actorRef, Int thread)
 endevent
 
 
+;deterministic scene-end: end the tracked scene the moment SexLab fires
+;AnimationEnd instead of waiting for the OnUpdate poll to notice the controller is
+;gone (the poll can be dropped by save/load or script lag, and on classic
+;GetPlayerController() may not go None between scenes - either way PlayerInScene
+;stays true and blocks every future scene). Guarded to our thread; DirectorEndScene
+;is re-entry safe so the poll can't double-fire behind this.
+Event DirectorSceneEnd(string eventName, string argString, float argNum, form sender)
+	if PlayerInScene && argString as Int == CurrentThreadID
+		printdebug("AnimationEnd for tracked scene - ending")
+		DirectorEndScene()
+	endif
+EndEvent
+
 Function DirectorEndScene()
+	;re-entry guard: both the OnUpdate poll and the AnimationEnd hook can reach here.
+	;PlayerInScene is cleared below, so a second call is a no-op (no double 3s
+	;end-window, no duplicate SLOVE_SceneEnd).
+	if !PlayerInScene
+		return
+	endif
 	;SLO VE: no StopAnimation/armor/scaling/speed restore - the only end path here is
 	;the OnUpdate poll after the thread already ended
 	isEnding = true
 	;mute on scene end: a moan/line/SFX started just before the scene ended would
-	;otherwise keep playing over the aftermath. Hard-stop every SLO VE sound (voice,
-	;partner, creature, SFX) the moment the scene is gone.
-	AudioUtil.StopAllAudio()
+	;otherwise keep playing over the aftermath. Stop the ambient/mundane groups
+	;immediately, but leave the *_high voice groups (orgasm lines play there at
+	;priority>1) for SLOVE_Voice.RemoveTracker to ring out briefly - cutting the
+	;climax cry the instant the scene ends is why the Orgasm folder seemed silent.
+	AudioUtil.StopGroup("pc_low")
+	AudioUtil.StopGroup("partner_low")
+	AudioUtil.StopGroup("sfx")
+	AudioUtil.StopGroup("oneshot")
 	PCInSex = false
 	LastLabelUpdateTime = 0
 	LastPhysicsLabelTime = 0
@@ -694,6 +735,19 @@ Function PlaySound(String theSound, Actor actorMakingSound, Bool waitForCompleti
 	;blockLipSync per line when a face (SLS ahegao or our own climax face) owns the
 	;actor's mouth, so the moan can't flap the jaw over it. Decided per call - there
 	;is no standing block in AudioUtil.
+	;resolution trace (before the play) - answers "which folder did this play from?":
+	;slot+category maps to a folder in AudioUtil\config\SLOVE_voices.toml. files 0 =
+	;the category resolved empty (missing/BSA-packed/misnamed folder) so nothing will
+	;play; files>0 but still silent points at the scene-end stop/duck. NB
+	;GetCategoryFileCount bypasses gag/sfx routing, so it can differ for a gagged
+	;actor. Mirrored to the SLOVE log so it survives past the console.
+	if enableprintdebug == 1
+		string slot = AudioUtil.GetSlotForActor(actorMakingSound)
+		int files = AudioUtil.GetCategoryFileCount(slot, theSound)
+		string line = "Play '" + theSound + "' actor=" + actorMakingSound.GetDisplayName() + " slot=" + slot + " files=" + files + " group=" + group + " chan=" + channel
+		printdebug(line)
+		SLOVE_Log.WriteLog("Voice : " + line, 0)
+	endif
 	AudioUtil.Play(theSound, actorMakingSound, waitForCompletion, 1.0, group, channel, FaceOwnsMouth(actorMakingSound))
 EndFunction
 
