@@ -20,7 +20,11 @@ A **standalone, Papyrus-only** mod that adds scene **voices** (moans + spoken di
 
 **No `.vscode` folder.** Build config is `SLOVE.ppj` (Pyro project) + `scripts/build.ps1`.
 
-**After any big change, run `docs/smoke-test.md`** — §1–§8 are AI-executable checks (full rebuild, API sync, firewall grep, channel hygiene, TOML parse, config-key sync, BSA/asset path verification); §9 is the in-game handoff list to give the user. **Before tagging a release, also walk `docs/use-cases.md`** — the functional regression matrix (one row per user-facing feature: voices, expressions, SFX, integrations, resistance, robustness), split into AI-checkable evidence vs. user in-game confirmation.
+**After any big change, run `docs/smoke-test.md`** — §1–§8 are AI-executable checks (full rebuild, API sync, firewall grep, channel hygiene, TOML parse, config-key sync, BSA/asset path verification); §9 is the in-game handoff list to give the user.
+
+**On every release, run `docs/use-cases.md`** — the functional regression matrix (one row per user-facing feature: voices, expressions, SFX, integrations, resistance, robustness), split into AI-checkable evidence vs. user in-game confirmation. Two obligations, both required before tagging:
+1. **Check for regressions.** Walk the matrix, verify every AI-checkable row still passes, and hand the user the in-game rows to confirm. Do not call a release verified until the audio/visual rows get a human yes (or an explicit waiver).
+2. **Keep the matrix current.** If the release added or changed a user-facing feature, add or update the corresponding use case(s) in `docs/use-cases.md` in the same release — a feature with no row is an untested feature. Removed features lose their row.
 
 ```
 powershell scripts\build.ps1        # run from repo root
