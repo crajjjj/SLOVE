@@ -46,8 +46,9 @@ attack_ms = 30                # opening speed toward a louder level
 release_ms = 90               # closing speed on quiet / clip end
 min_level = 0.04              # levels below this keep the mouth closed
 # categories that never drive the mouth: blowjob action is oral SFX (slurping,
-# not vocalization); Orgasm hands the mouth to the climax/ahegao face.
-block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "Orgasm"]
+# not vocalization); Orgasm hands the mouth to the climax/ahegao face; PullOutGape
+# is a wet gape squelch (played on the voice path, so block it here).
+block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "Orgasm", "PullOutGape"]
 
 [gag]
 # When a speaking female wears a keyword below, her voice routes through her

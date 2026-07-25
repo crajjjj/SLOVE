@@ -49,6 +49,7 @@ Bool PCInSex
 
 ;SLO VE: cached SLOVE.toml [director] settings (re-read on load and per scene start)
 int enablevoice
+int suppresssexlabvoice
 int enablesfx
 int enableExpressions
 int enablepcexpression
@@ -242,6 +243,7 @@ Function InitializeDirectorConfigs()
 	endif
 
 	enablevoice = SLOVE_Config.GetInt("director.enablevoice", 1)
+	suppresssexlabvoice = SLOVE_Config.GetInt("director.suppresssexlabvoice", 1)
 	enablesfx = SLOVE_Config.GetInt("sfx.enable", 0)
 	enableExpressions = SLOVE_Config.GetInt("director.enableexpressions", 1)
 	enablepcexpression = SLOVE_Config.GetInt("director.enablepcexpression", 1)
@@ -662,8 +664,10 @@ float function GetDirectorLastPhysicsLabelTime()
 endfunction
 
 Function ApplySpells()
-	;SLO VE: trimmed AddTrackerToSceneIfApplicable - no thread control, no
-	;sslVoiceSlots voice wipe (AudioUtil owns voices), no SFX/resistance modules
+	;SLO VE: slim port of AddTrackerToSceneIfApplicable. AudioUtil owns the voices,
+	;so we silence SexLab's own moan engine per actor (SuppressSexLabVoice, behind
+	;director.suppresssexlabvoice); no SFX/resistance module thread control.
+	SuppressSexLabVoice()
 
 	;---------------Applying Voice Spell to Player-------------------
 	if VoiceSpell
@@ -737,6 +741,24 @@ Function ApplySpells()
 		r += 1
 		EndWhile
 	EndIf
+EndFunction
+
+;SLO VE: force SexLab's own voice silent for every scene actor so AudioUtil is the
+;sole voice source (restores Hentairim's sslVoiceSlots wipe). ForceSilent auto-resets
+;when SexLab clears the aliases at scene end, so no restore hook is needed. Gated on
+;enablevoice too - never leave a scene dead silent when SLO VE voice is off.
+Function SuppressSexLabVoice()
+	;!Available() = AudioUtil DLL missing -> AudioUtil.Play no-ops, so DON'T silence
+	;SexLab too (that would be dead silence). Fail open to SexLab's own moans instead.
+	if enablevoice != 1 || suppresssexlabvoice != 1 || CurrentThread == none || actorList == none || !SLOVE_Config.Available()
+		return
+	endif
+	int i = 0
+	while i < actorList.length
+		CurrentThread.SetActorVoice(actorList[i], "", true) ;abForceSilent -> SexLab plays no moans for this actor
+		i += 1
+	endwhile
+	printdebug("SexLab voice silenced for " + actorList.length + " scene actor(s)")
 EndFunction
 
 Function RegisterThatSceneIsEnding(Bool maleOnlyScene)

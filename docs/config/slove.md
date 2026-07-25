@@ -20,6 +20,7 @@ Master switches and scene detection.
 | Key | Default | Meaning |
 |---|---|---|
 | `enablevoice` | `1` | Master switch for scene voices. |
+| `suppresssexlabvoice` | `1` | Silence SexLab's own moan engine for every actor in a player scene, so AudioUtil is the sole voice source (no doubled moans). Auto-restores when the scene ends. Set `0` to let SexLab moan alongside SLO VE. Only acts while `enablevoice = 1`. |
 | `enableexpressions` | `1` | Master switch for facial expressions. |
 | `enablepcexpression` | `1` | Apply the expression effect to the player. |
 | `enablemalenpcexpression` | `1` | Apply it to male NPCs. |
@@ -99,6 +100,8 @@ Facial expression engine. All face writes go through Mfg Fix NG.
 | `removetongueonblowjob` | `1` | Unequip the tongue during oral stages. |
 | `cunusetongue` | `1` | Use the tongue during cunnilingus stages. |
 | `enableahegao` | `1` | Huge partners trigger the ahegao face while penetrating (needs MFEE for the extended version). |
+| `ahegaoitems` | `""` | Comma-separated `Plugin.esp\|FormID` (hex local id, `0x` optional; plugin names may contain spaces), up to 16. While an actor wears any listed item, SLO VE **pauses its own expression writes** for that actor — a second yield alongside the built-in SexLab Survival (`_SLS_AhegaoStateChange`) hook, for any mod that signals ahegao by equipping an item. Empty = off. |
+| `ahegaostoragekeys` | `"TongueOn"` | Same yield, keyed on **StorageUtil int keys** instead of items: while any listed key reads `> 0` on an actor, expression writes pause. The robust way to detect a mod whose many tongue/face variants all set one key — the default catches the Artsick **Ahegao** mod (`AhegaoTongues.esp`), which sets `TongueOn` per actor while its tongue is on. Comma-separated key names, up to 16; harmless (reads `0`) when the mod isn't installed. Empty = off. |
 | `chancetostickouttongueduringintense` | `30` | Percent roll per update, intense stages. |
 | `chancetostickouttongueduringattacking` | `30` | Percent roll per update, attacking stages. |
 | `tonguemouthopenthreshold` | `0.4` | *(float)* **Jaw gate** — minimum measured mouth-open before a tongue is allowed to show, so it never clips through a closed mouth. |

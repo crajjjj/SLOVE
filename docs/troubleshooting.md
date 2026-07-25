@@ -49,10 +49,20 @@ au reload                     ; re-read the AudioUtil TOMLs and rescan folders
 
 ## Doubled voices, or the mouth twitching between two expressions
 
-SexLab's own expressions and moans are still on. SLO VE drives both itself, so the
-two stack — you hear two voices and the face jitters as both mods write it. In the
-**SexLab MCM**, disable SexLab's **facial expressions** and its **voices/moans** (player,
-NPCs and creatures). See [Getting Started](getting-started.md#installation).
+SLO VE silences SexLab's own **moans** for scene actors automatically (the
+`director.suppresssexlabvoice` toggle, on by default), so you should not hear two
+voices. If you still do — or the face jitters as both mods write an expression — two
+things can cause it:
+
+- **SexLab's facial expressions are still on.** SLO VE drives the face itself, so the
+  two stack. In the **SexLab MCM**, disable SexLab's **facial expressions**. See
+  [Getting Started](getting-started.md#installation).
+- **You turned moan suppression off** (`director.suppresssexlabvoice = 0`), or SLO VE
+  isn't adopting the scene (see *Nothing happens at all* above). Leave the toggle at `1`,
+  or disable SexLab's **voices/moans** in the SexLab MCM as a fallback.
+
+Suppression is per-scene and self-restoring: SexLab's own moans return automatically in
+any scene SLO VE doesn't drive.
 
 ## Nobody is talking
 

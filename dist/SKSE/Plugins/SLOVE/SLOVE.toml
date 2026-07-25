@@ -5,6 +5,7 @@
 
 [director]
 enablevoice = 1                # master switch: scene voices
+suppresssexlabvoice = 1        # 1 = silence SexLab's own moans in player scenes (AudioUtil owns the voice); 0 = let SexLab moan too. Only acts when enablevoice = 1.
 enableexpressions = 1          # master switch: facial expressions
 enablepcexpression = 1
 enablemalenpcexpression = 1
@@ -84,6 +85,25 @@ fhutonguetype = 7              # sr_fillherup tongue model 1-10; 0 = random
 removetongueonblowjob = 1
 cunusetongue = 1
 enableahegao = 1               # huge partners trigger ahegao while penetrating
+# When another mod is driving an actor's ahegao face, SLO VE yields so the two
+# don't fight (that actor's expression writes pause - tongue dropped, mouth
+# handed back - resuming when the signal clears). It watches THREE signals:
+#   1. built-in: SexLab Survival's _SLS_AhegaoStateChange event (always on, no config)
+#   2. ahegaoitems       - worn item forms (below)
+#   3. ahegaostoragekeys - StorageUtil keys (below)
+# The two lists are additive extra triggers; leave a list empty to skip it.
+#
+# ahegaoitems: while any listed item is equipped on an actor, it counts as an
+# external ahegao. Comma-separated 'Plugin.esp|FormID' (hex local id, 0x optional;
+# plugin names may contain spaces), up to 16. e.g. "SomeAhegao.esp|000800, Other.esp|1A4F"
+ahegaoitems = ""
+# ahegaostoragekeys: same yield, keyed on a StorageUtil int instead of a worn
+# item - while any listed key reads > 0 on an actor, it counts as an external
+# ahegao. The robust way to detect a mod whose many tongue/face variants all set
+# one key. Default catches the Artsick "Ahegao" mod (AhegaoTongues.esp), which
+# sets "TongueOn" per actor while its tongue is equipped. Comma-separated key
+# names, up to 16; harmless (reads 0) when the mod isn't installed.
+ahegaostoragekeys = "TongueOn"
 chancetostickouttongueduringintense = 30
 chancetostickouttongueduringattacking = 30
 tonguemouthopenthreshold = 0.4 # jaw gate: min measured mouth-open for tongue

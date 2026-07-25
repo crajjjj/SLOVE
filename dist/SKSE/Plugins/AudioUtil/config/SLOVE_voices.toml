@@ -259,6 +259,7 @@ AskForVaginalCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 AskForAnalCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 AskForOralCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 PullOut = 'Sound\fx\SexLab\vFemaleMoan01\medium'
+PullOutGape = 'Sound\fx\IVDT\Sounds\Pull Out Gape'   # gape squelch; voice engine requests this on penetration-start (also a SFX0 category)
 MaleOrgasmOral = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 MaleOrgasmNonOral = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 CameInAss = 'Sound\fx\SexLab\vFemaleMoan01\medium'
@@ -338,6 +339,7 @@ AskForVaginalCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 AskForAnalCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 AskForOralCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 PullOut = 'Sound\fx\SexLab\vFemaleMoan03\medium'
+PullOutGape = 'Sound\fx\IVDT\Sounds\Pull Out Gape'   # gape squelch; voice engine requests this on penetration-start (also a SFX0 category)
 MaleOrgasmOral = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 MaleOrgasmNonOral = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 CameInAss = 'Sound\fx\SexLab\vFemaleMoan03\medium'
@@ -429,8 +431,11 @@ path = 'Sound\fx\IVDT\M8'
 # sex-neutral. Categories are folder refs (full 'Sound\...' paths, case-
 # insensitive); a category could equally be an explicit file list to pull SFX
 # from a BSA. Driven by the SLOVE_SFX body-SFX engine (toggle/tune it in
-# SKSE\Plugins\SLOVE\SLOVE.toml [sfx]); Smack and PullOutGape are also requested
-# by the voice engine via the category last-resort. All playable via PlaySFX.
+# SKSE\Plugins\SLOVE\SLOVE.toml [sfx]). All playable via PlaySFX. Note: the voice
+# engine also requests PullOutGape (on penetration-start) through the VOICE path,
+# which resolves it via the female slots' fallback chain (F1->F0, F2/F3->F0B, where
+# PullOutGape is a category ref) - AudioUtil has no voice->SFX last-resort, so the
+# SFX0 entry below serves PlaySFX only, not the voice call.
 [[slot]]
 id = "SFX0"
 sex = "all"
