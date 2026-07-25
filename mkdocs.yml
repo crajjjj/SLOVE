@@ -77,6 +77,7 @@ markdown_extensions:
 exclude_docs: |
   framework-adapter.md
   smoke-test.md
+  use-cases.md
   classic-sexlab-port.md
 
 validation:

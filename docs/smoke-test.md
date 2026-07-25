@@ -128,6 +128,11 @@ Spot-check any **newly added** category string end-to-end.
 
 ## 9. In-game handoff (user-run — AI cannot verify audio/visuals)
 
+For a **release** regression pass (verifying every feature still works, not just
+that a change compiled), walk the full use-case matrix in
+[`use-cases.md`](use-cases.md) instead — it is the functional companion to this
+file. The short list below is the minimum in-game handoff after a code change.
+
 Report this list to the user after §1–§8 pass. Debug toggles first:
 `director.printdebug=1`, `voice.printdebug=1`, `sfx.printdebug=1` in
 SLOVE.toml (back to 0 afterwards). Static probes need ConsoleUtil.
