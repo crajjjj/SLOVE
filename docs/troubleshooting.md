@@ -47,6 +47,13 @@ au reload                     ; re-read the AudioUtil TOMLs and rescan folders
 5. **Is full Hentairim p+ also installed?** They are mutually exclusive and will fight over the same faces and voices. Disable one.
 6. **Is the scene actually a player scene?** The voice engine is player-scene driven; NPC-only scenes elsewhere in the world aren't adopted.
 
+## Doubled voices, or the mouth twitching between two expressions
+
+SexLab's own expressions and moans are still on. SLO VE drives both itself, so the
+two stack — you hear two voices and the face jitters as both mods write it. In the
+**SexLab MCM**, disable SexLab's **facial expressions** and its **voices/moans** (player,
+NPCs and creatures). See [Getting Started](getting-started.md#installation).
+
 ## Nobody is talking
 
 Work down the resolution chain:
