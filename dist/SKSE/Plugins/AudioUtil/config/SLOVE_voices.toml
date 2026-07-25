@@ -98,7 +98,6 @@ Horse = "C10"
 [category_aliases.female]
 TeaseMaleCloseToOrgasmIntense = "Male Close Tease Intense"
 TeaseMaleCloseToOrgasmSoft = "Male Close Tease Soft"
-MCMSampleSounds = "Orgasm"
 
 [category_aliases.male]
 # the 5 male script properties whose descriptors reuse other folders' audio
@@ -106,7 +105,6 @@ StrugglingOvert = "Struggling Early"
 JokeAroused = "Joke After Orgasm"
 TeaseFemaleOrgasm = "Tease Aggressive Partner"
 AfterFemaleOrgasm = "Post Nut Remark"
-MCMSampleSounds = "Orgasm"
 
 # male-only scenes: substitute the closest male category for a female-engine
 # category name routed to a male slot.
