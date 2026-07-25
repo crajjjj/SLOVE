@@ -431,11 +431,15 @@ EndEvent
 
 Function DirectorEndScene()
 	;re-entry guard: both the OnUpdate poll and the AnimationEnd hook can reach here.
-	;PlayerInScene is cleared below, so a second call is a no-op (no double 3s
-	;end-window, no duplicate SLOVE_SceneEnd).
+	;Clear PlayerInScene FIRST - before any external call. The StopGroup calls below
+	;unlock the script, so a second caller (OnUpdate poll vs AnimationEnd hook) must
+	;find the flag already down; otherwise it slips past the guard mid-teardown and
+	;double-fires (double 3s end-window, duplicate SLOVE_SceneEnd). Read-then-clear
+	;with no external call between is atomic, so exactly one caller wins.
 	if !PlayerInScene
 		return
 	endif
+	PlayerInScene = false
 	;SLO VE: no StopAnimation/armor/scaling/speed restore - the only end path here is
 	;the OnUpdate poll after the thread already ended
 	isEnding = true
@@ -456,7 +460,6 @@ Function DirectorEndScene()
 	CurrentThread = none
 	CurrentAnimation = none
 	CurrentStageNum = 0
-	PlayerInScene = false
 	updaterate = 0.5
 
 	SendModEvent("SLOVE_SceneEnd", endedThreadID as string)

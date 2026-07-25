@@ -63,11 +63,15 @@ Voice packs only add loose WAVs under `Sound\fx\IVDT` and don't conflict with an
 !!! danger "Mutually exclusive with full Hentairim p+"
     SLO VE is a standalone port of Hentairim's IVDT voice system. Run one or the other, **never both** — they drive the same faces and voices and will fight each other.
 
-!!! warning "Turn off SexLab's own expressions and voices"
-    SLO VE drives both faces and voices itself. Leave SexLab's built-in ones on and
-    they double up — two moans over each other and two mods fighting for the mouth.
-    In the **SexLab MCM**, disable SexLab's **facial expressions** and its **voices/moans**
-    (for the player, NPCs and creatures) so SLO VE is the only thing speaking and emoting.
+!!! warning "Turn off SexLab's own facial expressions"
+    SLO VE drives faces and voices itself. Its **moans are handled for you**: SLO VE
+    silences SexLab's own moan engine for every actor in a player scene
+    (`director.suppresssexlabvoice`, on by default) and restores it when the scene ends,
+    so you won't hear doubled voices.
+
+    The **faces** are not auto-managed — in the **SexLab MCM**, disable SexLab's own
+    **facial expressions**, or the two mods fight over the mouth. If you ever set
+    `suppresssexlabvoice = 0`, also disable SexLab's **voices/moans** in its MCM.
 
 ## First run — is it working?
 

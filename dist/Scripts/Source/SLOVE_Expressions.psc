@@ -77,6 +77,20 @@ bool SLSAhegaoActive = false
 ;jaw over the climax face (see ApplyFaceMouthOwnership)
 bool LipSyncBlockedForFace = false
 
+;-----------------------External ahegao yield-----------------------
+;signals that ANOTHER mod is driving this actor's ahegao face, so we pause our
+;own expression writes (like the SLS yield above) while it is active. Two
+;signals, both configurable and empty-safe (zero cost when unset):
+;  - expressions.ahegaoitems: worn item forms (Plugin.esp|FormID)
+;  - expressions.ahegaostoragekeys: StorageUtil int keys > 0 on the actor (e.g.
+;    the Artsick Ahegao mod's "TongueOn"), which catches a mod's whole tongue
+;    set in one check instead of listing every armor variant.
+Form[] AhegaoItems
+int AhegaoItemCount = 0
+string[] AhegaoStorageKeys
+int AhegaoStorageKeyCount = 0
+bool ExternalAhegaoYieldActive = false
+
 Event OnSLSAhegaoStateChange(string eventName, string argString, float argNum, form sender)
 	;SLS ahegao is a player-only face; ignore for NPC instances
 	if !IsPlayer
@@ -179,9 +193,27 @@ Event OnUpdate()
 		return
 	endif
 
-	if SLSAhegaoActive
-		;SLS owns the player's face right now - don't fight it. Keep the loop
-		;ticking so we pick straight back up once the ahegao ends.
+	;poll for an external ahegao (another mod owning this actor's face) - a worn
+	;item or a StorageUtil key. The SLS yield is event-driven and player-only;
+	;this covers any mod that signals ahegao by an item or a per-actor key, on
+	;any actor. Transition once so we drop the tongue / hand back the mouth on
+	;enter and force a fresh pass on exit.
+	bool extAhegao = ExternalAhegaoActive()
+	if extAhegao && !ExternalAhegaoYieldActive
+		ExternalAhegaoYieldActive = true
+		printdebug("External ahegao (worn item or storage key) - pausing expressions")
+		RemoveTongue()
+		LipSyncBlockedForFace = false
+		StorageUtil.SetIntValue(actorref, "SLOVE_FaceOwnsMouth_Expr", 0)
+	elseif !extAhegao && ExternalAhegaoYieldActive
+		ExternalAhegaoYieldActive = false
+		CachedLabelGroup = ""
+		printdebug("External ahegao ended - resuming expressions")
+	endif
+
+	if SLSAhegaoActive || extAhegao
+		;an external ahegao owns the face right now - don't fight it. Keep the loop
+		;ticking so we pick straight back up once it ends.
 		float idleinterval = breathingupdateinseconds
 		if idleinterval <= 0.0
 			idleinterval = 0.5
@@ -773,6 +805,8 @@ printdebug("------------------Initialize Hentai Expressions Configs and Forms St
 	printdebug("npcnonintenseexpressionupdateinseconds : "+npcnonintenseexpressionupdateinseconds)
 	printdebug("npcintenseexpressionupdateinseconds : "+npcintenseexpressionupdateinseconds)
 	
+	LoadAhegaoItems()
+	LoadAhegaoStorageKeys()
 	InitializeAddNPCTongue()
 printdebug("------------------Initialize Hentai Expressions Configs and Forms END-------------------------")
 endfunction
@@ -926,6 +960,158 @@ bool function has_MagicEffect(actor a, int id, string filename)
 	endif
 	return a.HasMagicEffect(ME)
 endfunction
+
+;-----------------------External ahegao-item detection-----------------------
+
+;Resolve expressions.ahegaoitems - a comma-separated list of "Plugin.esp|FormID"
+;(hex local form id, 0x optional; plugin names may contain spaces) - into forms
+;once at init. WearingAhegaoItem() then polls IsEquipped cheaply each pass.
+Function LoadAhegaoItems()
+	AhegaoItems = new Form[16]
+	AhegaoItemCount = 0
+	string raw = SLOVE_Config.GetString("expressions.ahegaoitems", "")
+	if raw == ""
+		return
+	endif
+	string[] entries = StringUtil.Split(raw, ",")
+	int i = 0
+	while i < entries.length && AhegaoItemCount < 16
+		string entry = TrimSpaces(entries[i])
+		int bar = StringUtil.Find(entry, "|")
+		if entry == ""
+			;blank entry (e.g. trailing comma) - ignore
+		elseif bar <= 0
+			printdebug("Ahegao item missing '|' - skipped: " + entry)
+		else
+			string plugin = TrimSpaces(StringUtil.Substring(entry, 0, bar))
+			string idtext = TrimSpaces(StringUtil.Substring(entry, bar + 1))
+			if StringUtil.Find(idtext, "0x") == 0
+				idtext = StringUtil.Substring(idtext, 2)
+			endif
+			int fid = ParseHexId(idtext)
+			if plugin == "" || fid < 0
+				printdebug("Ahegao item has an invalid form id - skipped: " + entry)
+			else
+				Form f = Game.GetFormFromFile(fid, plugin)
+				if f
+					AhegaoItems[AhegaoItemCount] = f
+					AhegaoItemCount += 1
+					printdebug("Ahegao item resolved: " + entry)
+				else
+					printdebug("Ahegao item not in the load order - skipped: " + entry)
+				endif
+			endif
+		endif
+		i += 1
+	endwhile
+	printdebug("Ahegao items loaded: " + AhegaoItemCount)
+EndFunction
+
+;Resolve expressions.ahegaostoragekeys - comma-separated StorageUtil int key
+;names. While any key reads > 0 on the actor, another mod is driving its ahegao.
+;e.g. the Artsick Ahegao mod sets "TongueOn" per actor while its tongue is on.
+Function LoadAhegaoStorageKeys()
+	AhegaoStorageKeys = new string[16]
+	AhegaoStorageKeyCount = 0
+	string raw = SLOVE_Config.GetString("expressions.ahegaostoragekeys", "")
+	if raw == ""
+		return
+	endif
+	string[] keys = StringUtil.Split(raw, ",")
+	int i = 0
+	while i < keys.length && AhegaoStorageKeyCount < 16
+		string k = TrimSpaces(keys[i])
+		if k != ""
+			AhegaoStorageKeys[AhegaoStorageKeyCount] = k
+			AhegaoStorageKeyCount += 1
+		endif
+		i += 1
+	endwhile
+	printdebug("Ahegao storage keys loaded: " + AhegaoStorageKeyCount)
+EndFunction
+
+;True while any configured StorageUtil key reads > 0 on this actor. Free when
+;none are configured, so it is safe to poll every OnUpdate.
+bool Function AhegaoStorageKeyActive()
+	if AhegaoStorageKeyCount == 0
+		return false
+	endif
+	int i = 0
+	while i < AhegaoStorageKeyCount
+		if StorageUtil.GetIntValue(actorref, AhegaoStorageKeys[i], 0) > 0
+			return true
+		endif
+		i += 1
+	endwhile
+	return false
+EndFunction
+
+;Any external ahegao signal on this actor: a worn item form or a StorageUtil key.
+bool Function ExternalAhegaoActive()
+	return WearingAhegaoItem() || AhegaoStorageKeyActive()
+EndFunction
+
+;True while this actor wears any configured ahegao item. Free when none are
+;configured (AhegaoItemCount == 0), so it is safe to poll every OnUpdate.
+bool Function WearingAhegaoItem()
+	if AhegaoItemCount == 0
+		return false
+	endif
+	int i = 0
+	while i < AhegaoItemCount
+		if AhegaoItems[i] && actorref.IsEquipped(AhegaoItems[i])
+			return true
+		endif
+		i += 1
+	endwhile
+	return false
+EndFunction
+
+;Parse a hex string (no 0x prefix) to an int. Returns -1 on empty input or any
+;non-hex character. Papyrus strings are case-insensitive, so both a-f and A-F
+;are accepted regardless of how GetNthChar reports the character's case.
+int Function ParseHexId(string s)
+	int len = StringUtil.GetLength(s)
+	if len == 0
+		return -1
+	endif
+	int result = 0
+	int i = 0
+	while i < len
+		int c = StringUtil.AsOrd(StringUtil.GetNthChar(s, i))
+		int d = -1
+		if c >= 48 && c <= 57			; 0-9
+			d = c - 48
+		elseif c >= 97 && c <= 102		; a-f
+			d = c - 87
+		elseif c >= 65 && c <= 70		; A-F
+			d = c - 55
+		endif
+		if d < 0
+			return -1
+		endif
+		result = result * 16 + d
+		i += 1
+	endwhile
+	return result
+EndFunction
+
+;Strip leading/trailing spaces only - internal spaces are preserved so plugin
+;names like "Devious Devices - Assets.esm" survive a split on ", ".
+string Function TrimSpaces(string s)
+	int start = 0
+	int last = StringUtil.GetLength(s) - 1
+	while start <= last && StringUtil.GetNthChar(s, start) == " "
+		start += 1
+	endwhile
+	while last >= start && StringUtil.GetNthChar(s, last) == " "
+		last -= 1
+	endwhile
+	if last < start
+		return ""
+	endif
+	return StringUtil.Substring(s, start, last - start + 1)
+EndFunction
 
 
 Bool Function IsUnconcious()
