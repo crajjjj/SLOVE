@@ -17,7 +17,7 @@ Actor mainMaleActor = None
 ;--- voice-all-actors: every male in the scene may speak with his own AudioUtil slot
 Actor[] sceneMales                 ;all non-PC males (incl. schlonged females)
 Bool mainMaleIsVoiced = false      ;true only when mainMaleActor is a human male/schlonged futa; the partner fallback (e.g. a creature) must stay silent
-Actor lastMaleOrgasmActor = None   ;who climaxed last - post-nut lines come from him
+Actor lastPartnerOrgasmActor = None   ;who climaxed last - post-nut lines come from him
 Float lastSecondaryLineTime        ;scene time a non-lead male last spoke
 Float secondaryLineCooldown        ;randomized pause between non-lead lines
 ;--- female NPC partners: non-PC human females voice their own moans on their own F2-F10 slot.
@@ -48,14 +48,14 @@ Bool maleOnlyScene = False ;SLO VE: PC resolves to a male voice pack - female ca
 Float hoursSinceLastSex = 0.0 ;For the main female. In game hours. Doesn't include current scene.
 Int mainFemaleEnjoyment = 0
 Int mainMaleEnjoyment = 0
-Int maleOrgasmCount = 0
+Int partnerOrgasmCount = 0
 Int femaleRecordedOrgasmCount = 0
-Int locationOfLastMaleOrgasm = 0 ;0 - not set (or other), 1 - oral, 2 - vaginal, 3 = anal
+Int locationOfLastPartnerOrgasm = 0 ;0 - not set (or other), 1 - oral, 2 - vaginal, 3 = anal
 Int currentStage = -1 ;Current stage of the scene that is currently playing
 string currentStageID = ""
 
 Float timeOfLastStageStart = 0.0
-Float timeOfLastMaleOrgasm = -20.0
+Float timeOfLastPartnerOrgasm = -20.0
 Float timeOfLastRecordedFemaleOrgasm = -20.0
 Float timeOfLastRomanticRemark = 0.0
 Int timesGaped = 0 ;Number of times the female has been gaped for the current scene
@@ -71,7 +71,7 @@ Bool ASLCurrentlyintense = false
 
 int CameInsideCount = 0
 Bool ReacttoFemaleOrgasmNext = false
-Bool ReacttoMaleOrgasmNext = false
+Bool ReacttoPartnerOrgasmNext = false
 
 String PreviousSound = ""
 
@@ -213,7 +213,7 @@ Function PerformInitialization()
 
 	if currentstage <= 2
 		ReactedtoFemaleOrgasmThisSession = false
-		ReactedtoMaleOrgasmThisSession = false
+		ReactedtoPartnerOrgasmThisSession = false
 		teasedClosetoorgasm = false
 	endif
 
@@ -244,7 +244,7 @@ EndFunction
 
 
 int PCPosition
-Bool ReactedtoMaleorgasmthissession
+Bool ReactedtoPartnerOrgasmThisSession
 Bool ReactedtoFemaleOrgasmThisSession
 
 Function FindActorsAndVoices()
@@ -313,7 +313,7 @@ Function FindActorsAndVoices()
 		EndIf
 		actorIndex += 1
 	EndWhile
-	lastMaleOrgasmActor = None
+	lastPartnerOrgasmActor = None
 	lastSecondaryLineTime = 0.0
 	secondaryLineCooldown = Utility.RandomFloat(6.0, 14.0)
 
@@ -440,10 +440,14 @@ Function PlayFemaleNPCComments()
 	if speaker == None
 		return
 	endif
+	;debugtext carries the on-disk B-folder name so a Variation-B pack voices her own
+	;grunt (via the per-actor VarB remap in PlaySound); an A / stock slot ignores it
+	;and falls back to the camelCase soundToPlay -> F0B stock moans. Folder names
+	;mirror the PC's PlayMoanonlyVarB penetration grunts.
 	if ASLCurrentlyintense
-		PlaySound("NearOrgasmNoises", speaker, requiredChemistry = 0, soundPriority = 1, waitForCompletion = False, debugtext = "NearOrgasmNoises", forceFemaleVoice = true)
+		PlaySound("NearOrgasmNoises", speaker, requiredChemistry = 0, soundPriority = 1, waitForCompletion = False, debugtext = "Penetrated Grunt Intense", forceFemaleVoice = true)
 	else
-		PlaySound("PenetrativeGrunts", speaker, requiredChemistry = 0, soundPriority = 1, waitForCompletion = False, debugtext = "PenetrativeGrunts", forceFemaleVoice = true)
+		PlaySound("PenetrativeGrunts", speaker, requiredChemistry = 0, soundPriority = 1, waitForCompletion = False, debugtext = "Penetrated Grunt", forceFemaleVoice = true)
 	endif
 EndFunction
 
@@ -477,9 +481,9 @@ Function PlayCreatureBreathing()
 EndFunction
 
 ;Post-nut lines belong to whoever actually climaxed
-Actor Function LastOrgasmedMale()
-	if lastMaleOrgasmActor != None
-		return lastMaleOrgasmActor
+Actor Function LastOrgasmedPartner()
+	if lastPartnerOrgasmActor != None
+		return lastPartnerOrgasmActor
 	endif
 	return mainMaleActor
 EndFunction
@@ -522,22 +526,46 @@ Event IVDTOnOrgasm(Form actorRef, Int thread)
 	printdebug("Actor having orgasm: " + actorHavingOrgasm)
 	bool orgasmerIsVoicedMale = actorHavingOrgasm != mainFemaleActor && (MasterScript.IsMale(actorHavingOrgasm) || hasSchlong(actorHavingOrgasm))
 	;creatures with a mapped AudioUtil slot (C1-C10 via [race_map]) have a climax
-	;line too - but they must NOT become lastMaleOrgasmActor: post-nut talk would
+	;line too - but they must NOT become lastPartnerOrgasmActor: post-nut talk would
 	;try to resolve human categories from a creature slot and come out silent
 	bool orgasmerIsVoicedCreature = actorHavingOrgasm != mainFemaleActor && Sexlab.GetGender(actorHavingOrgasm) > 1 && AudioUtil.GetSlotForActor(actorHavingOrgasm) != ""
+	;a voiced human female (not the PC, not male/schlonged, not creature): she cries on
+	;her own pool slot when she climaxes - drives her cry line below
+	bool orgasmerIsVoicedFemaleNPC = actorHavingOrgasm != mainFemaleActor && !MasterScript.IsMale(actorHavingOrgasm) && !hasSchlong(actorHavingOrgasm) && Sexlab.GetGender(actorHavingOrgasm) <= 1 && AudioUtil.GetSlotForActor(actorHavingOrgasm) != ""
+	;...and a SECONDARY one: a voiced female who is NOT the partner (mainMaleActor) - a
+	;third+ bystander. Her climax is only her own cry; it must NOT count as the partner's
+	;orgasm. The partner slot is often a female substituting for the male, so the partner
+	;(== mainMaleActor) is NOT secondary and DOES record.
+	bool orgasmerIsSecondaryFemale = orgasmerIsVoicedFemaleNPC && actorHavingOrgasm != mainMaleActor
 	if orgasmerIsVoicedMale
-		lastMaleOrgasmActor = actorHavingOrgasm ;post-nut lines resolve from his voice slot
+		lastPartnerOrgasmActor = actorHavingOrgasm ;post-nut lines resolve from his voice slot
 	endif
 
 		printdebug("Processing in Non-Linear Scene or Spontaneous Orgasm branch.")
 
 		If actorHavingOrgasm != mainFemaleActor
-			printdebug("Male orgasm detected. Recording and reacting.")
-			RecordMaleOrgasm()
+			printdebug("Partner orgasm detected (non-PC). Recording and reacting.")
+			;record the partner's climax - skip ONLY a secondary female bystander (see
+			;orgasmerIsSecondaryFemale). The partner (mainMaleActor, often a female
+			;substitute), secondary males, and creatures all still count toward pacing.
+			if !orgasmerIsSecondaryFemale
+				RecordPartnerOrgasm()
+			endif
 
 			if (IsSuckingoffOther() || IsgettingPenetrated()) && (orgasmerIsVoicedMale || orgasmerIsVoicedCreature)
 				printdebug("Playing DefaultMaleOrgasm sound.")
 				PlaySound("Orgasm", mainFemaleActor, requiredChemistry = 0, soundPriority = 3, waitForCompletion = False, debugtext ="DefaultMaleOrgasm", voiceActor = actorHavingOrgasm)
+			endif
+
+			;female NPC partner climax: voice HER Orgasm on her own slot/channel.
+			;actorMakingSound = the NPC, so PlaySound routes her through the partner
+			;branch (partner_high at priority 3, her own channel, no PC-expression
+			;drive). forceFemaleVoice keeps the category female in a male-PC scene;
+			;"Orgasm" resolves against her pack directly (folder normalize-matches).
+			;A gagged or unconscious-victim NPC is still caught by PlaySound's guards.
+			if orgasmerIsVoicedFemaleNPC
+				printdebug("Playing female NPC orgasm sound.")
+				PlaySound("Orgasm", actorHavingOrgasm, requiredChemistry = 0, soundPriority = 3, waitForCompletion = False, debugtext = "Orgasm", forceFemaleVoice = true)
 			endif
 
 			if StorageUtil.GetIntValue(MainFemaleActor, "HandlingMaleOrgasm", 0) != 0
@@ -602,10 +630,10 @@ Event IVDTOnOrgasm(Form actorRef, Int thread)
 				EndIf
 			endif
 
-			if Utility.RandomFloat(0.0, 1.0) <= 0.5 && actorHavingOrgasm == mainMaleActor && !ReactedtoMaleorgasmthissession
-				printdebug("Setting ReacttoMaleOrgasmNext to true.")
-				ReacttoMaleOrgasmNext = true
-				ReactedtoMaleorgasmthissession = true
+			if Utility.RandomFloat(0.0, 1.0) <= 0.5 && actorHavingOrgasm == mainMaleActor && !ReactedtoPartnerOrgasmThisSession
+				printdebug("Setting ReacttoPartnerOrgasmNext to true.")
+				ReacttoPartnerOrgasmNext = true
+				ReactedtoPartnerOrgasmThisSession = true
 			endif
 
 
@@ -715,7 +743,7 @@ if actorWithSceneTrackerSpell == mainFemaleActor
 
 	printdebug("Director Advance Stage :" + StorageUtil.GetIntValue(None, "DirectorAdvanceStage", 0))
 	;usually IVDT is the slowest to be ready. dont do anything until advancing, unless someone really wants to cum first as set in config
-	if ReacttoFemaleOrgasmNext || ReacttoMaleOrgasmNext || SomeoneNeedstoOrgasm || StorageUtil.GetIntValue(None, "DirectorAdvanceStage", 0) == 0
+	if ReacttoFemaleOrgasmNext || ReacttoPartnerOrgasmNext || SomeoneNeedstoOrgasm || StorageUtil.GetIntValue(None, "DirectorAdvanceStage", 0) == 0
 		;reactions pending or the stage isn't advancing yet - hold this cycle
 	elseif StorageUtil.GetIntValue(None, "DirectorAdvanceStage", 0) == 1
 		printdebug("lets Director Advance.")
@@ -782,11 +810,11 @@ if actorWithSceneTrackerSpell == mainFemaleActor
 			ASLHandleFemaleOrgasmReaction()
 		endif
 	;if reacting to male orgasm
-	elseif	ReacttoMaleOrgasmNext == true
+	elseif	ReacttoPartnerOrgasmNext == true
 		if VoiceVariation == "B"
-			ASLHandleMaleOrgasmReactionVarB()
+			ASLHandlePartnerOrgasmReactionVarB()
 		else
-			ASLHandleMaleOrgasmReaction()
+			ASLHandlePartnerOrgasmReaction()
 		Endif
 	elseif IsSuckingoffOther() ;blowjob always first because muffled by cock
 		if VoiceVariation == "B"
@@ -921,18 +949,18 @@ EndFunction
 
 
 
-Function RecordMaleOrgasm()
+Function RecordPartnerOrgasm()
 	;Ordering of some these statements matter because some depend on the others...
 
 	if IsgettingPenetrated()
 		CameInsideCount = CameInsideCount + 1
 	endif
 
-	locationOfLastMaleOrgasm = CurrentPenetrationLvl()
+	locationOfLastPartnerOrgasm = CurrentPenetrationLvl()
 
 
-	maleOrgasmCount += 1
-	timeOfLastMaleOrgasm = currentthread.TotalTime
+	partnerOrgasmCount += 1
+	timeOfLastPartnerOrgasm = currentthread.TotalTime
 
 EndFunction
 
@@ -984,7 +1012,10 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 	;so lipsync stays silent and the expression engine can hold the dead face (closed
 	;eyes / slack jaw) instead of yielding the jaw to a playing clip. The aggressor is
 	;dominant (not the victim) and is voiced as a different audioActor, so they play on.
-	if (audioActor == mainFemaleActor || CurrentThread.IsVictim(audioActor)) && IsUnconcious()
+	;NecroTargetByPosition covers the FunnyBizness-style necro scene that flags NO SexLab
+	;victim at all (IsVictim then reads false for the corpse) - it falls back to Hentairim's
+	;position-0 rule, but only when nothing is flagged.
+	if (audioActor == mainFemaleActor || CurrentThread.IsVictim(audioActor) || NecroTargetByPosition(audioActor)) && IsUnconcious()
 		Printdebug("Voice + lipsync suppressed (unconscious target) : " + debugtext)
 		Return
 	endif
@@ -997,7 +1028,12 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 	;back normally). This is the SLO VE equivalent of Hentairim's per-pack ESP
 	;property remap, without a static table - the debugtext already carries the
 	;B-folder name, and CategoryExists gates out labels the pack doesn't provide.
-	if VoiceVariation == "B" && debugtext != "None" && debugtext != soundToPlay
+	;VarB remap is PER-ACTOR: gate on the AUDIO actor's own slot variation, not the
+	;PC's (VoiceVariation tracks the PC). For a PC line audioActor == playerCharacter,
+	;so this reduces to the old VoiceVariation == "B" fast-path (unchanged). A
+	;secondary NPC line (voiceActor / forceFemaleVoice) now also gets her own
+	;B-folder audio when HER slot is Variation B - the inner check validates the slot.
+	if (VoiceVariation == "B" || audioActor != playerCharacter) && debugtext != "None" && debugtext != soundToPlay
 		String vbSlot = AudioUtil.GetSlotForActor(audioActor)
 		if vbSlot != "" && AudioUtil.GetSlotVariation(vbSlot) == "B" && AudioUtil.CategoryExists(vbSlot, debugtext)
 			soundToPlay = debugtext
@@ -1093,7 +1129,7 @@ EndFunction
 
 
 Bool Function IsEarlyToCum()
-	Return currentstage <= 2 && maleOrgasmCount < 2
+	Return currentstage <= 2 && partnerOrgasmCount < 2
 EndFunction
 
 Bool Function ShouldPlayMaleOrgasmHype()
@@ -1126,14 +1162,14 @@ Bool Function ShouldMakeRomanticComment()
 EndFunction
 
 
-Bool Function FemaleIsSatisfied()
+Bool Function FePartnerIsSatisfied()
 
 	Return femaleRecordedOrgasmCount > utility.randomint(2,3)
 endfunction
 
-Bool Function MaleIsSatisfied()
+Bool Function PartnerIsSatisfied()
 
-	Return maleOrgasmCount >  utility.randomint(2,4)
+	Return partnerOrgasmCount >  utility.randomint(2,4)
 endfunction
 
 
@@ -1159,15 +1195,15 @@ EndFunction
 
 Function PossiblyRemarkOnCumLocation()
 	;Go ahead with remark
-	If locationOfLastMaleOrgasm == 1
+	If locationOfLastPartnerOrgasm == 1
 		PlaySound("CameInMouth", mainFemaleActor, requiredChemistry = 0 , debugtext = "CameInMouth")
 		Utility.Wait(Utility.RandomFloat(0.75, 1.75))
 
-	ElseIf locationOfLastMaleOrgasm == 2
+	ElseIf locationOfLastPartnerOrgasm == 2
 		PlaySound("CameInPussy", mainFemaleActor, requiredChemistry = 0 , debugtext = "CameInPussy")
 		Utility.Wait(Utility.RandomFloat(0.75, 1.75))
 
-	ElseIf locationOfLastMaleOrgasm == 3
+	ElseIf locationOfLastPartnerOrgasm == 3
 		PlaySound("CameInAss", mainFemaleActor, requiredChemistry = 0 , debugtext = "CameInAss")
 		Utility.Wait(Utility.RandomFloat(0.75, 1.75))
 
@@ -1176,17 +1212,17 @@ EndFunction
 
 Function PossiblyRemarkOnCumLocationVarB()
 	;Go ahead with remark
-	If locationOfLastMaleOrgasm == 1
+	If locationOfLastPartnerOrgasm == 1
 		;Ending Orgasmed Inside Mouth
 		PlaySound("CameInMouth", mainFemaleActor, requiredChemistry = 0 , debugtext = "Ending Orgasmed Inside Mouth")
 		Utility.Wait(Utility.RandomFloat(0.75, 1.75))
 
-	ElseIf locationOfLastMaleOrgasm == 2
+	ElseIf locationOfLastPartnerOrgasm == 2
 		;Ending Orgasmed Inside Pussy
 		PlaySound("CameInPussy", mainFemaleActor, requiredChemistry = 0 , debugtext = "Ending Orgasmed Inside Pussy")
 		Utility.Wait(Utility.RandomFloat(0.75, 1.75))
 
-	ElseIf locationOfLastMaleOrgasm == 3
+	ElseIf locationOfLastPartnerOrgasm == 3
 		;Ending Orgasmed Inside Ass
 		PlaySound("CameInAss", mainFemaleActor, requiredChemistry = 0 , debugtext = "Ending Orgasmed Inside Ass")
 		Utility.Wait(Utility.RandomFloat(0.75, 1.75))
@@ -1243,7 +1279,7 @@ Function IVDTUpdate()
 
 		if currentstage <= 2
 			ReactedtoFemaleOrgasmThisSession = false
-			ReactedtoMaleOrgasmThisSession = false
+			ReactedtoPartnerOrgasmThisSession = false
 			teasedClosetoorgasm = false
 		endif
 
@@ -2098,9 +2134,9 @@ endif
 
 	if AllowMaleVoice()
 		if MaleIsVictim()
-			PlaySound("TeaseAggressivePartner", mainFemaleActor, soundPriority = 2 , waitForCompletion = False ,debugtext = "TeaseAggressivePartner" , voiceActor = LastOrgasmedMale())
+			PlaySound("TeaseAggressivePartner", mainFemaleActor, soundPriority = 2 , waitForCompletion = False ,debugtext = "TeaseAggressivePartner" , voiceActor = LastOrgasmedPartner())
 		else
-			PlaySound("PostNutRemark", mainFemaleActor, requiredChemistry = 0, soundPriority = 2 , waitForCompletion = false ,debugtext = "PostNutRemark" , voiceActor = LastOrgasmedMale())
+			PlaySound("PostNutRemark", mainFemaleActor, requiredChemistry = 0, soundPriority = 2 , waitForCompletion = false ,debugtext = "PostNutRemark" , voiceActor = LastOrgasmedPartner())
 			if	CurrentPenetrationLvl() == 1
 				PlaySound("BlowjobActionSoft", mainFemaleActor, requiredChemistry = 0 , debugtext = "BlowjobActionSoft")
 			else
@@ -2141,9 +2177,9 @@ endif
 
 	if AllowMaleVoice()
 		if MaleIsVictim()
-			PlaySound("TeaseAggressivePartner", mainFemaleActor, soundPriority = 2 , waitForCompletion = False ,debugtext = "TeaseAggressivePartner" , voiceActor = LastOrgasmedMale())
+			PlaySound("TeaseAggressivePartner", mainFemaleActor, soundPriority = 2 , waitForCompletion = False ,debugtext = "TeaseAggressivePartner" , voiceActor = LastOrgasmedPartner())
 		else
-			PlaySound("PostNutRemark", mainFemaleActor, requiredChemistry = 0, soundPriority = 2 , waitForCompletion = false ,debugtext = "PostNutRemark" , voiceActor = LastOrgasmedMale())
+			PlaySound("PostNutRemark", mainFemaleActor, requiredChemistry = 0, soundPriority = 2 , waitForCompletion = false ,debugtext = "PostNutRemark" , voiceActor = LastOrgasmedPartner())
 		endif
 		PlayMoanonlyVarB()
 	endif
@@ -2289,7 +2325,7 @@ endif
 			PlaySound("BlowjobRemarks", mainFemaleActor, requiredChemistry = 0 , debugtext = "BlowjobRemarks")
 		elseif (IsStimulatingOthers() || IsGettingStimulated()) && !femaleisvictim() && !IsgettingPenetrated()
 			PlaySound("ReadyToGetGoing", mainFemaleActor, requiredChemistry = 0 , debugtext = "ReadyToGetGoing")
-		elseif maleOrgasmCount > femaleRecordedOrgasmCount && Utility.RandomFloat(0.0, 1.0) < ChanceToCommentWhenCloseToOrgasm && !FemaleIsVictim()
+		elseif partnerOrgasmCount > femaleRecordedOrgasmCount && Utility.RandomFloat(0.0, 1.0) < ChanceToCommentWhenCloseToOrgasm && !FemaleIsVictim()
 			PlaySound("MyTurnToCum", mainFemaleActor, requiredChemistry = 3 , soundPriority = 1 , debugtext = "MyTurnToCum")
 		Elseif Utility.RandomFloat(0.0, 1.0) < ChanceToCommentWhenCloseToOrgasm  && CommentedClosetoOrgasm == false
 			PlaySound("NearOrgasmExclamations", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1 , debugtext = "NearOrgasmExclamations")
@@ -2332,10 +2368,10 @@ Function ASLPlayFemaleOrgasmHypeVarB()
 EndFunction
 
 
-function ASLHandlemaleOrgasmreaction()
+function ASLHandlePartnerOrgasmReaction()
 
 
-	if maleOrgasmCount > 1 && !femaleisvictim() && !IsSuckingoffOther() && Utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
+	if partnerOrgasmCount > 1 && !femaleisvictim() && !IsSuckingoffOther() && Utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
 		PlaySound("InAwe", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1 , debugtext = "InAwe")
 	endif
 
@@ -2344,7 +2380,7 @@ function ASLHandlemaleOrgasmreaction()
 	if CurrentPenetrationLvl() == 1
 
 		if AllowMaleVoice()
-			PlaySound("JokeAfterOrgasm", mainFemaleActor, requiredChemistry = 0 , soundPriority = 2, waitForCompletion = false , debugtext = "JokeAfterOrgasm" , voiceActor = LastOrgasmedMale())
+			PlaySound("JokeAfterOrgasm", mainFemaleActor, requiredChemistry = 0 , soundPriority = 2, waitForCompletion = false , debugtext = "JokeAfterOrgasm" , voiceActor = LastOrgasmedPartner())
 		endif
 
 		PlaySound("CameInMouth", mainFemaleActor, requiredChemistry = 0 , soundPriority = 2 , debugtext = "CameInMouth")
@@ -2358,7 +2394,7 @@ function ASLHandlemaleOrgasmreaction()
 		;Chance for male comments
 		if AllowMaleVoice()
 
-			PlaySound("JokeAfterOrgasm", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1 , debugtext = "JokeAfterOrgasm" , voiceActor = LastOrgasmedMale())
+			PlaySound("JokeAfterOrgasm", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1 , debugtext = "JokeAfterOrgasm" , voiceActor = LastOrgasmedPartner())
 			Utility.Wait(Utility.RandomFloat(0.5, 1.0))
 		endif
 
@@ -2368,7 +2404,7 @@ function ASLHandlemaleOrgasmreaction()
 
 	Elseif IsgettingPenetrated()
 		if AllowMaleVoice()
-			PlaySound("JokeAfterOrgasm", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1,waitForCompletion = False , debugtext = "JokeAfterOrgasm" , voiceActor = LastOrgasmedMale())
+			PlaySound("JokeAfterOrgasm", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1,waitForCompletion = False , debugtext = "JokeAfterOrgasm" , voiceActor = LastOrgasmedPartner())
 			PlaySound("AfterOrgasmExclamations", mainFemaleActor, requiredChemistry = 0 , soundPriority = 2 , debugtext = "AfterOrgasmExclamations")
 			Utility.Wait(Utility.RandomFloat(0.5, 2.0))
 		endif
@@ -2385,17 +2421,17 @@ function ASLHandlemaleOrgasmreaction()
 	EndIf
 
 
-	ReacttoMaleOrgasmNext = false
+	ReacttoPartnerOrgasmNext = false
 
 
 endfunction
 
 
-function ASLHandlemaleOrgasmreactionVarB()
+function ASLHandlePartnerOrgasmReactionVarB()
 
 	;Chance for male comments
 	if AllowMaleVoice() && !MaleIsVictim()
-		PlaySound("JokeAfterOrgasm", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1 , debugtext = "JokeAfterOrgasm" ,waitForCompletion = False , voiceActor = LastOrgasmedMale())
+		PlaySound("JokeAfterOrgasm", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1 , debugtext = "JokeAfterOrgasm" ,waitForCompletion = False , voiceActor = LastOrgasmedPartner())
 	endif
 
 	;Female Panting First
@@ -2433,7 +2469,7 @@ function ASLHandlemaleOrgasmreactionVarB()
 		PlayMoanonlyVarB()
 	EndIf
 
-	ReacttoMaleOrgasmNext = false
+	ReacttoPartnerOrgasmNext = false
 
 endfunction
 
@@ -2486,7 +2522,7 @@ else
 endif
 
 If mainMaleActor != None && Utility.RandomFloat(0.0, 1.0) < 0.5 && !FemaleIsVictim()  && !ASLCurrentlyintense
-	If !FemaleIsSatisfied() && IsgettingPenetrated()
+	If !FePartnerIsSatisfied() && IsgettingPenetrated()
 			Utility.Wait(Utility.RandomFloat(1.0, 2.0))
 
 			PlaySound("WantMore", mainFemaleActor, requiredChemistry = 1, soundPriority = 1 , debugtext = "WantMore")
@@ -2920,6 +2956,21 @@ Bool Function IsUnconcious()
 		return false
 	endif
 endfunction
+
+;Which actor is the passive necro/faint target. The SexLab victim flag is the primary
+;signal, but many necro triggers (incl. the FunnyBizness necro pack) start the scene
+;WITHOUT flagging a victim at all - IsVictim then reads false for the corpse and the whole
+;gate leaks. When nothing is flagged, fall back to Hentairim's original rule: the passive
+;target is scene position 0. Gated on an empty victim list so a normally flagged scene
+;keeps trusting the flag (there an aggressor may legitimately be at position 0). Engine
+;state (IsDead/IsUnconscious) is unusable here - these targets are live actors merely
+;posed as dead - so tags/position are the only reliable signal.
+Bool Function NecroTargetByPosition(Actor a)
+	if !CurrentThread || CurrentThread.Victims.length > 0
+		return false
+	endif
+	return CurrentThread.Positions.Find(a) == 0
+EndFunction
 
 
 Bool Function MainMaleCanControl()

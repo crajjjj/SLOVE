@@ -1119,8 +1119,21 @@ Bool Function IsUnconcious()
 	;the VICTIM only, never the aggressor. position == 0 was wrong - the aggressor can be
 	;position 0, so they got the dead face too. IsVictim is set per actorref in
 	;HentairimPrepare (SexLab submissive/victim), matching the voice-suppression target.
-	return SceneTagFaint && IsVictim
+	;NecroTargetByPosition is the fallback for necro scenes that flag no submissive at all
+	;(the FunnyBizness necro pack does this) - it reinstates Hentairim's position-0 rule,
+	;but only when nothing is flagged, so the aggressor-at-position-0 case is unaffected.
+	return SceneTagFaint && (IsVictim || NecroTargetByPosition(Actorref))
 endfunction
+
+;See SLOVE_Voice.NecroTargetByPosition: victim-flag-independent target ID for necro/faint
+;scenes that never set a SexLab submissive. Falls back to Hentairim's scene-position-0
+;rule, gated on an empty submissive list.
+Bool Function NecroTargetByPosition(Actor a)
+	if !CurrentThread || CurrentThread.GetSubmissives().length > 0
+		return false
+	endif
+	return CurrentThread.GetPositionIdx(a) == 0
+EndFunction
 
 
 
