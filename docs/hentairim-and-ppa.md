@@ -15,21 +15,26 @@ switched **off** so the two aren't driving the same actors at once. That is safe
 
 ### Why keep Hentairim installed at all
 
-Hentairim ships a large **animation tag database** — the `<stage><position><label>`
-codes (e.g. `3asvp` = stage 3, actor A, slow vaginal penetration) that SLO VE reads
-to pick the right beat per stage/position. Keeping that data gives SLO VE rich,
-accurate labels instead of the generic lead-in fallback it uses on untagged
-animations.
+Mostly you don't need to. SLO VE **replaces** Hentairim's voice, expression, SFX and
+resistance modules outright, and the animation **tags** SLO VE reads don't require
+Hentairim either:
 
-- On **P+**, tags also come from SexLab's own **Scene Builder / SexlabRegistry**, so
-  Hentairim is optional here — but its database still fills in animations the Scene
-  Builder doesn't tag.
-- On **classic**, you need **SLATE + a Hentairim-convention tag database** anyway
-  (see [SexLab Flavours](sexlab-flavours.md)), and Hentairim's database is exactly
-  that.
+- On **P+**, per-stage/position tags come from SexLab's own **Scene Builder /
+  SexlabRegistry**.
+- On **classic**, you need **SLATE + a Hentairim-convention tag database** (see
+  [SexLab Flavours](sexlab-flavours.md)). That tag database is standalone — it does
+  **not** need Hentairim's ESP or engine running. Hentairim's own database is *one*
+  such database, so it can fill that role if you don't already have another, but any
+  Hentairim-convention SLATE database works.
 
-So the coexistence is: **Hentairim provides the tag/scene data, SLO VE is the
-audio/face engine on top of it.**
+The real reason to keep Hentairim is its **other features that SLO VE never ported** —
+for example its **armor swap** — which are still useful on their own. If you want
+those, keep Hentairim installed but switch **off** the four modules SLO VE replaces
+(below), so the two never drive the same actor.
+
+So the coexistence is: **SLO VE owns the voice / face / SFX / willpower layer;
+Hentairim stays — those modules off — only for its extra features** (and, if you have
+nothing else, its tag database can double as the classic tag source).
 
 ### The recipe — disable Hentairim's engines
 
