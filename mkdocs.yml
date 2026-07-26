@@ -50,6 +50,7 @@ nav:
     - SLOVE_voices.toml — slots & routing: config/voices.md
     - AudioUtil.toml — engine globals: config/audioutil.md
   - Willpower / Resistance: resistance.md
+  - Using with Hentairim & PPA: hentairim-and-ppa.md
   - Troubleshooting & Logs: troubleshooting.md
   - For Mod Authors: authors/integration.md
 

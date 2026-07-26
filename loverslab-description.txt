@@ -8,8 +8,8 @@ WHAT IT DOES
 
 SLO VE watches the running SexLab scene and drives voices, facial expressions, and body SFX in sync with stage, intensity, position tags, partner size, and measured penetration — for the player, NPCs, and creatures alike. Everything is TOML, live-reloadable, no MCM.
 
-- Scene voices — moans and lines picked per stage/tag, shuffled, with orgasm hype, huge-partner and victim scenarios, and moans-only mode. Every partner in a group scene is voiced and keeps a consistent voice across scenes.
-- Female voices out of the box — default to SexLab's moan sets; drop in a Hentairim/IVDT pack's audio folder and it just plays. Auto-maps female NPCs across installed packs deterministically.
+- Scene voices — moans and lines picked per stage/tag, shuffled, with orgasm hype, huge-partner and victim scenarios, and moans-only mode. Every partner in a group scene is voiced — the player, male partners, and female NPCs each speak with their own voice, kept consistent across scenes.
+- Female voices — default to SexLab's moan sets out of the box; add one of SLO VE's own female voice packs (optional downloads on this page) or any Hentairim/IVDT pack for a drop-in upgrade. Female NPC partners are voiced too, auto-mapped across your installed packs deterministically (same NPC, same voice).
 - Bundled audio — male packs M1–M8, smack/pull-out one-shots, and the full body-SFX library ship with the mod.
 - Facial expressions — live breathing, stage faces, tongue-out and ahegao (soft deps), jaw-gated.
 - Body SFX — slushing, impacts, claps, kissing/blowjob, optional thrust-sync, contact one-shots; gape reads from Accurate Penetration when present.
@@ -19,19 +19,55 @@ SLO VE watches the running SexLab scene and drives voices, facial expressions, a
 REQUIREMENTS (hard)
 
 - SKSE64 + SexLab P+ 2.17+ (or classic SexLab — see the classic build)
-- AudioUtil — the folder-based audio/lipsync/TOML framework SLO VE runs on
+- AudioUtil 0.9.3+ — the folder-based audio/lipsync/TOML framework SLO VE runs on (update it before updating SLO VE). Please endorse it if you enjoy SLO VE:
+  https://www.nexusmods.com/skyrimspecialedition/mods/186249
 - PapyrusUtil, Mfg Fix NG
 
 Soft deps (auto-detected): MFEE, sr_fillherup, Devious Devices, SexLab Survival, SOS/TNG, Accurate Penetration, Oninus Lactis NG + Milk Mod Economy.
 
-Mutually exclusive with full Hentairim p+ — enable only one.
+Optional: ConsoleUtil — for the in-game console test/reload commands.
+  https://www.nexusmods.com/skyrimspecialedition/mods/133569
 
 
-📖 EVERYTHING ELSE IS ON THE WIKI
+INSTALLATION
 
-Installation, load order, voice packs, TOML configuration, the willpower/resistance system, classic-SexLab notes, and troubleshooting all live in the docs — kept current there so this page stays short:
+Use a mod manager (MO2 recommended). SLO VE is mostly loose scripts, sounds, and TOML config plus one small ESL-flagged plugin — there is nothing to build and no MCM to configure.
 
-https://crajjjj.github.io/SLOVE/
+1. Install the hard requirements first, each per its own instructions: SKSE64, SexLab Framework P+ 2.17+, PapyrusUtil, Mfg Fix NG (MfgConsoleFunc/Ext), and AudioUtil — the folder-based audio / lipsync / TOML framework SLO VE runs on. AudioUtil must be present or SLO VE has no voice engine.
+
+2. (Optional) Add female voice packs. Females already work out of the box on SexLab's stock moans, but a real pack is a drop-in upgrade — grab one of SLO VE's own female voice packs (optional files on this page), or use any Hentairim/IVDT pack (you only need its SOUND FILES/WAVs, not its ESP/scripts). Player voice goes in Sound\fx\SLOVE\F1; for a follower/partner voice, put the same files in F2 (F3, …). Male packs M1–M8 and the full body-SFX library are already bundled.
+
+3. Install SLO VE and enable SLOVE.esp. It is ESL-flagged (ESP-FE), so it does not use a regular plugin slot and can go anywhere in the plugin order.
+
+4. Set the conflict/priority order so SLO VE wins its files:
+       AudioUtil  →  voice-pack assets  →  SLO VE (last)
+   SLO VE ships its own AudioUtil preset — AudioUtil.toml (engine globals) and config\SLOVE_voices.toml (voice slots + actor→voice routing) — and these MUST overwrite AudioUtil's defaults or actors won't resolve their voices. In MO2 that means SLO VE sits BELOW AudioUtil in the left pane (higher priority). Voice packs only add loose WAVs under Sound\fx\SLOVE and don't conflict with anything, so their position doesn't matter — just keep SLO VE the winner of the .toml preset files.
+
+5. (Optional) Install any soft dependencies you want the extra behavior from — MFEE, sr_fillherup (tongue), Devious Devices (gag voice), SexLab Survival (ahegao), SOS/TNG (huge-partner detection), Accurate Penetration (measured penetration/gape), Oninus Lactis NG + Milk Mod Economy (milk). All are auto-detected; none are required, and missing ones are simply skipped.
+
+6. (Optional) Add SexLab Cumshot + the Cumshot patch for visible ejaculation — SLO VE voices, faces and SFX the scene but leaves cum visuals to it.
+
+7. Start or load your game. SLO VE's quest is start-game-enabled (it ships a SEQ), so it registers itself automatically — on a new game right away, on an existing save within a few seconds of loading. Then start any SexLab P+ scene to hear it working; if nothing happens, check the two log files listed in the Troubleshooting docs (linked below).
+
+Already run Hentairim p+? You don't have to choose. Keep it installed for its animation tag database and turn its own voice/expression/SFX/resistance modules off, and SLO VE takes over safely — just don't let both drive the same scene at once. See "Using with Hentairim & PPA" in the docs.
+Prefer Accurate Penetration's own SFX? Disable SLO VE's body SFX in SLOVE.toml.
+
+Updating: install the new version over the old one and let it overwrite. No clean save needed for config/audio-only changes.
+
+
+📖 MORE ON THE WIKI
+
+Voice packs, every TOML setting, the willpower system, and diagnostics are kept current in the docs so this page stays short:
+
+- Full getting-started guide: https://crajjjj.github.io/SLOVE/getting-started/
+- Voice packs (install & routing): https://crajjjj.github.io/SLOVE/packs/
+- TOML configuration: https://crajjjj.github.io/SLOVE/config/
+- Willpower / resistance: https://crajjjj.github.io/SLOVE/resistance/
+- Using with Hentairim & Accurate Penetration: https://crajjjj.github.io/SLOVE/hentairim-and-ppa/
+- P+ vs classic SexLab: https://crajjjj.github.io/SLOVE/sexlab-flavours/
+- Troubleshooting & logs: https://crajjjj.github.io/SLOVE/troubleshooting/
+
+Full docs: https://crajjjj.github.io/SLOVE/
 
 
 CREDITS
