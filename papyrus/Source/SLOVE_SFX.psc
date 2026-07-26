@@ -118,6 +118,9 @@ Event OnUpdate()
 	if Masterscript.AnimationisEnding()
 		PrintDebug("Ending Animation. remove SLO VE SFX")
 		RemoveSFX()
+		;RemoveSFX dispels this spell, so the effect is already unbound - falling
+		;through to RegisterForSingleUpdate below would fire on a [None] instance
+		return
 	endif
 
 	ProcessContactEdges()
