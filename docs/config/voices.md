@@ -12,7 +12,7 @@ au reload
 
 !!! note "Conventions"
     - All keys and names are **normalised** — lowercased, non-alphanumerics stripped.
-    - Paths are **Data-relative** and written as TOML literal strings (single quotes) so backslashes need no escaping: `'Sound\fx\IVDT\F1'`.
+    - Paths are **Data-relative** and written as TOML literal strings (single quotes) so backslashes need no escaping: `'Sound\fx\SLOVE\F1'`.
     - This preset sets **no `voice_root` / `sfx_root`** — every path is written out in full, so nothing depends on a shared root global.
 
 ## Slot resolution tables
@@ -176,15 +176,15 @@ Orgasm = [
 
 | Slot | Sex | Definition |
 |---|---|---|
-| `F1` | female | scans `Sound\fx\IVDT\F1`, `fallback = "F0"`, `gag_slot = "F1gag"` |
-| `F2` | female | scans `Sound\fx\IVDT\F2`, `fallback = "F0B"`, `gag_slot = "F1gag"` |
-| `F3` | female | scans `Sound\fx\IVDT\F3`, `fallback = "F0B"`, `gag_slot = "F1gag"` |
-| `F1gag` | female | scans `Sound\fx\IVDT\F1gag` — one `GagMoan` pool, **no fallback** |
+| `F1` | female | scans `Sound\fx\SLOVE\F1`, `fallback = "F0"`, `gag_slot = "F1gag"` |
+| `F2` | female | scans `Sound\fx\SLOVE\F2`, `fallback = "F0B"`, `gag_slot = "F1gag"` |
+| `F3` | female | scans `Sound\fx\SLOVE\F3`, `fallback = "F0B"`, `gag_slot = "F1gag"` |
+| `F1gag` | female | scans `Sound\fx\SLOVE\F1gag` — one `GagMoan` pool, **no fallback** |
 | `F0` | female | ~50 category folder-refs into SexLab's `vFemaleMoan01` (mild/medium/hot) + explicit `Orgasm` and blowjob-action lists |
 | `F0B` | female | the same mapping over SexLab's `vFemaleMoan03` |
-| `M1`–`M8` | male | scan `Sound\fx\IVDT\M1`…`M8` |
+| `M1`–`M8` | male | scan `Sound\fx\SLOVE\M1`…`M8` |
 | `C1`–`C10` | all | explicit vanilla-BSA file lists, `Orgasm` + usually `Breathing` |
-| `SFX0` | all | ~50 folder refs into `Sound\fx\SloveSFX` (+ `Smack`, `PullOutGape` from `Sound\fx\IVDT\Sounds`) |
+| `SFX0` | all | ~50 folder refs into `Sound\fx\SloveSFX` (+ `Smack`, `PullOutGape` from `Sound\fx\SLOVE\Sounds`) |
 
 Details per family: [Female packs](../packs/female.md) · [Male, creature, gag & SFX slots](../packs/slots.md).
 
@@ -210,7 +210,7 @@ A `[sfx]` name is also the **last resort** of voice-category resolution, so a bo
 [[slot]]
 id = "Serana"
 sex = "female"
-path = 'Sound\fx\IVDT\Serana'       # <Category>\*.wav lives here
+path = 'Sound\fx\SLOVE\Serana'       # <Category>\*.wav lives here
 fallback = "F0B"                    # anything the pack lacks → stock moans
 gag_slot = "F1gag"
 

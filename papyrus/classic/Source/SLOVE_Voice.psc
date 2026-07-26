@@ -3153,11 +3153,15 @@ endfunction
 
 Function PlayGaggedSound()
 
-;intense gag noise
+;Gagged voice: request the pack's own Gagged Grunt folders. A Variation-B pack
+;routes these through its per-pack gag slot (id "<Pack>Gag" in SLOVE_zpack_*.toml,
+;fallback = "F1gag"), so a gagged actor grunts in her own voice. Stock/other slots
+;lack those folders, so they fall to the shared F1gag -> GagMoan muffled pool -
+;never a clear line either way. Intensity picks the harder grunt.
 if ASLCurrentlyintense
-	PlaySound("AssFlattering", mainFemaleActor, requiredChemistry =0 , debugtext = "AssFlattering")
-else; less intense gag noises
-	PlaySound("AssToMouth", mainFemaleActor, requiredChemistry = 0, debugtext = "AssToMouth")
+	PlaySound("Gagged Grunt Intense", mainFemaleActor, requiredChemistry =0 , debugtext = "Gagged Grunt Intense")
+else
+	PlaySound("Gagged Grunt", mainFemaleActor, requiredChemistry = 0, debugtext = "Gagged Grunt")
 endif
 
 endfunction

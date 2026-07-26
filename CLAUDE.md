@@ -89,7 +89,7 @@ SLO VE is a thin Papyrus layer over the **AudioUtil SKSE plugin** (sibling repo 
 - **Ducking/volume:** `SLOVE_Voice` calls `AudioUtil.DuckGroup/UnduckGroup/StopGroup/SetGroupVolume` for the four voice groups `pc_low`, `pc_high`, `partner_low`, `partner_high`.
 - **Measured penetration (AudioUtilPPA):** `SLOVE_Expressions` calls `AudioUtilPPA.IsConnected/GetContext/GetDepth` — when the Accurate Penetration bridge is tracking an actor, penetration checks use **measured** state (context bitmask 1=vaginal, 2=anal + nonzero depth) instead of authored labels.
 - **Diagnostics:** `SLOVE_Test` uses `AudioUtil.CategoryExists/PlayVoiceFromSlot/GetSlotForActor`.
-- **Voice-slot preset (two files):** AudioUtil merges a base `AudioUtil.toml` then every `config\*.toml` overlay, with **globals base-only** (see the gotcha below). SLO VE therefore splits its preset in two, both under `SKSE\Plugins\AudioUtil\` (**install SLO VE last** so its base wins): `AudioUtil.toml` = the **globals only** (`[general]`/`[ppa]`/`[lipsync]`/`[gag]`), and `config\SLOVE_voices.toml` = **all the voice content** — the actor→slot routing (voicetype/race maps, category aliases, `[male_only_remap]`, fallbacks, `[groups]`) *and* every `[[slot]]` including the `SFX0` sfx slot. Keeping routing next to the slots it references makes "give this follower her own voice" a one-file edit. Female scheme: **F0/F0B = stock moan slots** (SexLab's own `vFemaleMoan01`/`03` via per-category folder refs into `Sound\fx\SexLab`; F0 is `default_female_slot`), **F1 = player pack slot**, **F2/F3 = partner/follower pack slots** — the pack slots scan `Sound\fx\IVDT\F<n>` and backfill per-category from the stock slots via the slot `fallback` key, so any Hentairim-convention pack dropped in just works. Plus M1–M8 (bundled Hentairim male packs), C1–C10 (creatures from vanilla BSAs; `sex = "all"` so they resolve regardless of the creature's reported sex).
+- **Voice-slot preset (two files):** AudioUtil merges a base `AudioUtil.toml` then every `config\*.toml` overlay, with **globals base-only** (see the gotcha below). SLO VE therefore splits its preset in two, both under `SKSE\Plugins\AudioUtil\` (**install SLO VE last** so its base wins): `AudioUtil.toml` = the **globals only** (`[general]`/`[ppa]`/`[lipsync]`/`[gag]`), and `config\SLOVE_voices.toml` = **all the voice content** — the actor→slot routing (voicetype/race maps, category aliases, `[male_only_remap]`, fallbacks, `[groups]`) *and* every `[[slot]]` including the `SFX0` sfx slot. Keeping routing next to the slots it references makes "give this follower her own voice" a one-file edit. Female scheme: **F0/F0B = stock moan slots** (SexLab's own `vFemaleMoan01`/`03` via per-category folder refs into `Sound\fx\SexLab`; F0 is `default_female_slot`), **F1 = player pack slot**, **F2/F3 = partner/follower pack slots** — the pack slots scan `Sound\fx\SLOVE\F<n>` and backfill per-category from the stock slots via the slot `fallback` key, so any Hentairim-convention pack dropped in just works. Plus M1–M8 (bundled Hentairim male packs), C1–C10 (creatures from vanilla BSAs; `sex = "all"` so they resolve regardless of the creature's reported sex).
 
 ## ESP Plugin
 
@@ -111,13 +111,13 @@ dist/
   SKSE/Plugins/AudioUtil/config/SLOVE_voices.toml ← preset CONTENT: routing maps + [[slot]] voice packs + SFX0 sfx slot (additive overlay)
   SKSE/Plugins/StorageUtilData/SLOVE/*.json    ← PCExpressions / MaleExpressions / FemaleExpressions
                                                   / Masks / NPCTongue / ErinMFEEConfig
-  Sound/fx/IVDT/{M1..M8,Sounds}/               ← bundled male voice packs + Smack/PullOutGape one-shots
+  Sound/fx/SLOVE/{M1..M8,Sounds}/               ← bundled male voice packs + Smack/PullOutGape one-shots
   Sound/fx/SloveSFX/                           ← bundled body-SFX library (slushing/impacts/claps/etc.);
                                                   mapped as the SFX0 slot's categories, no v1 script driver
                                                   (all audio copied from Hentairim p+ 3.0.4; git-ignored, zipped by Pyro)
 ```
 
-Female voices default to SexLab's own moan sets (referenced in place, not bundled; F0 = stock default, F1 = player pack slot, F2/F3 = partner/follower pack slots — a Hentairim-convention pack dropped into `Sound\fx\IVDT\F<n>` is a zero-config upgrade). Scene tag data is external.
+Female voices default to SexLab's own moan sets (referenced in place, not bundled; F0 = stock default, F1 = player pack slot, F2/F3 = partner/follower pack slots — a Hentairim-convention pack dropped into `Sound\fx\SLOVE\F<n>` is a zero-config upgrade). Scene tag data is external.
 
 ## Gotchas & Non-obvious Details
 

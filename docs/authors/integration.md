@@ -7,7 +7,7 @@ How to build on SLO VE without touching its scripts — and how to ship a voice 
 A SLO VE-compatible pack is **just a folder of loose WAV files**. No ESP, no scripts, no sound-descriptor records, no voice aliases.
 
 ```
-Data\Sound\fx\IVDT\<SlotId>\<Category>\*.wav
+Data\Sound\fx\SLOVE\<SlotId>\<Category>\*.wav
 ```
 
 Guidelines:
@@ -27,10 +27,23 @@ id = "MyPack"
 sex = "female"
 path = 'Sound\fx\MyPack\voice'
 fallback = "F0B"
-gag_slot = "F1gag"
+gag_slot = "MyPackGag"       # your own gag slot (below), not the shared F1gag
+
+# Optional: your pack's own muffled gag voice. Ship "Gagged Grunt" and
+# "Gagged Grunt Intense" folders and route the gag slot at them; SLO VE requests
+# those two categories on a gagged line. fallback = "F1gag" muffles anything they
+# don't cover with the shared GagMoan pool. Omit this whole slot (and point
+# gag_slot = "F1gag") to just use the shared muffled pool.
+[[slot]]
+id = "MyPackGag"
+sex = "female"
+fallback = "F1gag"
+[slot.categories]
+"Gagged Grunt" = 'Sound\fx\MyPack\voice\Gagged Grunt'
+"Gagged Grunt Intense" = 'Sound\fx\MyPack\voice\Gagged Grunt Intense'
 ```
 
-Use a **stable, unique filename prefix** so your overlay sorts predictably and never collides with another mod's. Don't redefine SLO VE's slots — `[[slot]]` is keyed by `id` and a duplicate id replaces the **whole** slot. See [Configuration Overview](../config/index.md).
+Use a **stable, unique filename prefix** so your overlay sorts predictably and never collides with another mod's, and a **unique gag slot id** (`<Pack>Gag`) so two installed packs never collide. Don't redefine SLO VE's slots — `[[slot]]` is keyed by `id` and a duplicate id replaces the **whole** slot. See [Configuration Overview](../config/index.md).
 
 ## Mod events
 

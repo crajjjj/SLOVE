@@ -12,7 +12,7 @@
 # whichever file sorts LAST wins the whole slot (no per-category merge).
 #
 # Slots are defined by any mix of:
-#   - a scanned folder tree (path = 'Sound\fx\IVDT\<Id>' holding
+#   - a scanned folder tree (path = 'Sound\fx\SLOVE\<Id>' holding
 #     <Category>\*.wav subfolders),
 #   - explicit per-category FILE lists ([slot.categories] array values) which
 #     need no loose files and may point into BSA archives — see the creature
@@ -268,7 +268,7 @@ oneshot = 1.0
 #         this until a pack or a pin says otherwise. (F0B = second stock
 #         voice, used as the backfill for the partner/follower slots.)
 #   F1  = the PLAYER pack slot (reserved in the base AudioUtil.toml): scans
-#         Sound\fx\IVDT\F1 - drop ANY Hentairim-convention female pack there
+#         Sound\fx\SLOVE\F1 - drop ANY Hentairim-convention female pack there
 #         and it just plays, no config edits. Categories the pack lacks (or the
 #         whole slot, when no pack is installed) backfill per-category from F0
 #         via `fallback`.
@@ -284,7 +284,7 @@ oneshot = 1.0
 # / [category_fallbacks.female] (both in the base AudioUtil.toml). Audit any
 # slot in-game: SLOVE_Test AuditVoicePack F1.
 # M1-M8 are the bundled male packs (Hentairim voice pack assets, shipped
-# with SLO VE under Sound\fx\IVDT):
+# with SLO VE under Sound\fx\SLOVE):
 # M1 Even Toned, M2 Argonian, M3 Brute, M4 Nord, M5 Condescending,
 # M6 Dark Elf, M7 Khajiit, M8 Orc. Creature slots C1-C10 are defined at the
 # bottom of the file (explicit BSA file lists, no folders).
@@ -292,7 +292,7 @@ oneshot = 1.0
 [[slot]]  # player pack slot - any female pack dropped here wins per category
 id = "F1"
 sex = "female"
-path = 'Sound\fx\IVDT\F1'
+path = 'Sound\fx\SLOVE\F1'
 fallback = "F0"
 gag_slot = "F1gag"    # muffled DD-gag voice when the actor wears a gag (see [gag])
 
@@ -309,13 +309,19 @@ gag_slot = "F1gag"    # muffled DD-gag voice when the actor wears a gag (see [ga
 #   gag_slot = "F1gag"               # shared muffled gag pool
 #   # variation = "B"                # only if the pack uses the partitioned layout
 
-[[slot]]  # gagged-female voice: one muffled pool (27 clips from "DD Gag Voice
-          # Cute"). No SLO VE category matches, so every gagged line falls through
-          # to [gag] default_category = "GagMoan". No fallback -> never leaks a
-          # clear line while gagged.
+[[slot]]  # gagged-female voice. Gagged speakers route here via gag_slot. F1gag has
+          # NO fallback and only a GagMoan\ folder, so every requested category
+          # misses here and the [gag] default_category "GagMoan" (AudioUtil.toml)
+          # takes over - playing the muffled gag moans below (~27 atm_*/flat_* clips)
+          # for EVERY gagged line, regardless of pack or variation. Never F0's clear
+          # stock moans, never the pack's spoken line. Do NOT add fallback = "F0"
+          # here: F0 lists nearly every category, so the requested category would
+          # resolve to a clear stock moan and GagMoan would never play. (To override
+          # a single beat, drop a pack-specific muffled clip in as a named category
+          # folder here.)
 id = "F1gag"
 sex = "female"
-path = 'Sound\fx\IVDT\F1gag'
+path = 'Sound\fx\SLOVE\F1gag'
 
 [[slot]]  # stock default female - SexLab voice vFemaleMoan01 (27 mild / 27 medium / 8 hot)
 id = "F0"
@@ -353,7 +359,7 @@ AskForVaginalCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 AskForAnalCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 AskForOralCum = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 PullOut = 'Sound\fx\SexLab\vFemaleMoan01\medium'
-PullOutGape = 'Sound\fx\IVDT\Sounds\Pull Out Gape'   # gape squelch; voice engine requests this on penetration-start (also a SFX0 category)
+PullOutGape = 'Sound\fx\SLOVE\Sounds\Pull Out Gape'   # gape squelch; voice engine requests this on penetration-start (also a SFX0 category)
 MaleOrgasmOral = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 MaleOrgasmNonOral = 'Sound\fx\SexLab\vFemaleMoan01\medium'
 CameInAss = 'Sound\fx\SexLab\vFemaleMoan01\medium'
@@ -433,7 +439,7 @@ AskForVaginalCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 AskForAnalCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 AskForOralCum = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 PullOut = 'Sound\fx\SexLab\vFemaleMoan03\medium'
-PullOutGape = 'Sound\fx\IVDT\Sounds\Pull Out Gape'   # gape squelch; voice engine requests this on penetration-start (also a SFX0 category)
+PullOutGape = 'Sound\fx\SLOVE\Sounds\Pull Out Gape'   # gape squelch; voice engine requests this on penetration-start (also a SFX0 category)
 MaleOrgasmOral = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 MaleOrgasmNonOral = 'Sound\fx\SexLab\vFemaleMoan03\medium'
 CameInAss = 'Sound\fx\SexLab\vFemaleMoan03\medium'
@@ -481,42 +487,42 @@ Orgasm = [
 [[slot]]
 id = "M1"
 sex = "male"
-path = 'Sound\fx\IVDT\M1'
+path = 'Sound\fx\SLOVE\M1'
 
 [[slot]]
 id = "M2"
 sex = "male"
-path = 'Sound\fx\IVDT\M2'
+path = 'Sound\fx\SLOVE\M2'
 
 [[slot]]
 id = "M3"
 sex = "male"
-path = 'Sound\fx\IVDT\M3'
+path = 'Sound\fx\SLOVE\M3'
 
 [[slot]]
 id = "M4"
 sex = "male"
-path = 'Sound\fx\IVDT\M4'
+path = 'Sound\fx\SLOVE\M4'
 
 [[slot]]
 id = "M5"
 sex = "male"
-path = 'Sound\fx\IVDT\M5'
+path = 'Sound\fx\SLOVE\M5'
 
 [[slot]]
 id = "M6"
 sex = "male"
-path = 'Sound\fx\IVDT\M6'
+path = 'Sound\fx\SLOVE\M6'
 
 [[slot]]
 id = "M7"
 sex = "male"
-path = 'Sound\fx\IVDT\M7'
+path = 'Sound\fx\SLOVE\M7'
 
 [[slot]]
 id = "M8"
 sex = "male"
-path = 'Sound\fx\IVDT\M8'
+path = 'Sound\fx\SLOVE\M8'
 
 # ---------- SFX: the SFX0 slot ----------
 # Body SFX are a slot like everything else (uniform with the voice packs above):
@@ -584,8 +590,8 @@ EjacSmall = 'Sound\fx\SloveSFX\Ejaculation\Small'
 EjacSmallDeep = 'Sound\fx\SloveSFX\Ejaculation\Small Deep'
 GapeAverage = 'Sound\fx\SloveSFX\Gape\Average'
 GapeHuge = 'Sound\fx\SloveSFX\Gape\Huge'
-Smack = 'Sound\fx\IVDT\Sounds\Smack'
-PullOutGape = 'Sound\fx\IVDT\Sounds\Pull Out Gape'
+Smack = 'Sound\fx\SLOVE\Sounds\Smack'
+PullOutGape = 'Sound\fx\SLOVE\Sounds\Pull Out Gape'
 
 # ===========================================================================
 # APPENDIX: creature slot data (referenced by [race_map] in the base AudioUtil.toml)

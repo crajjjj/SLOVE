@@ -58,10 +58,10 @@ SLO VE ships its own AudioUtil preset:
 
 **These must overwrite AudioUtil's neutral defaults** or no actor resolves to a voice. In MO2 that means SLO VE sits **below** AudioUtil in the left pane (higher priority).
 
-Voice packs only add loose WAVs under `Sound\fx\IVDT` and don't conflict with anything, so their position doesn't matter — just keep SLO VE the winner of the `.toml` files.
+Voice packs only add loose WAVs under `Sound\fx\SLOVE` and don't conflict with anything, so their position doesn't matter — just keep SLO VE the winner of the `.toml` files.
 
-!!! danger "Mutually exclusive with full Hentairim p+"
-    SLO VE is a standalone port of Hentairim's IVDT voice system. Run one or the other, **never both** — they drive the same faces and voices and will fight each other.
+!!! danger "Don't run two engines — but you can keep Hentairim as a tag source"
+    SLO VE is a standalone port of Hentairim's IVDT voice system, so **never let both *drive* voices/faces at once** — they'd fight over the same actors. You don't have to uninstall Hentairim, though: you can keep it installed for its animation **tag database** with its own IVDT / expression / SFX / resistance modules switched **off**, and let SLO VE take over. It's safe (verified). See [Using with Hentairim & PPA](hentairim-and-ppa.md).
 
 !!! warning "Turn off SexLab's own facial expressions"
     SLO VE drives faces and voices itself. Its **moans are handled for you**: SLO VE

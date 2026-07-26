@@ -33,7 +33,7 @@ with Milk Mod Economy also installed, squirts require and drain her milk).
   install already has) — everything works out of the box.
   **Female slot scheme**: F0 = stock default (all females), F1 = the
   player's pack slot, F2/F3 = partner/follower pack slots. Drop any
-  Hentairim/IVDT-convention female pack into `Sound\fx\IVDT\F1` (or F2/F3)
+  Hentairim/IVDT-convention female pack into `Sound\fx\SLOVE\F1` (or F2/F3)
   and it just plays — no config edits; categories the pack lacks backfill
   from the stock moans per category. Route a follower to F2/F3 via
   `[npc_overrides]` in `SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml`.

@@ -4,7 +4,7 @@ Female packs are covered in [Installing & Routing Female Packs](female.md). This
 
 ## Male slots M1–M8
 
-The male packs are **bundled** — nothing to download. They install to `Data\Sound\fx\IVDT\M1` … `M8`:
+The male packs are **bundled** — nothing to download. They install to `Data\Sound\fx\SLOVE\M1` … `M8`:
 
 | Slot | Voice | Routed from |
 |---|---|---|
@@ -40,14 +40,14 @@ Same mechanics as female. Drop folders into a new path and declare the slot:
 [[slot]]
 id = "M9"
 sex = "male"
-path = 'Sound\fx\IVDT\M9'
+path = 'Sound\fx\SLOVE\M9'
 fallback = "M1"              # optional: backfill missing categories from a bundled pack
 
 [voicetype_map]
 MaleUniqueUlfric = "M9"
 ```
 
-To *replace* a bundled pack's audio without touching the TOML, just overwrite the WAVs under `Sound\fx\IVDT\M<n>` in your mod manager.
+To *replace* a bundled pack's audio without touching the TOML, just overwrite the WAVs under `Sound\fx\SLOVE\M<n>` in your mod manager.
 
 ### `[voicetype_remap]` — covering voicetypes you have no pack for
 
@@ -132,10 +132,14 @@ When a female speaker **wears a gag device**, her voice reroutes to her slot's `
 [[slot]]
 id = "F1gag"
 sex = "female"
-path = 'Sound\fx\IVDT\F1gag'
+path = 'Sound\fx\SLOVE\F1gag'
 ```
 
 `F1gag` holds a single `GagMoan` folder of muffled clips. No SLO VE category matches that name, so **every gagged line falls through to `[gag] default_category = "GagMoan"`** — she is always muffled, never silent, and never leaks a clear line. The slot deliberately has **no `fallback`**, since a fallback chain could resolve a category to clear audio before the catch-all is reached.
+
+### A pack's own gagged voice
+
+`F1gag` is the shared fallback. A Variation-B **voice pack** can instead ship its *own* muffled gag voice: its overlay declares a per-pack gag slot (`<Pack>Gag`) listing the pack's `Gagged Grunt` and `Gagged Grunt Intense` folders, and the pack's voice slot points `gag_slot` at it. On a gagged line SLO VE requests `Gagged Grunt Intense` (intense stage) or `Gagged Grunt` (otherwise); the pack's own grunt plays. The per-pack gag slot keeps `fallback = "F1gag"`, so anything it doesn't cover still muffles through the shared `GagMoan` pool. A pack that omits those folders just points `gag_slot = "F1gag"` and uses the shared pool. See [For Mod Authors](../authors/integration.md#shipping-a-voice-pack).
 
 Lipsync is suppressed for a gagged actor at the same time (the device owns the mouth), and this is re-checked on a throttle so equipping a gag mid-scene hands the mouth over immediately.
 

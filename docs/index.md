@@ -41,9 +41,9 @@ Everything is configured in plain **TOML** files that reload live from the conso
 
 ```
 Data\
-  Sound\fx\IVDT\F1\<Category>\*.wav      ← the player's female voice pack (drop one in)
-  Sound\fx\IVDT\F2\<Category>\*.wav      ← a follower / partner pack
-  Sound\fx\IVDT\M1..M8\                  ← bundled male packs
+  Sound\fx\SLOVE\F1\<Category>\*.wav      ← the player's female voice pack (drop one in)
+  Sound\fx\SLOVE\F2\<Category>\*.wav      ← a follower / partner pack
+  Sound\fx\SLOVE\M1..M8\                  ← bundled male packs
   Sound\fx\SloveSFX\                     ← bundled body-SFX library
   SKSE\Plugins\SLOVE\SLOVE.toml                       ← behaviour: voice, expressions, sfx, resistance, milk
   SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml     ← the voice slots + actor→voice routing

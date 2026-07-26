@@ -34,7 +34,7 @@ So SLO VE ships the globals in the base `AudioUtil.toml` (which must win the loa
 - **Tables merge per key.** `[npc_overrides]`, `[voicetype_map]` and friends union across files; a later file only overrides the individual keys it repeats.
 - **A file that fails to parse is skipped**, and the remaining files still merge (the error is logged). If *every* file fails, the previous settings are kept — a broken edit never leaves the game silent.
 - **Everything is normalised**: keys and names are lowercased with non-alphanumerics stripped, so `"About To Cum"` == `"AboutToCum"`.
-- **Paths are Data-relative** and written as TOML *literal strings* (single quotes) so backslashes need no escaping: `path = 'Sound\fx\IVDT\F1'`.
+- **Paths are Data-relative** and written as TOML *literal strings* (single quotes) so backslashes need no escaping: `path = 'Sound\fx\SLOVE\F1'`.
 
 ## Add your own overlay instead of editing in place
 

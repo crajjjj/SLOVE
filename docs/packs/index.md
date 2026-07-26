@@ -17,11 +17,11 @@ SLO VE's preset ships these slots:
 |---|---|---|---|
 | `F0` | female | **default for all unrouted females** | SexLab's own `vFemaleMoan01` set, mapped per category by intensity |
 | `F0B` | female | backfill for `F2`/`F3` | SexLab's own `vFemaleMoan03` set |
-| `F1` | female | **the player** (reserved — no NPC ever gets it) | scans `Sound\fx\IVDT\F1`, backfills from `F0` |
-| `F2` | female | a follower/partner you route to it | scans `Sound\fx\IVDT\F2`, backfills from `F0B` |
-| `F3` | female | a second follower/partner | scans `Sound\fx\IVDT\F3`, backfills from `F0B` |
-| `F1gag` | female | any female wearing a gag device | scans `Sound\fx\IVDT\F1gag` (one muffled pool) |
-| `M1`–`M8` | male | males, by voicetype / race | bundled packs in `Sound\fx\IVDT\M1`…`M8` |
+| `F1` | female | **the player** (reserved — no NPC ever gets it) | scans `Sound\fx\SLOVE\F1`, backfills from `F0` |
+| `F2` | female | a follower/partner you route to it | scans `Sound\fx\SLOVE\F2`, backfills from `F0B` |
+| `F3` | female | a second follower/partner | scans `Sound\fx\SLOVE\F3`, backfills from `F0B` |
+| `F1gag` | female | any female wearing a gag device | scans `Sound\fx\SLOVE\F1gag` (one muffled pool) |
+| `M1`–`M8` | male | males, by voicetype / race | bundled packs in `Sound\fx\SLOVE\M1`…`M8` |
 | `C1`–`C10` | all | creatures, by race | explicit file lists straight out of the vanilla BSAs |
 | `SFX0` | all | body SFX (not a voice) | folders under `Sound\fx\SloveSFX` |
 
@@ -33,7 +33,7 @@ SLO VE's preset ships these slots:
 A voice pack is a folder of category folders full of `.wav` files:
 
 ```
-Data\Sound\fx\IVDT\F1\
+Data\Sound\fx\SLOVE\F1\
     Greet Familiar\        01.wav  02.wav  03.wav …
     Foreplay Soft\         01.wav  02.wav …
     Near Orgasm Noises\    …
@@ -106,7 +106,7 @@ Three mechanisms, freely mixed within one slot:
 [[slot]]
 id = "F1"
 sex = "female"
-path = 'Sound\fx\IVDT\F1'      # holds <Category>\*.wav subfolders
+path = 'Sound\fx\SLOVE\F1'      # holds <Category>\*.wav subfolders
 fallback = "F0"
 ```
 

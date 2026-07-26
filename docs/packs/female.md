@@ -10,20 +10,20 @@ SLO VE stays compatible with **Hentairim / IVDT-convention female packs**. You o
 |---|---|---|---|
 | `F0` | every unrouted female NPC | *(stock SexLab `vFemaleMoan01`)* | — |
 | `F0B` | *(backfill only)* | *(stock SexLab `vFemaleMoan03`)* | — |
-| **`F1`** | **the player, always** | `Sound\fx\IVDT\F1` | `F0` |
-| **`F2`** | whoever you route to it | `Sound\fx\IVDT\F2` | `F0B` |
-| **`F3`** | whoever you route to it | `Sound\fx\IVDT\F3` | `F0B` |
-| `F1gag` | any gagged female | `Sound\fx\IVDT\F1gag` | *(none — never leaks a clear line)* |
+| **`F1`** | **the player, always** | `Sound\fx\SLOVE\F1` | `F0` |
+| **`F2`** | whoever you route to it | `Sound\fx\SLOVE\F2` | `F0B` |
+| **`F3`** | whoever you route to it | `Sound\fx\SLOVE\F3` | `F0B` |
+| `F1gag` | any gagged female | `Sound\fx\SLOVE\F1gag` | *(none — never leaks a clear line)* |
 
 `F1` is **reserved for the player** (`pc_female_slot`), so an NPC can never accidentally end up speaking your character's voice.
 
 ## Give the player a voice pack
 
 1. Get a Hentairim/IVDT-convention female voice pack.
-2. Install its audio so the category folders land in **`Data\Sound\fx\IVDT\F1\`**:
+2. Install its audio so the category folders land in **`Data\Sound\fx\SLOVE\F1\`**:
 
     ```
-    Data\Sound\fx\IVDT\F1\
+    Data\Sound\fx\SLOVE\F1\
         Greet Familiar\      01.wav …
         Foreplay Soft\       …
         Near Orgasm Noises\  …
@@ -50,7 +50,7 @@ SLOVE_Test SampleCategory F1 Orgasm
 A pack's audio is authored for the `F1` folder, so installing a *second* pack means putting the same files in `F2` — i.e. **rename the pack's `F1` folder to `F2`**:
 
 ```
-Data\Sound\fx\IVDT\F2\
+Data\Sound\fx\SLOVE\F2\
     Greet Familiar\  …
     Orgasm\          …
 ```
@@ -99,7 +99,7 @@ Nothing is special about the number three. To add `F4`:
 [[slot]]
 id = "F4"
 sex = "female"
-path = 'Sound\fx\IVDT\F4'
+path = 'Sound\fx\SLOVE\F4'
 fallback = "F0B"          # backfill categories this pack lacks
 gag_slot = "F1gag"        # muffled voice while gagged (optional)
 
@@ -107,7 +107,7 @@ gag_slot = "F1gag"        # muffled voice while gagged (optional)
 FemaleSultry = "F4"
 ```
 
-Then install the pack's folders into `Data\Sound\fx\IVDT\F4\`, reload, and audit:
+Then install the pack's folders into `Data\Sound\fx\SLOVE\F4\`, reload, and audit:
 
 ```
 au reload
@@ -150,7 +150,7 @@ FemaleEvenToned = ["F2", "F3"]
 [[slot]]
 id = "F4"
 sex = "female"
-path = 'Sound\fx\IVDT\F4'
+path = 'Sound\fx\SLOVE\F4'
 fallback = "F0B"
 ```
 
@@ -169,7 +169,7 @@ Full details: [Configuration Overview](../config/index.md).
 2. `SLOVE_Test DumpState` — is the player actually on `F1`?
 3. `SLOVE_Test AuditVoicePack F1` — which categories are `MISSING`?
 4. `SLOVE_Test SampleCategory F1 Orgasm` — `handle=0` means nothing resolved.
-5. Are the WAVs **loose** (not in a BSA) and under exactly `Data\Sound\fx\IVDT\F1\<Category>\`?
+5. Are the WAVs **loose** (not in a BSA) and under exactly `Data\Sound\fx\SLOVE\F1\<Category>\`?
 6. Is SLO VE still winning the `.toml` conflict after your last install?
 
 More in [Troubleshooting](../troubleshooting.md).
