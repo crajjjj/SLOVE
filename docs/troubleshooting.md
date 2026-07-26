@@ -75,6 +75,21 @@ Work down the resolution chain:
 5. **Is `voice.enablevoice`/`director.enablevoice` on?** `DumpState` prints them.
 6. **Volume:** `voice.pcvolume` / `voice.partnervolume` in `SLOVE.toml`, and `[groups]` startup levels.
 
+## No voices after updating an older install (IVDT → SLOVE folder rename)
+
+!!! warning "Moved your own voice packs by hand? They need to move too."
+    In **0.4.0** SLO VE's bundled voice folder was renamed
+    `Data\Sound\fx\IVDT\…` → `Data\Sound\fx\SLOVE\…`. The bundled audio and any
+    NPC pack installed through its **own** FOMOD/overlay update themselves — but a
+    pack **you dropped in by hand** under the old `IVDT` path is now orphaned. The
+    usual casualty is the **player pack at `Sound\fx\IVDT\F1`**, which leaves the
+    PC on the stock moans (`AudioUtil.log` shows `Slot F1: 0 category folders…`).
+
+    **Fix:** move your hand-placed folders from `Data\Sound\fx\IVDT\…` to the
+    matching `Data\Sound\fx\SLOVE\…` — e.g. `…\IVDT\F1` → `…\SLOVE\F1`,
+    `…\IVDT\M3` → `…\SLOVE\M3`. Then run `au reload` or restart. The empty
+    `Sound\fx\IVDT` can be deleted afterwards.
+
 ## A voice pack I installed isn't playing
 
 **First, read `AudioUtil.log`.** Since AudioUtil 0.9.2 it reports the outcome of every pack slot on load — one line usually names the problem faster than the console commands can:
