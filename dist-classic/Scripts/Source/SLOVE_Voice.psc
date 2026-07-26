@@ -20,6 +20,11 @@ Bool mainMaleIsVoiced = false      ;true only when mainMaleActor is a human male
 Actor lastMaleOrgasmActor = None   ;who climaxed last - post-nut lines come from him
 Float lastSecondaryLineTime        ;scene time a non-lead male last spoke
 Float secondaryLineCooldown        ;randomized pause between non-lead lines
+;--- female NPC partners: non-PC human females voice their own moans on their own F2-F10 slot.
+;The engine's lead female is ALWAYS the PC; this is the secondary channel for everyone else.
+Actor[] sceneFemales               ;all non-PC human females (not males/schlongs, not creatures)
+Float lastFemaleLineTime           ;scene time a female NPC last spoke
+Float femaleLineCooldown           ;randomized pause between female-NPC lines
 ;--- creature ambience: voiced creatures (C-slots via [race_map]) pant/growl on a cadence
 Actor[] sceneCreatures
 Float lastCreatureBreathTime
@@ -312,6 +317,32 @@ Function FindActorsAndVoices()
 	lastSecondaryLineTime = 0.0
 	secondaryLineCooldown = Utility.RandomFloat(6.0, 14.0)
 
+	;collect non-PC human females (not males/schlongs, not creatures) so
+	;PickSpeakingFemale() can voice each on her own resolved slot. Every female resolves
+	;to at least F0 (stock moans), so the GetSlotForActor guard is defensive - a pooled
+	;NPC lands on her F2-F10 pack, an unmapped one on stock, but never silent.
+	int femaleCount = 0
+	actorIndex = 0
+	While actorIndex < actorCount
+		If actorList[actorIndex] != playerCharacter && !MasterScript.IsMale(actorList[actorIndex]) && !hasSchlong(actorList[actorIndex]) && Sexlab.GetGender(actorList[actorIndex]) <= 1 && AudioUtil.GetSlotForActor(actorList[actorIndex]) != ""
+			femaleCount += 1
+		EndIf
+		actorIndex += 1
+	EndWhile
+	sceneFemales = PapyrusUtil.ActorArray(femaleCount)
+	int femaleIndex = 0
+	actorIndex = 0
+	While actorIndex < actorCount
+		If actorList[actorIndex] != playerCharacter && !MasterScript.IsMale(actorList[actorIndex]) && !hasSchlong(actorList[actorIndex]) && Sexlab.GetGender(actorList[actorIndex]) <= 1 && AudioUtil.GetSlotForActor(actorList[actorIndex]) != ""
+			sceneFemales[femaleIndex] = actorList[actorIndex]
+			femaleIndex += 1
+		EndIf
+		actorIndex += 1
+	EndWhile
+	lastFemaleLineTime = 0.0
+	femaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	printdebug("scene females voiced (NPC): " + sceneFemales.length)
+
 	;collect voiced creatures (a resolvable AudioUtil slot = C1-C10 via [race_map])
 	;for the periodic Breathing ambience - humans are covered by the male rotation
 	int creatureCount = 0
@@ -369,6 +400,51 @@ Actor Function PickSpeakingMale()
 	lastSecondaryLineTime = now
 	secondaryLineCooldown = Utility.RandomFloat(6.0, 14.0)
 	return pick
+EndFunction
+
+;Rotation for secondary FEMALE NPC lines. Independent cooldown from the male one;
+;returns None outside the cooldown or when no voiced female NPC is present, so the
+;caller no-ops most ticks - these are ambience, not the lead PC female's beat.
+Actor Function PickSpeakingFemale()
+	if sceneFemales.length == 0
+		return None
+	endif
+	Float now = currentthread.TotalTime
+	if now - lastFemaleLineTime < femaleLineCooldown
+		return None
+	endif
+	Actor pick = sceneFemales[Utility.RandomInt(0, sceneFemales.length - 1)]
+	if pick == None
+		return None
+	endif
+	lastFemaleLineTime = now
+	femaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	return pick
+EndFunction
+
+;Voice a secondary female NPC partner. The lead female is always the PC; this gives
+;non-PC females their own moans on their resolved F2-F10 pool slot. MVP: intensity-aware
+;ambience (grunt vs near-orgasm moan) tracking the scene's soft/intense state, not her
+;own position. She is passed as actorMakingSound (NOT the PC), so PlaySound routes her
+;through the partner branch - partner group, her own channel, no PC-expression drive -
+;exactly like a male partner. forceFemaleVoice keeps the categories female even when the
+;PC is male (maleOnlyScene would otherwise remap them to male audio). PlaySound's own
+;per-actor unconscious/necro guard still silences her if she is the passive target.
+Function PlayFemaleNPCComments()
+	;gated by the same voice.voiceallactors switch as the secondary males: 0 = only the
+	;PC and lead partner are voiced, so female NPCs stay silent too
+	if voiceAllActors != 1
+		return
+	endif
+	Actor speaker = PickSpeakingFemale()
+	if speaker == None
+		return
+	endif
+	if ASLCurrentlyintense
+		PlaySound("NearOrgasmNoises", speaker, requiredChemistry = 0, soundPriority = 1, waitForCompletion = False, debugtext = "NearOrgasmNoises", forceFemaleVoice = true)
+	else
+		PlaySound("PenetrativeGrunts", speaker, requiredChemistry = 0, soundPriority = 1, waitForCompletion = False, debugtext = "PenetrativeGrunts", forceFemaleVoice = true)
+	endif
 EndFunction
 
 ;Voiced creatures pant/growl on their own randomized cadence (intense stages
@@ -658,6 +734,9 @@ if actorWithSceneTrackerSpell == mainFemaleActor
 	if AllowMaleVoice()
 		PlayMaleComments()
 	endif
+	;secondary female NPC partners voice their own moans on their pool slot (no-ops
+	;when there is no female NPC or inside the cooldown)
+	PlayFemaleNPCComments()
 	;creature partners pant/growl on their own cadence
 	PlayCreatureBreathing()
 	;SLO VE: dropped - the commented-out linear-scene pre/post orgasm choreography block
@@ -871,7 +950,7 @@ Int Function GetActorEnjoyment(Actor actorInQuestion)
 	EndIf
 EndFunction
 
-Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistry = 0, Int soundPriority = 0, Float maxQueueDuration = 5.0, Bool waitForCompletion = True , string debugtext = "None" , Bool Force = false , Bool SkipWait = false , Actor voiceActor = None)
+Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistry = 0, Int soundPriority = 0, Float maxQueueDuration = 5.0, Bool waitForCompletion = True , string debugtext = "None" , Bool Force = false , Bool SkipWait = false , Actor voiceActor = None , Bool forceFemaleVoice = false)
 
 	String soundToPlay = thesound
 
@@ -882,8 +961,10 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 
 	;SLO VE: male-only boundary - replaces the FakeFemaleVoice alias hack. When the
 	;PC resolves to a male voice pack, female categories are remapped to their male
-	;counterparts here (male categories pass through the map unchanged).
-	if maleOnlyScene
+	;counterparts here (male categories pass through the map unchanged). A genuine
+	;female NPC line (forceFemaleVoice) is exempt - she stays female even in a male-PC
+	;scene, where maleOnlyScene is set for the PC's own remap.
+	if maleOnlyScene && !forceFemaleVoice
 		soundToPlay = SLOVE_VoiceCategories.MaleOnlyRemap(soundToPlay)
 	endif
 
