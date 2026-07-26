@@ -58,14 +58,17 @@ chancetocommentwhenclosetoorgasm = 45
 chancetocommentwhenmaleclosetoorgasm = 40
 femaleorgasmhypeenjoyment = 75 # enjoyment threshold for orgasm hype lines
 maleorgasmhypeenjoyment = 75
-enablemalevoice = 1
+enablemalevoice = 1            # MASTER male switch: 0 disables ALL male audio (both dirty-talk and moaning)
 chanceformaletocomment = 30
 voiceallactors = 1             # secondary partners speak (male rotation + female NPCs); 0 = PC + lead male only
 creaturebreathing = 1          # creature partners (C-slots) pant/growl during the scene
 creaturebreathmininterval = 3  # seconds between creature breaths (halved on intense stages)
 creaturebreathmaxinterval = 8
-moanonly = 0                   # 1 = moans only, no spoken lines
-hypebeforeorgasm = 0
+malemoaning = 1                # ambient male-partner moans (male mirror of creaturebreathing); needs enablemalevoice = 1
+malemoanmininterval = 5        # seconds between male moans (halved on intense stages)
+malemoanmaxinterval = 12
+moanonly = 0                   # 1 = moans only, no spoken lines (males then moan via malemoaning above)
+hypebeforeorgasm = 0           # DEPRECATED & ignored - froze SLSO's orgasm at 100%. Leave at 0.
 useblowjobsoundforkissing = 1
 pcvolume = 100                 # 0-100
 partnervolume = 100
@@ -146,7 +149,7 @@ printdebug = 0
 # Director. Needs Oninus Lactis NG installed; stays off without it. If Milk
 # Mod Economy is also installed, squirts require milk in the reserve and
 # drain it proportionally (20-50% of current, scaled by level and duration).
-enable = 0                     # master switch (and the mod must be present)
+enable = 1                     # master switch (and the mod must be present)
 chanceonorgasm = 50            # percent roll on any orgasm in the scene (intense squirt)
 chanceintense = 20             # percent per roll while penetrated, intense stage
 chancenonintense = 8           # percent per roll while penetrated, soft stage

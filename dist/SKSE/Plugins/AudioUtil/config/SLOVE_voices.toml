@@ -138,17 +138,17 @@ AfterFemaleOrgasm = "Post Nut Remark"
 [male_only_remap]
 PenetrativeCommentsIntense = "Aggressive"
 PenetrativeCommentsSoft = "Tease Aggressive Partner"
-PenetrativeGrunts = "Aroused"
 SensitivePleasure = "Struggling Subtle"
-ForeplayIntense = "Aroused"
-ForeplaySoft = "Aroused"
 InsertionGeneric = "Struggling Subtle"
 InsertionAnalExcited = "Struggling Subtle"
 InsertionAnalSlow = "Struggling Subtle"
-NearOrgasmNoises = "Struggling Subtle"
 NearOrgasmExclamations = "Struggling Early"
-BreathyIntense = "Aroused"
-BreathySoft = "Aroused"
+# Non-verbal MOAN categories (PenetrativeGrunts, Foreplay*, NearOrgasmNoises,
+# Breathy*, BlowjobAction*) are intentionally NOT remapped to spoken male lines.
+# male_only_remap is only a LAST-RESORT candidate (tried after the literal name),
+# and M1-M8 own an "Aroused" folder, so mapping them here made a male PC/partner
+# repeat a spoken "Aroused" under moanonly (the reported bug). Left unmapped they
+# fall through the M1-M8 `fallback = "M0"` chain to the stock male moans below.
 LoveyDovey = "Lovey Dovey"
 AfterOrgasmRemarks = "Post Nut Remark"
 AfterOrgasmExclamations = "Post Nut Remark"
@@ -484,45 +484,116 @@ Orgasm = [
   'Sound\fx\SexLab\fxOrgasm01\02.wav',
 ]
 
+# Male packs are SPOKEN dirty-talk only (no grunt/breath folders), so each M-slot
+# backfills the non-verbal moan categories from a stock male-moan slot via
+# `fallback` - the male mirror of the female F1->F0 chain. FOUR stock slots
+# (M0/M0B/M0C/M0D = SexLab vMaleMoan01-04) give four distinct moan voices; M1-M8
+# are assigned round-robin so different male NPCs moan differently.
 [[slot]]
 id = "M1"
 sex = "male"
 path = 'Sound\fx\SLOVE\M1'
+fallback = "M0"
 
 [[slot]]
 id = "M2"
 sex = "male"
 path = 'Sound\fx\SLOVE\M2'
+fallback = "M0B"
 
 [[slot]]
 id = "M3"
 sex = "male"
 path = 'Sound\fx\SLOVE\M3'
+fallback = "M0C"
 
 [[slot]]
 id = "M4"
 sex = "male"
 path = 'Sound\fx\SLOVE\M4'
+fallback = "M0D"
 
 [[slot]]
 id = "M5"
 sex = "male"
 path = 'Sound\fx\SLOVE\M5'
+fallback = "M0"
 
 [[slot]]
 id = "M6"
 sex = "male"
 path = 'Sound\fx\SLOVE\M6'
+fallback = "M0B"
 
 [[slot]]
 id = "M7"
 sex = "male"
 path = 'Sound\fx\SLOVE\M7'
+fallback = "M0C"
 
 [[slot]]
 id = "M8"
 sex = "male"
 path = 'Sound\fx\SLOVE\M8'
+fallback = "M0D"
+
+# ---- stock male-moan slots (SexLab vMaleMoan01-04) ----
+# The male mirror of F0: loose PCM every SexLab install has, so lipsync works.
+# NOT defaults or blind-scan picks (declared after M1-M8; default_male_slot stays
+# M1) - reached ONLY as the M1-M8 per-category fallback, so a male PC/partner
+# always has a MOAN for the non-verbal categories the spoken packs don't ship.
+# Intensity split follows the female stock slots: soft = medium, hot = hot.
+[[slot]]
+id = "M0"
+sex = "male"
+[slot.categories]
+PenetrativeGrunts    = 'Sound\fx\SexLab\vMaleMoan01\medium'
+BlowjobActionSoft    = 'Sound\fx\SexLab\vMaleMoan01\medium'
+BreathySoft          = 'Sound\fx\SexLab\vMaleMoan01\medium'
+ForeplaySoft         = 'Sound\fx\SexLab\vMaleMoan01\medium'
+NearOrgasmNoises     = 'Sound\fx\SexLab\vMaleMoan01\hot'
+BlowjobActionIntense = 'Sound\fx\SexLab\vMaleMoan01\hot'
+BreathyIntense       = 'Sound\fx\SexLab\vMaleMoan01\hot'
+ForeplayIntense      = 'Sound\fx\SexLab\vMaleMoan01\hot'
+
+[[slot]]
+id = "M0B"
+sex = "male"
+[slot.categories]
+PenetrativeGrunts    = 'Sound\fx\SexLab\vMaleMoan02\medium'
+BlowjobActionSoft    = 'Sound\fx\SexLab\vMaleMoan02\medium'
+BreathySoft          = 'Sound\fx\SexLab\vMaleMoan02\medium'
+ForeplaySoft         = 'Sound\fx\SexLab\vMaleMoan02\medium'
+NearOrgasmNoises     = 'Sound\fx\SexLab\vMaleMoan02\hot'
+BlowjobActionIntense = 'Sound\fx\SexLab\vMaleMoan02\hot'
+BreathyIntense       = 'Sound\fx\SexLab\vMaleMoan02\hot'
+ForeplayIntense      = 'Sound\fx\SexLab\vMaleMoan02\hot'
+
+[[slot]]
+id = "M0C"
+sex = "male"
+[slot.categories]
+PenetrativeGrunts    = 'Sound\fx\SexLab\vMaleMoan03\medium'
+BlowjobActionSoft    = 'Sound\fx\SexLab\vMaleMoan03\medium'
+BreathySoft          = 'Sound\fx\SexLab\vMaleMoan03\medium'
+ForeplaySoft         = 'Sound\fx\SexLab\vMaleMoan03\medium'
+NearOrgasmNoises     = 'Sound\fx\SexLab\vMaleMoan03\hot'
+BlowjobActionIntense = 'Sound\fx\SexLab\vMaleMoan03\hot'
+BreathyIntense       = 'Sound\fx\SexLab\vMaleMoan03\hot'
+ForeplayIntense      = 'Sound\fx\SexLab\vMaleMoan03\hot'
+
+[[slot]]
+id = "M0D"
+sex = "male"
+[slot.categories]
+PenetrativeGrunts    = 'Sound\fx\SexLab\vMaleMoan04\medium'
+BlowjobActionSoft    = 'Sound\fx\SexLab\vMaleMoan04\medium'
+BreathySoft          = 'Sound\fx\SexLab\vMaleMoan04\medium'
+ForeplaySoft         = 'Sound\fx\SexLab\vMaleMoan04\medium'
+NearOrgasmNoises     = 'Sound\fx\SexLab\vMaleMoan04\hot'
+BlowjobActionIntense = 'Sound\fx\SexLab\vMaleMoan04\hot'
+BreathyIntense       = 'Sound\fx\SexLab\vMaleMoan04\hot'
+ForeplayIntense      = 'Sound\fx\SexLab\vMaleMoan04\hot'
 
 # ---------- SFX: the SFX0 slot ----------
 # Body SFX are a slot like everything else (uniform with the voice packs above):

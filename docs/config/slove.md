@@ -54,12 +54,12 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `moanonly` | `0` | `1` = moans only, no spoken lines. |
+| `moanonly` | `0` | `1` = moans only, no spoken lines. Males then moan via `malemoaning` (SexLab stock male moans through the `M0`–`M0D` fallback) instead of dirty-talk. |
 | `enablehugeppscenario` | `1` | Special line set when the partner is huge (needs SOS/TNG, threshold `director.soshugeppsize`). |
 | `enablevictimscenario` | `1` | Special line set when she is the submissive/victim of the scene. |
 | `femaleorgasmhypeenjoyment` | `75` | Enjoyment threshold above which orgasm hype lines start. |
 | `maleorgasmhypeenjoyment` | `75` | Same, for the male. |
-| `hypebeforeorgasm` | `0` | Extra hype pass before climax. |
+| ~~`hypebeforeorgasm`~~ | `0` | **Deprecated — ignored.** Held climax back for an extra hype pass, but it disabled the SexLab orgasm with no release path, freezing **SLSO**'s meter at 100%. Now always ignored; leave at `0`. |
 | ~~`voicevariation`~~ | — | **Removed.** Variation A/B is now a per-pack property — set `variation = "B"` on the pack's `[[slot]]` in its AudioUtil config (see `SLOVE_zpack_*.toml`). |
 | `useblowjobsoundforkissing` | `1` | Reuse blowjob action audio for kissing stages. |
 | `enableddgagvoice` | `1` | Route a gagged speaker through the muffled [gag slot](../packs/slots.md#the-gag-slot-f1gag). |
@@ -74,6 +74,9 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 | `creaturebreathing` | `1` | Creature partners pant/growl through the scene (the `Breathing` category on `C*` slots). |
 | `creaturebreathmininterval` | `5` | Seconds between creature breaths, minimum. **Halved on intense stages.** |
 | `creaturebreathmaxinterval` | `12` | …maximum. |
+| `malemoaning` | `1` | Ambient male-partner moaning — the male mirror of `creaturebreathing`. Non-PC males moan on a cadence in **every** scene (between dirty-talk lines, and the only male sound under `moanonly`). Male packs are spoken-only, so this uses SexLab's stock male moans (`vMaleMoan01`–`04`, four distinct voices) via the `M0`–`M0D` slot fallback. Needs `enablemalevoice = 1`. |
+| `malemoanmininterval` | `5` | Seconds between a male's moans, minimum. **Halved on intense stages.** |
+| `malemoanmaxinterval` | `12` | …maximum. |
 
 ### Volume
 

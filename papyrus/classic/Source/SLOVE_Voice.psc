@@ -32,6 +32,12 @@ Float creatureBreathCooldown
 int enablecreaturebreathing
 float creaturebreathmininterval
 float creaturebreathmaxinterval
+;--- male ambience: non-PC males moan on a cadence, the male mirror of the above
+int enablemalemoaning
+float malemoanmininterval
+float malemoanmaxinterval
+Float lastMaleMoanTime
+Float maleMoanCooldown
 Int voiceAllActors = 1             ;SLOVE.toml "voice.voiceallactors"
 Actor playerCharacter = None
 
@@ -150,6 +156,9 @@ ChanceForMaleToComment = SLOVE_Config.GetInt("voice.chanceformaletocomment",0) a
 enablecreaturebreathing = SLOVE_Config.GetInt("voice.creaturebreathing", 1)
 creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 5) as float
 creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 12) as float
+enablemalemoaning = SLOVE_Config.GetInt("voice.malemoaning", 1)
+malemoanmininterval = SLOVE_Config.GetInt("voice.malemoanmininterval", 5) as float
+malemoanmaxinterval = SLOVE_Config.GetInt("voice.malemoanmaxinterval", 12) as float
 
 MoanOnly  = SLOVE_Config.GetInt("voice.moanonly",0)
 hypebeforeorgasm = SLOVE_Config.GetInt("voice.hypebeforeorgasm",0)
@@ -182,12 +191,16 @@ Function PerformInitialization()
 
 	InitializeConfigValues()
 
-	;Block Orgasm first if hype first before orgasm is enabled
+	;hypebeforeorgasm (Hentairim's edging port) is DEPRECATED - it breaks SLSO.
+	;It disabled the SexLab orgasm to hold back climax while "hype" lines played,
+	;but SLO VE dropped the release choreography that later fired the held orgasm,
+	;so SLSO's meter pinned at 100% forever (its auto-orgasm bails on NoOrgasm and
+	;never resets enjoyment). Always enable the orgasm now; warn if a config still
+	;sets the flag so its owner knows it is a no-op.
 	if hypebeforeorgasm == 1
-		DisableOrgasm()
-	else
-		EnableOrgasm()
+		WritetoErrorlogs("SLOVE", "voice.hypebeforeorgasm is deprecated and ignored - it froze SLSO's orgasm at 100%. Set it to 0 in SLOVE.toml to silence this warning.")
 	endif
+	EnableOrgasm()
 
 	;set volume
 
@@ -316,6 +329,8 @@ Function FindActorsAndVoices()
 	lastPartnerOrgasmActor = None
 	lastSecondaryLineTime = 0.0
 	secondaryLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	lastMaleMoanTime = 0.0
+	maleMoanCooldown = Utility.RandomFloat(2.0, 5.0) ;first male moan comes early
 
 	;collect non-PC human females (not males/schlongs, not creatures) so
 	;PickSpeakingFemale() can voice each on her own resolved slot. Every female resolves
@@ -669,10 +684,8 @@ Event IVDTOnOrgasm(Form actorRef, Int thread)
 				endif
 			endif
 
-			if hypebeforeorgasm == 1 && !isLinearScene()
-				printdebug("Disabling orgasm due to hypebeforeorgasm setting.")
-				DisableOrgasm()
-			endif
+			;hypebeforeorgasm re-disable removed - deprecated; it froze SLSO at 100%
+			;by leaving the orgasm disabled with no release path (see OnEffectStart)
 
 			CommentedClosetoOrgasm = false
 			printdebug("Recording female orgasm in stats.")
@@ -758,10 +771,14 @@ if actorWithSceneTrackerSpell == mainFemaleActor
 ;=========================run Dirty Talk & sex Effects=======================
 	nextUpdateInterval = 0.1
 
-	;chance for male voice
+	;male spoken dirty-talk (AllowMaleVoice returns false under moanonly)
 	if AllowMaleVoice()
 		PlayMaleComments()
 	endif
+	;ambient male-partner moaning, modeled on the creature-breathing layer: non-PC
+	;males moan on their own cadence in EVERY scene - between dirty-talk lines, and
+	;as the only male sound under moanonly (where PlayMaleComments is suppressed).
+	PlayMaleMoaning()
 	;secondary female NPC partners voice their own moans on their pool slot (no-ops
 	;when there is no female NPC or inside the cooldown)
 	PlayFemaleNPCComments()
@@ -1450,6 +1467,41 @@ Function PlayMaleComments()
 	endif
 
 endfunction
+
+;Ambient male-partner moaning, the male mirror of PlayCreatureBreathing: each
+;non-PC male moans on his own randomized cooldown (halved on intense stages) in
+;EVERY scene. Gated by enablemalevoice (the male master switch) AND malemoaning.
+;The moan category resolves against his male slot and backfills to the M0-M0D
+;stock (SexLab vMaleMoan01-04) via `fallback`, so the spoken-only packs still moan.
+;The male PC is excluded (sceneMales holds non-PC males) - he moans via PlayMoanonly.
+Function PlayMaleMoaning()
+	if enablemalemoaning != 1 || EnableMaleVoice != 1 || sceneMales.length == 0 || TrackerRemoved
+		return
+	endif
+	Float now = currentthread.TotalTime
+	if now - lastMaleMoanTime < maleMoanCooldown
+		return
+	endif
+	Actor m = sceneMales[Utility.RandomInt(0, sceneMales.length - 1)]
+	if m == None
+		return
+	endif
+	lastMaleMoanTime = now
+	Float minPause = malemoanmininterval
+	Float maxPause = malemoanmaxinterval
+	if ASLCurrentlyintense
+		minPause = minPause / 2.0
+		maxPause = maxPause / 2.0
+	endif
+	maleMoanCooldown = Utility.RandomFloat(minPause, maxPause)
+	;played ON the male (actorMakingSound = m) so PlaySound routes him through the
+	;partner branch (partner_low group, his own channel), never the PC path
+	if ASLCurrentlyintense
+		PlaySound("NearOrgasmNoises", m, requiredChemistry = 0, soundPriority = 1, waitForCompletion = False, debugtext = "NearOrgasmNoises")
+	else
+		PlaySound("PenetrativeGrunts", m, requiredChemistry = 0, soundPriority = 1, waitForCompletion = False, debugtext = "PenetrativeGrunts")
+	endif
+EndFunction
 
 ;SLO VE: dropped - LinearScenePlayFemalePreFinalStage/VarB and
 ;LinearScenePlayFemalePostOrgasm/VarB (only reachable from the commented-out
@@ -2919,7 +2971,10 @@ endfunction
 
 Bool Function AllowMaleVoice()
 
-	return  Utility.RandomFloat(0.0, 1.0) <= ChanceForMaleToComment && EnableMaleVoice == 1 && Gender == 0 && mainMaleIsVoiced ;gender must be male only; fallback partners (creatures) have no human voice
+	;moanonly suppresses ALL male spoken lines: the male voice set is speech-only
+	;(no grunt/breath categories - see SLOVE_VoiceCategories.AllMaleCategories), so
+	;there is no "male moan" to fall back to. moanonly = males stay quiet.
+	return  Utility.RandomFloat(0.0, 1.0) <= ChanceForMaleToComment && EnableMaleVoice == 1 && moanonly != 1 && Gender == 0 && mainMaleIsVoiced ;gender must be male only; fallback partners (creatures) have no human voice
 
 endfunction
 
