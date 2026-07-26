@@ -896,6 +896,18 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 		audioActor = actorMakingSound
 	endif
 
+	;necro / faint / sleep / unconscious: the passive TARGET makes no sound of their own.
+	;Target = the main female moaner OR any actor SexLab flags as the victim - so it
+	;covers an NPC target of either sex, not just the PC/main female. Skip the line
+	;entirely (not just duck it): no PlayVoice means AudioUtil never drives the mouth,
+	;so lipsync stays silent and the expression engine can hold the dead face (closed
+	;eyes / slack jaw) instead of yielding the jaw to a playing clip. The aggressor is
+	;dominant (not the victim) and is voiced as a different audioActor, so they play on.
+	if (audioActor == mainFemaleActor || CurrentThread.IsVictim(audioActor)) && IsUnconcious()
+		Printdebug("Voice + lipsync suppressed (unconscious target) : " + debugtext)
+		Return
+	endif
+
 	;Variation-B remap: a Variation-B pack stores its lines under the partitioned
 	;scene-label folders (victim/broken/femdom/...), which is exactly the debugtext
 	;passed at each call site - not the collapsed A-category name in soundToPlay.

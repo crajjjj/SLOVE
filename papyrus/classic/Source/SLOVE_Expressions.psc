@@ -1115,8 +1115,11 @@ EndFunction
 
 
 Bool Function IsUnconcious()
-	;scene tags are constant per scene - SceneTagFaint refreshes on scene change
-	return SceneTagFaint && position == 0
+	;faint/sleep/necro dead-face (and the tongue/effect gates that read this) apply to
+	;the VICTIM only, never the aggressor. position == 0 was wrong - the aggressor can be
+	;position 0, so they got the dead face too. IsVictim is set per actorref in
+	;HentairimPrepare (SexLab submissive/victim), matching the voice-suppression target.
+	return SceneTagFaint && IsVictim
 endfunction
 
 
