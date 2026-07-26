@@ -60,7 +60,7 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 | `femaleorgasmhypeenjoyment` | `75` | Enjoyment threshold above which orgasm hype lines start. |
 | `maleorgasmhypeenjoyment` | `75` | Same, for the male. |
 | `hypebeforeorgasm` | `0` | Extra hype pass before climax. |
-| `voicevariation` | `"NA"` | *(string)* `"B"` selects the **VarB** alternate line variants where a pack provides them. |
+| ~~`voicevariation`~~ | — | **Removed.** Variation A/B is now a per-pack property — set `variation = "B"` on the pack's `[[slot]]` in its AudioUtil config (see `SLOVE_zpack_*.toml`). |
 | `useblowjobsoundforkissing` | `1` | Reuse blowjob action audio for kissing stages. |
 | `enableddgagvoice` | `1` | Route a gagged speaker through the muffled [gag slot](../packs/slots.md#the-gag-slot-f1gag). |
 

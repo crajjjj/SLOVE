@@ -69,7 +69,8 @@ hypebeforeorgasm = 0
 useblowjobsoundforkissing = 1
 pcvolume = 100                 # 0-100
 partnervolume = 100
-voicevariation = "NA"          # "B" selects the VarB line variants
+# Variation A/B is a per-pack property: set variation = "B" on the pack's
+# [[slot]] in its AudioUtil config (see SLOVE_zpack_*.toml).
 enableddgagvoice = 1           # gagged voice when Devious Devices gag worn
 printdebug = 0
 

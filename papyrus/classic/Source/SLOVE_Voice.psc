@@ -91,7 +91,7 @@ float ChanceForMaleToComment
 int enablebrokenstatus
 
 Keyword TNG_Gentlewoman
-String VoiceVariation
+String VoiceVariation            ;resolved per scene from the PC's voice slot (AudioUtil.GetSlotVariation)
 Bool ShouldInitialize = false
 Faction SchlongFaction
 int MoanOnly
@@ -146,7 +146,6 @@ enablecreaturebreathing = SLOVE_Config.GetInt("voice.creaturebreathing", 1)
 creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 5) as float
 creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 12) as float
 
-VoiceVariation = SLOVE_Config.GetString("voice.voicevariation","NA")
 MoanOnly  = SLOVE_Config.GetInt("voice.moanonly",0)
 hypebeforeorgasm = SLOVE_Config.GetInt("voice.hypebeforeorgasm",0)
 useblowjobsoundforkissing = SLOVE_Config.GetInt("voice.useblowjobsoundforkissing",0)
@@ -337,6 +336,11 @@ Function FindActorsAndVoices()
 	creatureBreathCooldown = Utility.RandomFloat(2.0, 5.0) ;first breath comes early
 	printdebug("scene creatures voiced: " + sceneCreatures.length)
 
+	; Variation is a per-pack property, read from the PC's resolved voice slot: a
+	; Variation-B pack in F1 (e.g. Aika) drives the B dispatch while A packs stay on
+	; the collapsed set. The slot's variation field is the SOLE source of truth - a B
+	; pack must declare variation = "B" on its slot (see the SLOVE_zpack_*.toml overlays).
+	VoiceVariation = AudioUtil.GetSlotVariation(AudioUtil.GetSlotForActor(mainFemaleActor))
 	printdebug("mainfemaleactor :" + mainFemaleActor.getleveledactorbase().GetName())
 	printdebug("mainfemaleactor Voice Variation:" + VoiceVariation)
 	printdebug("mainmaleactor :" + mainMaleActor.getleveledactorbase().GetName())
@@ -891,6 +895,22 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int requiredChemistr
 	if audioActor == None
 		audioActor = actorMakingSound
 	endif
+
+	;Variation-B remap: a Variation-B pack stores its lines under the partitioned
+	;scene-label folders (victim/broken/femdom/...), which is exactly the debugtext
+	;passed at each call site - not the collapsed A-category name in soundToPlay.
+	;When the acting voice slot is Variation B AND the pack actually ships a folder
+	;for that scene label, play it; otherwise keep the A-name (it resolves/falls
+	;back normally). This is the SLO VE equivalent of Hentairim's per-pack ESP
+	;property remap, without a static table - the debugtext already carries the
+	;B-folder name, and CategoryExists gates out labels the pack doesn't provide.
+	if VoiceVariation == "B" && debugtext != "None" && debugtext != soundToPlay
+		String vbSlot = AudioUtil.GetSlotForActor(audioActor)
+		if vbSlot != "" && AudioUtil.GetSlotVariation(vbSlot) == "B" && AudioUtil.CategoryExists(vbSlot, debugtext)
+			soundToPlay = debugtext
+		endif
+	endif
+
 	;per-speaker exclusivity channel: AudioUtil natively stops the channel's
 	;previous occupant, so two lines from the SAME speaker can never overlay
 	;(priority>1 bypasses the counter gates by design, and the orgasm events run

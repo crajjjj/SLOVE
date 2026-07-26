@@ -10,7 +10,7 @@ SLO VE is mostly loose scripts, sounds and TOML config plus one small ESL-flagge
 |---|---|
 | **SKSE64** | script extender; launch the game through it |
 | **SexLab** — either **P+ 2.17+** *or* **SE 1.63 (classic)** | the scene framework SLO VE reads. The installer asks which one you run and installs the matching script set. Classic additionally requires **SLSO** and **SLATE + a tag database** — see [SexLab Flavours](sexlab-flavours.md) |
-| **[AudioUtil](https://crajjjj.github.io/AudioUtil/)** | the audio engine: folder-based voice playback, lipsync, and the TOML reader every SLO VE setting is read through. **Without it there is no voice engine.** |
+| **[AudioUtil](https://crajjjj.github.io/AudioUtil/) 0.9.3+** | the audio engine: folder-based voice playback, lipsync, and the TOML reader every SLO VE setting is read through. **Without it there is no voice engine.** **0.9.3 or newer is required** — SLO VE calls its `GetSlotVariation` native (API v2) to drive per-pack Variation-A/B dispatch; on older builds that call fails to bind and voice routing breaks. |
 | **PapyrusUtil** | JSON preset data (expression faces) and per-actor state storage |
 | **Mfg Fix NG** (MfgConsoleFunc/Ext) | every facial-expression write goes through it |
 

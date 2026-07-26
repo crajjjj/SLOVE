@@ -33,7 +33,8 @@
 # ===========================================================================
 
 # per-NPC slot pin: 'Plugin.esp|FormID' = "SlotId" (ESL: last 3 hex digits).
-# Beats voicetype/race; pin a follower to F2/F3 to give her her own voice.
+# Beats voicetype/race; pin a follower to a pool slot (F2-F10) to give her a
+# fixed voice regardless of the voicetype spread below.
 [npc_overrides]
 # 'MyFollower.esp|000D62' = "F2"
 
@@ -70,6 +71,32 @@ MaleCondescending = "M5"
 MaleDarkElf = "M6"
 MaleKhajitt = "M7"
 MaleOrc = "M8"
+
+# female voicetypes -> the NPC VOICE POOL (F2-F10). Every listed voicetype
+# SPREADS its NPCs across whatever pool slots are actually filled: AudioUtil
+# drops undefined ids from the list, so the pool auto-sizes to the packs you
+# installed. 0 pool packs -> every id drops out -> females fall to
+# default_female_slot (F0 stock moans). 1 pack -> all female NPCs use it. 2+ ->
+# deterministic spread, keyed on the NPC's base form (same NPC = same pack, so a
+# given bandit is always the same voice; different NPCs distribute). F1 is
+# PC-reserved and can never appear here. Pin one specific follower to a pool slot
+# via [npc_overrides] to override the spread. Unique-voiced NPCs (their own
+# voicetype, not listed below) aren't pooled - pin them if you want them voiced.
+FemaleEvenToned     = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleYoungEager    = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleSultry        = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleCommoner      = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleCoward        = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleNord          = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleCondescending = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleElfHaughty    = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleArgonian      = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleKhajiit       = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleDarkElf       = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleOldGrumpy     = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleOldKindly     = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleShrill        = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
+FemaleCommander     = ["F2","F3","F4","F5","F6","F7","F8","F9","F10"]
 
 # race -> slot fallback (when no voicetype maps). Substring-matched against the
 # race editor id, longest hint wins. Creature slots C1-C10 (defined below)
@@ -181,10 +208,14 @@ oneshot = 1.0
 #         and it just plays, no config edits. Categories the pack lacks (or the
 #         whole slot, when no pack is installed) backfill per-category from F0
 #         via `fallback`.
-#   F2, F3 = partner/follower pack slots: same mechanics (scan IVDT\F2/F3,
-#         backfill from F0B). Nothing routes to them by default - pin your
-#         partner or follower via [npc_overrides] (base AudioUtil.toml), or map
-#         a female voicetype to them in [voicetype_map].
+#   F2-F10 = the NPC VOICE POOL: female NPCs in scenes spread across whatever
+#         pool slots are filled (via the female [voicetype_map] entries above).
+#         These slots are NOT pre-declared here - each NPC voice pack ships its
+#         own [[slot]] (id = F2..F10) in a config\*.toml overlay, so the pool
+#         auto-sizes to the packs installed (AudioUtil drops undeclared ids from
+#         the spread, so empty slots never dilute it). A pool pack sets
+#         fallback = "F0B" and gag_slot = "F1gag" (template at the F2-F10 slot
+#         comment below).
 # Categories a stock slot doesn't list resolve via [category_aliases.female]
 # / [category_fallbacks.female] (both in the base AudioUtil.toml). Audit any
 # slot in-game: SLOVE_Test AuditVoicePack F1.
@@ -201,19 +232,18 @@ path = 'Sound\fx\IVDT\F1'
 fallback = "F0"
 gag_slot = "F1gag"    # muffled DD-gag voice when the actor wears a gag (see [gag])
 
-[[slot]]  # partner/follower pack slot (route via [npc_overrides] / [voicetype_map])
-id = "F2"
-sex = "female"
-path = 'Sound\fx\IVDT\F2'
-fallback = "F0B"
-gag_slot = "F1gag"    # shares the one bundled female gag pool
-
-[[slot]]  # second partner/follower pack slot
-id = "F3"
-sex = "female"
-path = 'Sound\fx\IVDT\F3'
-fallback = "F0B"
-gag_slot = "F1gag"
+# ---- NPC voice-pool slots (F2-F10) are PACK-PROVIDED, not declared here ----
+# Each NPC voice pack drops a config\*.toml overlay defining its own slot; the
+# female [voicetype_map] spread above then routes scene female NPCs to it. Only
+# declared ids join the pool, so it's exactly the set of installed packs.
+# Template a pack overlay copies (one [[slot]] per pack, any free id F2..F10):
+#   [[slot]]
+#   id = "F2"                        # any free pool id F2..F10
+#   sex = "female"
+#   path = 'Sound\fx\SLOVE\<Pack>'   # the pack's own unique audio folder
+#   fallback = "F0B"                 # backfill missing categories with stock moans
+#   gag_slot = "F1gag"               # shared muffled gag pool
+#   # variation = "B"                # only if the pack uses the partitioned layout
 
 [[slot]]  # gagged-female voice: one muffled pool (27 clips from "DD Gag Voice
           # Cute"). No SLO VE category matches, so every gagged line falls through
