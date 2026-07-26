@@ -179,14 +179,78 @@ MaleOrgasmReactionLover = "Male Orgasm Reaction Soft"
 RefractoryPeriod = "Want More"
 MaleHalfwayIntense = "Male Close Notice"
 
+# --- Variation-B variant fallbacks ---
+# A Variation-B pack that omits an intense / partition variant plays ITS OWN base
+# line first: the category resolves IN-PACK via these substitutions before the F0/F0B
+# stock-moan hop (FolderCache resolves category fallbacks within the slot, then walks
+# the fallback-slot chain). Keys are quoted (they contain spaces). One hop only, so
+# each points straight at a core category most packs record.
+# intensity: "Intense" variant -> its soft base
+"Penetrated Comments Intense" = "Penetrated Comments"
+"Penetrated Grunt Intense" = "Penetrated Grunt"
+"Penetrated Anal Comments Intense" = "Penetrated Anal Comments"
+"Blowjob Comments Intense" = "Blowjob Comments"
+"Blowjob Action Intense" = "Blowjob Action"
+"Breathing Intense" = "Breathing"
+"Panting Heavy" = "Panting"
+"KneeJerk Intense" = "KneeJerk"
+"After Orgasm Comments Intense" = "After Orgasm Comments"
+"Orgasm Soon Comments Intense" = "Orgasm Soon Comments"
+"Male Orgasmed Inside Intense" = "Male Orgasmed Inside"
+"Male Orgasm Soon Ask For Vaginal Cum Intense" = "Male Orgasm Soon Ask For Vaginal Cum"
+"Male Orgasm Soon Ask For Anal Cum Intense" = "Male Orgasm Soon Ask For Anal Cum"
+# anal / act / misc variants -> vaginal / generic base
+"Penetrated Anal Comments" = "Penetrated Comments"
+"Insertion Anal Comments" = "Insertion Vaginal Comments"
+"Insertion Vaginal Comments" = "Penetrated Comments"
+"Male Orgasm Soon Ask For Anal Cum" = "Male Orgasm Soon Ask For Vaginal Cum"
+"Male Orgasm Soon Ask For Oral Cum" = "Male Orgasm Soon Ask For Vaginal Cum"
+"Penetrated Double Comments" = "Penetrated Comments Intense"
+"Intense Transition Comments" = "Penetrated Comments Intense"
+"Penetrated Tell Male to Pull Out" = "Penetrated Comments"
+"Male Orgasmed Inside Mouth" = "Male Orgasmed Inside"
+"Male Orgasmed Outside" = "Male Orgasmed Inside"
+"Ending Orgasmed Inside Ass" = "After Orgasm Comments"
+"Ending Orgasmed Inside Mouth" = "After Orgasm Comments"
+"Ending Orgasmed Inside Pussy" = "After Orgasm Comments"
+"Foreplay BoobJob Comments" = "Foreplay Tease Orgasm"
+"Foreplay Footjob Comments" = "Foreplay Tease Orgasm"
+"Foreplay Handjob Comments" = "Foreplay Tease Orgasm"
+# partition (victim / broken / femdom / over-the-top / forced / gagged) -> nearest core
+"Penetrated Comments Victim" = "Penetrated Comments"
+"Penetrated Comments Victim Intense" = "Penetrated Comments Intense"
+"Penetrated Grunt Victim" = "Penetrated Grunt"
+"Penetrated Grunt Victim Intense" = "Penetrated Grunt Intense"
+"Stimulated Victim Comments" = "Stimulated Comments"
+"Ending Victim Comments" = "After Orgasm Comments"
+"Male Orgasmed Inside Victim" = "Male Orgasmed Inside"
+"Penetrated Broken Comments" = "Penetrated Comments Intense"
+"Penetrated Broken Comments Intense" = "Penetrated Comments Intense"
+"Broken Begging" = "Orgasm Soon Comments"
+"Ending Broken" = "After Orgasm Comments"
+"Penetrated Comments Femdom" = "Penetrated Comments"
+"Penetrated Comments Femdom Intense" = "Penetrated Comments Intense"
+"Foreplay Femdom Comments" = "Foreplay Tease Orgasm"
+"Male Orgasm Soon Femdom" = "Male Orgasm Soon Ask For Vaginal Cum"
+"Male Orgasmed Inside Femdom" = "Male Orgasmed Inside"
+"Insertion Over The Top" = "Insertion Vaginal Comments"
+"Orgasm Over The Top" = "Orgasm"
+"Penetrated Comments Over The Top" = "Penetrated Comments Intense"
+"Penetrated Grunt Over The Top" = "Penetrated Grunt Intense"
+"Blowjob Forced" = "Blowjob Action"
+"Blowjob Forced Comments" = "Blowjob Comments"
+"Gagged Grunt" = "Penetrated Grunt"
+"Gagged Grunt Intense" = "Penetrated Grunt Intense"
+
 [category_fallbacks.male]
 # creatures (C1-C10) only define an Orgasm list, so per-scene creature ambience
 # (SLOVE_Voice requests "Breathing") falls back to it - they growl/pant their
 # vanilla sounds. Give a C-slot its own "Breathing" category to override.
 Breathing = "Orgasm"
 
-# startup group volumes (0.0-1.0). STARTUP only - MCM sliders override at runtime
-# via SetGroupVolume. pc_* = player voice, partner_* = NPC voice, sfx = body
+# startup group volumes (0.0-1.0). STARTUP only - SLOVE.toml voice.pcvolume /
+# voice.partnervolume / sfx.volume override these at runtime via SetGroupVolume
+# (SLO VE has no MCM). pc_* = player voice, partner_* = NPC voice, sfx = body
 # sounds, oneshot = out-of-scene one-shots.
 [groups]
 pc_high = 1.0
