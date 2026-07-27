@@ -256,8 +256,14 @@ int PCPosition
 Bool ReactedtoPartnerOrgasmThisSession
 Bool ReactedtoFemaleOrgasmThisSession
 
-Function FindActorsAndVoices()
+;true for anyone who can speak from a male voice slot: a male, or a schlonged
+;futa (SOS faction / TNG Gentlewoman) - the shared predicate for the male
+;identification, the rotation pool and the orgasm routing
+Bool Function IsVoicedMale(Actor a)
+	return MasterScript.IsMale(a) || hasSchlong(a)
+EndFunction
 
+Function FindActorsAndVoices()
 
 	Actor[] actorList = CurrentThread.GetPositions()
 	Int actorCount = actorList.Length
@@ -265,23 +271,34 @@ Function FindActorsAndVoices()
 
 	;SLO VE: no voice aliases - AudioUtil resolves the slot from the actor at play
 	;time, so this only identifies actors. The PC is always the "main female".
+	;One pass buckets everyone: the PC (position only), voiced males (the lead male
+	;is the first one found; PickSpeakingMale() rotates lines between all of them),
+	;voiced creatures (a resolvable C-slot via [race_map], for the Breathing
+	;ambience) and voiced human female NPCs (every female resolves to at least F0
+	;stock moans, so the slot guard is defensive - a pooled NPC lands on her F2-F10
+	;pack, an unmapped one on stock, but never silent).
+	voiceAllActors = SLOVE_Config.GetInt("voice.voiceallactors", 1)
+	sceneMales = PapyrusUtil.ActorArray(0)
+	sceneFemales = PapyrusUtil.ActorArray(0)
+	sceneCreatures = PapyrusUtil.ActorArray(0)
 
-	;Go through the list of all actors in the scene and get data on their gender
-	;PC is always main female
 	While actorIndex < actorCount
-
 		Actor actorInQuestion = actorList[actorIndex]
 		if actorInQuestion == playerCharacter
 			PCPosition = actorIndex
-		endif
-
-		If (MasterScript.IsMale(actorInQuestion) || hasSchlong(actorInQuestion)) && actorInQuestion != playerCharacter
+		elseif IsVoicedMale(actorInQuestion)
 			If mainMaleActor == None
 				mainMaleActor = actorInQuestion
 				mainMaleIsVoiced = true
 			EndIf
-		EndIf
-
+			sceneMales = PapyrusUtil.PushActor(sceneMales, actorInQuestion)
+		elseif Sexlab.GetGender(actorInQuestion) > 1
+			if AudioUtil.GetSlotForActor(actorInQuestion) != ""
+				sceneCreatures = PapyrusUtil.PushActor(sceneCreatures, actorInQuestion)
+			endif
+		elseif AudioUtil.GetSlotForActor(actorInQuestion) != ""
+			sceneFemales = PapyrusUtil.PushActor(sceneFemales, actorInQuestion)
+		endif
 		actorIndex += 1
 	EndWhile
 
@@ -299,83 +316,18 @@ Function FindActorsAndVoices()
 	;SLO VE: replaces the FakeFemaleVoice.SetUpVoiceFromMaleVoice alias hack.
 	;When the PC (the "female" voice engine's actor) is male, every female
 	;category is remapped to its male counterpart at the PlaySound boundary.
-	maleOnlyScene = MasterScript.IsMale(playerCharacter) || hasSchlong(playerCharacter)
+	maleOnlyScene = IsVoicedMale(playerCharacter)
 
-	;collect every non-PC male so PickSpeakingMale() can rotate voice lines
-	;between them (each resolves his own AudioUtil slot by voicetype/race)
-	voiceAllActors = SLOVE_Config.GetInt("voice.voiceallactors", 1)
-	int maleCount = 0
-	actorIndex = 0
-	While actorIndex < actorCount
-		If (MasterScript.IsMale(actorList[actorIndex]) || hasSchlong(actorList[actorIndex])) && actorList[actorIndex] != playerCharacter
-			maleCount += 1
-		EndIf
-		actorIndex += 1
-	EndWhile
-	sceneMales = PapyrusUtil.ActorArray(maleCount)
-	int maleIndex = 0
-	actorIndex = 0
-	While actorIndex < actorCount
-		If (MasterScript.IsMale(actorList[actorIndex]) || hasSchlong(actorList[actorIndex])) && actorList[actorIndex] != playerCharacter
-			sceneMales[maleIndex] = actorList[actorIndex]
-			maleIndex += 1
-		EndIf
-		actorIndex += 1
-	EndWhile
 	lastPartnerOrgasmActor = None
 	lastSecondaryLineTime = 0.0
 	secondaryLineCooldown = Utility.RandomFloat(6.0, 14.0)
 	lastMaleMoanTime = 0.0
 	maleMoanCooldown = Utility.RandomFloat(2.0, 5.0) ;first male moan comes early
-
-	;collect non-PC human females (not males/schlongs, not creatures) so
-	;PickSpeakingFemale() can voice each on her own resolved slot. Every female resolves
-	;to at least F0 (stock moans), so the GetSlotForActor guard is defensive - a pooled
-	;NPC lands on her F2-F10 pack, an unmapped one on stock, but never silent.
-	int femaleCount = 0
-	actorIndex = 0
-	While actorIndex < actorCount
-		If actorList[actorIndex] != playerCharacter && !MasterScript.IsMale(actorList[actorIndex]) && !hasSchlong(actorList[actorIndex]) && Sexlab.GetGender(actorList[actorIndex]) <= 1 && AudioUtil.GetSlotForActor(actorList[actorIndex]) != ""
-			femaleCount += 1
-		EndIf
-		actorIndex += 1
-	EndWhile
-	sceneFemales = PapyrusUtil.ActorArray(femaleCount)
-	int femaleIndex = 0
-	actorIndex = 0
-	While actorIndex < actorCount
-		If actorList[actorIndex] != playerCharacter && !MasterScript.IsMale(actorList[actorIndex]) && !hasSchlong(actorList[actorIndex]) && Sexlab.GetGender(actorList[actorIndex]) <= 1 && AudioUtil.GetSlotForActor(actorList[actorIndex]) != ""
-			sceneFemales[femaleIndex] = actorList[actorIndex]
-			femaleIndex += 1
-		EndIf
-		actorIndex += 1
-	EndWhile
 	lastFemaleLineTime = 0.0
 	femaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
-	printdebug("scene females voiced (NPC): " + sceneFemales.length)
-
-	;collect voiced creatures (a resolvable AudioUtil slot = C1-C10 via [race_map])
-	;for the periodic Breathing ambience - humans are covered by the male rotation
-	int creatureCount = 0
-	actorIndex = 0
-	While actorIndex < actorCount
-		If actorList[actorIndex] != playerCharacter && Sexlab.GetGender(actorList[actorIndex]) > 1 && AudioUtil.GetSlotForActor(actorList[actorIndex]) != ""
-			creatureCount += 1
-		EndIf
-		actorIndex += 1
-	EndWhile
-	sceneCreatures = PapyrusUtil.ActorArray(creatureCount)
-	int creatureIndex = 0
-	actorIndex = 0
-	While actorIndex < actorCount
-		If actorList[actorIndex] != playerCharacter && Sexlab.GetGender(actorList[actorIndex]) > 1 && AudioUtil.GetSlotForActor(actorList[actorIndex]) != ""
-			sceneCreatures[creatureIndex] = actorList[actorIndex]
-			creatureIndex += 1
-		EndIf
-		actorIndex += 1
-	EndWhile
 	lastCreatureBreathTime = 0.0
 	creatureBreathCooldown = Utility.RandomFloat(2.0, 5.0) ;first breath comes early
+	printdebug("scene females voiced (NPC): " + sceneFemales.length)
 	printdebug("scene creatures voiced: " + sceneCreatures.length)
 
 	; Variation is a per-pack property, read from the PC's resolved voice slot: a
@@ -530,14 +482,14 @@ Event IVDTOnOrgasm(Form actorRef, Int thread)
 	EndIf
 	Actor actorHavingOrgasm = actorRef as Actor
 	printdebug("Actor having orgasm: " + actorHavingOrgasm)
-	bool orgasmerIsVoicedMale = actorHavingOrgasm != mainFemaleActor && (MasterScript.IsMale(actorHavingOrgasm) || hasSchlong(actorHavingOrgasm))
+	bool orgasmerIsVoicedMale = actorHavingOrgasm != mainFemaleActor && IsVoicedMale(actorHavingOrgasm)
 	;creatures with a mapped AudioUtil slot (C1-C10 via [race_map]) have a climax
 	;line too - but they must NOT become lastPartnerOrgasmActor: post-nut talk would
 	;try to resolve human categories from a creature slot and come out silent
 	bool orgasmerIsVoicedCreature = actorHavingOrgasm != mainFemaleActor && Sexlab.GetGender(actorHavingOrgasm) > 1 && AudioUtil.GetSlotForActor(actorHavingOrgasm) != ""
 	;a voiced human female (not the PC, not male/schlonged, not creature): she cries on
 	;her own pool slot when she climaxes - drives her cry line below
-	bool orgasmerIsVoicedFemaleNPC = actorHavingOrgasm != mainFemaleActor && !MasterScript.IsMale(actorHavingOrgasm) && !hasSchlong(actorHavingOrgasm) && Sexlab.GetGender(actorHavingOrgasm) <= 1 && AudioUtil.GetSlotForActor(actorHavingOrgasm) != ""
+	bool orgasmerIsVoicedFemaleNPC = actorHavingOrgasm != mainFemaleActor && !IsVoicedMale(actorHavingOrgasm) && Sexlab.GetGender(actorHavingOrgasm) <= 1 && AudioUtil.GetSlotForActor(actorHavingOrgasm) != ""
 	;...and a SECONDARY one: a voiced female who is NOT the partner (mainMaleActor) - a
 	;third+ bystander. Her climax is only her own cry; it must NOT count as the partner's
 	;orgasm. The partner slot is often a female substituting for the male, so the partner
@@ -774,7 +726,10 @@ if actorWithSceneTrackerSpell == mainFemaleActor
 	;SLO VE: dropped - the commented-out linear-scene pre/post orgasm choreography block
 	;(LinearScenePlay* functions) - dead even in the source, gated by isLinearScene()=false
 
-	;if gagged, override everything else
+	;if gagged, override everything else. Every Play* below routes itself to its
+	;VarB twin when the acting pack is Variation B (see the router at the top of
+	;each function), so this chain only decides WHAT is happening, not which pack
+	;dialect voices it.
 	if HasDeviousGag(mainFemaleActor)
 
 		EnableOrgasm()
@@ -782,120 +737,43 @@ if actorWithSceneTrackerSpell == mainFemaleActor
 			PlayGaggedSound()
 		endif
 	elseif IsKissing()  ;kissing
-		if VoiceVariation == "B"
-			PlayKissingVarB()
-		else
-			PlayKissing()
-		EndIf
-
+		PlayKissing()
 	elseif MoanOnly == 1 || isShortenedScene()
-		if VoiceVariation == "B"
-			PlayMoanonlyVarB()
-		else
-			PlayMoanonly()
-		endif
-	;if reacting to female orgasm
+		PlayMoanonly()
 	elseif femaleCloseToOrgasm() && mainFemaleEnjoyment > mainMaleEnjoyment && Utility.RandomFloat(0.0, 1.0) < chancetocommentwhenclosetoorgasm && (!IsFemdom() || (teasedClosetoorgasm && IsFemdom()))
-		if VoiceVariation == "B"
-			ASLPlayFemaleOrgasmHypeVarB()
-		else
-			ASLPlayFemaleOrgasmHype()
-		endif
+		ASLPlayFemaleOrgasmHype()
 	elseif ShouldPlayMaleOrgasmHype() && mainFemaleEnjoyment < mainMaleEnjoyment && Utility.RandomFloat(0.0, 1.0) < ChanceToCommentWhenMaleCloseToOrgasm
-		if VoiceVariation == "B"
-			ASLPlayMaleClosetoOrgasmCommentsVarB()
-		else
-			ASLPlayMaleClosetoOrgasmComments()
-		endif
+		ASLPlayMaleClosetoOrgasmComments()
 	elseif ReacttoFemaleOrgasmNext == true
-		if VoiceVariation == "B"
-			ASLHandleFemaleOrgasmReactionVarB()
-		else
-			ASLHandleFemaleOrgasmReaction()
-		endif
-	;if reacting to male orgasm
+		ASLHandleFemaleOrgasmReaction()
 	elseif	ReacttoPartnerOrgasmNext == true
-		if VoiceVariation == "B"
-			ASLHandlePartnerOrgasmReactionVarB()
-		else
-			ASLHandlePartnerOrgasmReaction()
-		Endif
+		ASLHandlePartnerOrgasmReaction()
 	elseif IsSuckingoffOther() ;blowjob always first because muffled by cock
-		if VoiceVariation == "B"
-			PlayBlowjobVarB()
-		else
-			PlayBlowjob()
-		Endif
+		PlayBlowjob()
 	elseif IsCunnilingus() && !ASLcurrentlyintense ;Cunnilingus
-		if VoiceVariation == "B"
-			PlayCunnilingusVarB()
-		else
-			PlayCunnilingus()
-		endif
+		PlayCunnilingus()
 	elseif IsgettingPenetrated() && IshugePP ; Huge pp Penetration
-		if VoiceVariation == "B"
-			PlayGettingFuckedbyHugePPVarB()
-		else
-			PlayGettingFuckedbyHugePP()
-		endif
-	elseif IsGettingDoublePenetrated() ; double penetratino
-		if VoiceVariation == "B"
-			PlayGettingFuckedDoubleVarB()
-		else
-			PlayGettingFuckedDouble()
-		endif
+		PlayGettingFuckedbyHugePP()
+	elseif IsGettingDoublePenetrated() ; double penetration
+		PlayGettingFuckedDouble()
 	elseif IsGettingInsertedBig() ; Fisting or huge objects
-		if VoiceVariation == "B"
-			PlayStimulatedHardVarB()
-		else
-			PlayStimulatedHard()
-		endif
-	elseif ASLisBroken() && VoiceVariation == "B" && !ASLcurrentlyIntense
+		PlayStimulatedHard()
+	elseif ASLisBroken() && VoiceVariation == "B" && !ASLcurrentlyIntense ;broken idle chatter is a VarB-only pool
 		PlayBrokenVarB()
 	elseif IsCowgirl() ;cowgirl or femdom
-		if VoiceVariation == "B"
-			PlayCowgirlVarB()
-		else
-			PlayCowgirl()
-		endif
-
+		PlayCowgirl()
 	elseif IsgettingPenetrated() ; Penetration
-		if VoiceVariation == "B"
-			PlayGettingFuckedVarB()
-		else
-			PlayGettingFucked()
-		endif
+		PlayGettingFucked()
 	elseif IsGivingAnalPenetration() || IsGivingVaginalPenetration() ;fucking others with penis
-		if VoiceVariation == "B"
-			PlayFuckingOthersVarB()
-		else
-			PlayFuckingOthers()
-		endif
+		PlayFuckingOthers()
 	elseif IsGettingStimulated() ;Getting Stimulated like fingering but no penetration
-		if VoiceVariation == "B"
-			PlayGettingStimulatedVarB()
-		else
-			PlayGettingStimulated()
-		endif
-
+		PlayGettingStimulated()
 	elseif IsStimulatingOthers() ;Stimulating others with finger handjob footjob titfuck
-		if VoiceVariation == "B"
-			PlayStimulatingOthersVarB()
-		else
-			PlayStimulatingOthers()
-		endif
+		PlayStimulatingOthers()
 	elseif IsEnding()
-		if VoiceVariation == "B"
-			PlayEndingVarB()
-		else
-			PlayEnding()
-		endif
+		PlayEnding()
 	elseif IsLeadIN()
-		if VoiceVariation == "B"
-			PlayLeadInVarB()
-		else
-			PlayLeadIn()
-		endif
+		PlayLeadIn()
 	endif
 
 
@@ -1292,6 +1170,10 @@ Function IVDTUpdate()
 endfunction
 
 Function PlayLeadIn() ;no relevant tags
+	if VoiceVariation == "B"
+		PlayLeadInVarB()
+		return
+	endif
 printdebug("Play Lead In")
 
 if currentstage < 3 && !femaleisvictim() ;greets only on first 2 stages
@@ -1331,6 +1213,10 @@ endif
 endfunction
 
 Function PlayKissing()
+	if VoiceVariation == "B"
+		PlayKissingVarB()
+		return
+	endif
 printdebug("Play Kissing")
 
 if  ShouldMakeRomanticComment()
@@ -1355,13 +1241,6 @@ PlaySound("MaleOrgasmReactionLover", mainFemaleActor, debugtext = "Kissing")
 endfunction
 
 Function PlayCunnilingus()
-printdebug("Play Cunnilingus")
-
-	PlaySound("BlowjobActionSoft", mainFemaleActor, debugtext = "BlowjobActionSoft")
-
-endfunction
-
-Function PlayCunnilingusVarB()
 printdebug("Play Cunnilingus")
 
 	PlaySound("BlowjobActionSoft", mainFemaleActor, debugtext = "BlowjobActionSoft")
@@ -1486,6 +1365,10 @@ EndFunction
 ;linear-scene block in OnUpdate; isLinearScene() is a director stub = false)
 
 Function PlayBlowjob()
+	if VoiceVariation == "B"
+		PlayBlowjobVarB()
+		return
+	endif
 
 
 	if VoiceVariation == "A"
@@ -1544,6 +1427,10 @@ Function PlayBlowjobVarB()
 endfunction
 
 Function PlayStimulatingOthers()
+	if VoiceVariation == "B"
+		PlayStimulatingOthersVarB()
+		return
+	endif
 printdebug("Play Stimulating Others")
 
 	;after close to orgasm handling
@@ -1588,6 +1475,10 @@ EndFunction
 
 
 Function PlayStimulatedHard()
+	if VoiceVariation == "B"
+		PlayStimulatedHardVarB()
+		return
+	endif
 printdebug("Play Stimulated Hard (Huge non Penile insertion)")
 
 
@@ -1621,6 +1512,10 @@ endif
 EndFunction
 
 Function PlayGettingStimulated()
+	if VoiceVariation == "B"
+		PlayGettingStimulatedVarB()
+		return
+	endif
 
 printdebug("Play Getting Stimulated")
 ;------------------INTENSE-------------------
@@ -1674,6 +1569,10 @@ EndFunction
 
 
 Function PlayFuckingOthers()
+	if VoiceVariation == "B"
+		PlayFuckingOthersVarB()
+		return
+	endif
 printdebug("Play Fucking Others")
 
 if CommentedClosetoOrgasm
@@ -1714,34 +1613,13 @@ endif
 
 EndFunction
 
-Function PlayBroken()
-printdebug("Play Broken")
-if CommentedClosetoOrgasm
-	PlaySound("PenetrativeGrunts", mainFemaleActor, debugtext = "PenetrativeGrunts")
-elseif  Utility.RandomFloat(0.0, 1.0) < 0.15	&& !ASLcurrentlyintense
-
-	PlaySound("AfterOrgasmExclamations", mainFemaleActor, soundPriority = 1 , debugtext = "AfterOrgasmExclamations")
-elseif IsFemdom() && Utility.RandomFloat(0.0, 1.0) < ChanceToCommentononAttackingStage/2
-
-	PlaySound("OnTheAttack", mainFemaleActor, debugtext = "OnTheAttack")
-elseif  Utility.RandomFloat(0.0, 1.0) < ChanceToCommentononAttackingStage/4
-
-	PlaySound("Amused", mainFemaleActor, soundPriority = 1 , debugtext = "Amused")
-elseif  Utility.RandomFloat(0.0, 1.0) < ChanceToCommentononAttackingStage/4
-
-	PlaySound("InAwe", mainFemaleActor, debugtext = "InAwe")
-else
-
-	PlaySound("AfterOrgasmArouse", mainFemaleActor, soundPriority = 1 , debugtext = "AfterOrgasmArouse")
-endif
-endfunction
 
 
-Function PlayBrokenVarB(Bool MustComment = false)
+Function PlayBrokenVarB()
 printdebug("Play Broken Var B")
 if CommentedClosetoOrgasm
 	PlayMoanonlyVarB()
-elseif (IsGettingAnallyPenetrated() || IsGettingVaginallyPenetrated()) && (Utility.RandomFloat(0.0, 1.0) < ChanceToCommentonIntenseStage || MustComment)
+elseif (IsGettingAnallyPenetrated() || IsGettingVaginallyPenetrated()) && (Utility.RandomFloat(0.0, 1.0) < ChanceToCommentonIntenseStage)
 	if ASLCurrentlyintense
 		;Penetrated Broken Comments Intense
 		PlaySound("BeforeGape", mainFemaleActor, soundPriority = 1 , debugtext = "Penetrated Broken Comments Intense")
@@ -1755,6 +1633,10 @@ endif
 endfunction
 
 Function PlayCowgirl()
+	if VoiceVariation == "B"
+		PlayCowgirlVarB()
+		return
+	endif
 
 printdebug("Play Cowgirl")
 
@@ -1831,6 +1713,10 @@ EndFunction
 
 
 Function PlayGettingFuckedbyHugePP() ; when on huge pp scenario
+	if VoiceVariation == "B"
+		PlayGettingFuckedbyHugePPVarB()
+		return
+	endif
 printdebug("Play Getting Fucked by Huge PP")
 
 if CommentedClosetoOrgasm
@@ -1901,6 +1787,10 @@ EndFunction
 
 
 Function PlayMoanonly()
+	if VoiceVariation == "B"
+		PlayMoanonlyVarB()
+		return
+	endif
 printdebug("Play Moan only")
 
 if moanonly == 1
@@ -2013,6 +1903,10 @@ endif
 endfunction
 
 Function PlayGettingFucked()
+	if VoiceVariation == "B"
+		PlayGettingFuckedVarB()
+		return
+	endif
 printdebug("Play Getting Fucked")
 
 ;------------------ INTENSE-------------------
@@ -2093,6 +1987,10 @@ endif
 endfunction
 
 Function PlayGettingFuckedDouble()
+	if VoiceVariation == "B"
+		PlayGettingFuckedDoubleVarB()
+		return
+	endif
 printdebug("Play Getting Double Fucked")
 
 if ASLCurrentlyintense
@@ -2156,6 +2054,10 @@ endfunction
 
 
 Function PlayEnding()
+	if VoiceVariation == "B"
+		PlayEndingVarB()
+		return
+	endif
 printdebug("PLay Ending")
 ;SLO VE: dropped - sr_fillherup thick cum leak chance (cum shaders are not part of SLO VE)
 if !isLinearScene()
@@ -2252,6 +2154,10 @@ function PlayBreathyorforeplaysound()
 endfunction
 
 function ASLPlayMaleClosetoOrgasmComments()
+	if VoiceVariation == "B"
+		ASLPlayMaleClosetoOrgasmCommentsVarB()
+		return
+	endif
 		;Teasing Male Close to Orgasm
 		if IsStimulatingOthers() && !IsgettingPenetrated() && !IsGettingStimulated() && (SexLab.getsex(mainMaleActor) == 0 || SexLab.getsex(mainMaleActor) == 2)
 
@@ -2340,6 +2246,10 @@ function ASLPlayMaleClosetoOrgasmCommentsVarB()
 endfunction
 
 Function ASLPlayFemaleOrgasmHype()
+	if VoiceVariation == "B"
+		ASLPlayFemaleOrgasmHypeVarB()
+		return
+	endif
 ;skip commenting orgasm if orgasm in quick succession
 if CurrentThread.GetTimeTotal() - timeOfLastRecordedFemaleOrgasm <= 8
 	EnableOrgasm()
@@ -2399,6 +2309,10 @@ EndFunction
 
 
 function ASLHandlePartnerOrgasmReaction()
+	if VoiceVariation == "B"
+		ASLHandlePartnerOrgasmReactionVarB()
+		return
+	endif
 
 
 	if partnerOrgasmCount > 1 && !femaleisvictim() && !IsSuckingoffOther() && Utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
@@ -2504,6 +2418,10 @@ function ASLHandlePartnerOrgasmReactionVarB()
 endfunction
 
 Function ASLHandleFemaleOrgasmReaction()
+	if VoiceVariation == "B"
+		ASLHandleFemaleOrgasmReactionVarB()
+		return
+	endif
 
 ;chance to react after orgasm
 
@@ -2727,130 +2645,6 @@ endif
 
 endfunction
 
-
-Function ASLPlayStageTransitionVarB()
-
-if currentStage >= 3
-	ShouldInitialize = true
-endif
-
-if IsgettingPenetrated()
-	timesGaped += 1
-endif
-
-	Utility.Wait(Utility.RandomFloat(0.5, 1.0)) ; wait up to 1 second for transition to complete before playing voice
-
-	if isShortenedScene() || moanonly == 1
-		if !PreviousStageHasPenetration() && IsgettingPenetrated()
-			PlaySound("PullOutGape", mainFemaleActor, soundPriority = 2, waitForCompletion = false , debugtext="PullOutGape")
-			if ishugepp
-				;KneeJerk Intense
-				PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk Intense")
-			else
-				;KneeJerk
-				PlaySound("Oh", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk")
-			endif
-			Utility.Wait(Utility.RandomFloat(0.5, 1.0))
-		endif
-		return
-	elseif HasDeviousGag(mainFemaleActor)
-		EnableOrgasm()
-		if EnableDDGagVoice == 1
-			PlayGaggedSound()
-		endif
-	;male fucking somemore  from ending
-	elseif	!IsEnding() && PrevEndingLabel == "ENO" && MainMaleCanControl() && timesGaped > 0
-
-		PlayMoanonlyVarB()
-
-		if !MainFemaleisBurstingAtSeams()
-			ASLRemoveThickCumleak()
-		endif
-
-	;-------------Transition from no penetration to penetration----------------------
-	elseif !PreviousStageHasPenetration() && IsgettingPenetrated()
-		printdebug("Stage Transition - No Penetration to Penetration")
-		PlaySound("PullOutGape", mainFemaleActor, soundPriority = 2, waitForCompletion = false , debugtext="PullOutGape")
-
-		if ishugepp
-			;KneeJerk Intense
-			PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk Intense")
-		else
-			;KneeJerk
-			PlaySound("Oh", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk")
-		endif
-
-		if AllowMaleVoice()
-			PlaySound("StrugglingEarly", mainFemaleActor, soundPriority = 2, debugtext="StrugglingEarly" , voiceActor = PickSpeakingMale())
-		endif
-
-		IF !IsSuckingoffOther() && Utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
-			if ASLisBroken()
-				PlayBrokenVarB(true)
-			elseif IsFemdom() && !ishugepp
-				;Amused
-				PlaySound("Amused", mainFemaleActor, soundPriority = 1 , debugtext="Amused")
-			elseif ishugePP
-				;Insertion Over The Top
-				PlaySound("InsertionAnalExcited", mainFemaleActor, debugtext="Insertion Over The Top")
-
-			elseif femaleisvictim()
-				;Penetrated Comments VIctim
-				PlaySound("RefractoryPeriod", mainFemaleActor, debugtext="Penetrated Comments VIctim")
-			endif
-		else
-			PlayMoanonlyVarB()
-		endif
-
-	;------------maintain Fast Penetration during Transition----------------
-	elseif ASLpreviouslyintense && ASLCurrentlyintense
-		printdebug(" Stage Transition - Maintain Intensity")
-
-		PlayMoanonlyVarB()
-	;------------------Transition from Slow Penetration to Fast Penetration-----------------
-	elseif !ASLpreviouslyintense && PreviousStageHasPenetration() && ASLcurrentlyintense && IsgettingPenetrated()
-
-		if AllowMaleVoice()
-			PlaySound("StrugglingSubtle", mainFemaleActor, soundPriority = 2 , waitForCompletion = false, debugtext="StrugglingSubtle"  , voiceActor = PickSpeakingMale())
-		endif
-
-		if ishugepp || IsGettingDoublePenetrated()
-
-			;KneeJerk Intense
-			PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk Intense")
-		endif
-
-		if !IsSuckingoffOther() && Utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
-
-			if AllowMaleVoice()
-				PlaySound("Aggressive", mainFemaleActor, soundPriority = 2 ,waitForCompletion = false, debugtext = "Aggressive" , voiceActor = PickSpeakingMale())
-				PlayMoanonlyVarB()
-			endif
-
-			if ASLisBroken()
-				PlayBrokenVarB(true)
-			elseif !FemaleIsVictim()
-				;Intense Transition Comments
-				PlaySound("MaleHalfwayIntense", mainFemaleActor, soundPriority = 1 , debugtext="Intense Transition Comments")
-			else
-
-				IF Utility.randomfloat(0.0,1.0) < chancetocommentonintensestage
-					Utility.Wait(Utility.RandomFloat(0.5, 1.5))
-					;Penetrated Comments Victim Intense
-					PlaySound("MissMaleLover", mainFemaleActor, soundPriority = 1 , debugtext = "Penetrated Comments Victim Intense")
-				endif
-			endif
-		endif
-
-;----------------------------if non intense after intense penetrative action--------------
-	elseif	ASLpreviouslyintense && !ASLcurrentlyIntense
-		printdebug(" Stage Transition - Non Intense to Intense")
-		;Panting Heavy
-		PlaySound("MyTurnToCum", mainFemaleActor, soundPriority = 1 , debugtext = "Panting Heavy")
-
-	endif
-
-endfunction
 
 Function ASLMakeGreetingToMalePartner()
 
