@@ -1719,38 +1719,29 @@ Function PlayGettingFuckedbyHugePP() ; when on huge pp scenario
 	endif
 	printdebug("Play Getting Fucked by Huge PP")
 
-	if CommentedClosetoOrgasm
+	if CommentedClosetoOrgasm || IsGettingDoublePenetrated()
 		PlaySound("SensitivePleasure", mainFemaleActor, debugtext = "SensitivePleasure")
-	else
-		if IsGettingDoublePenetrated()
-
-			PlaySound("SensitivePleasure", mainFemaleActor, debugtext = "SensitivePleasure")
-
-		elseif ASLCurrentlyintense
-			if IsGettingAnallyPenetrated() && utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
-				PlaySound("IntenseAnal", mainFemaleActor, debugtext = "IntenseAnal")
-			elseif Utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
-				PlaySound("TeaseAggressivePartner", mainFemaleActor)
-			else
-				PlaySound("SensitivePleasure", mainFemaleActor, debugtext = "SensitivePleasure")
-			endif
+	elseif ASLCurrentlyintense
+		if IsGettingAnallyPenetrated() && utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
+			PlaySound("IntenseAnal", mainFemaleActor, debugtext = "IntenseAnal")
+		elseif Utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
+			PlaySound("TeaseAggressivePartner", mainFemaleActor)
 		else
+			PlaySound("SensitivePleasure", mainFemaleActor, debugtext = "SensitivePleasure")
+		endif
+	else
+		; breath and gape breath and gape. ASL SA FA reserved for large pp creature piston cycle time > 2 seconds
+		if Utility.RandomFloat(0.0, 1.0) < 0.5
+			PlayBreathyorforeplaysound()
+		else
+			PlaySound("PenetrativeGrunts", mainFemaleActor, debugtext = "PenetrativeGrunts")
+		endif
 
-			; breath and gape breath and gape. ASL SA FA reserved for large pp creature piston cycle time > 2 seconds
-			if Utility.RandomFloat(0.0, 1.0) < 0.5
-				PlayBreathyorforeplaysound()
-			else
-				PlaySound("PenetrativeGrunts", mainFemaleActor, debugtext = "PenetrativeGrunts")
-			endif
-
-			if Utility.RandomFloat(0.0, 1.0) < 0.2
-				Utility.Wait(Utility.RandomFloat(1.0, 2.0))
-
-				PlaySound("Oh", mainFemaleActor,soundPriority = 2 , debugtext = "Oh")
-				Utility.Wait(1.0)
-
-				PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "AfterGape")
-			endif
+		if Utility.RandomFloat(0.0, 1.0) < 0.2
+			Utility.Wait(Utility.RandomFloat(1.0, 2.0))
+			PlaySound("Oh", mainFemaleActor, soundPriority = 2 , debugtext = "Oh")
+			Utility.Wait(1.0)
+			PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "AfterGape")
 		endif
 	endif
 
@@ -1761,26 +1752,22 @@ Function PlayGettingFuckedbyHugePPVarB() ; when on huge pp scenario
 
 	if CommentedClosetoOrgasm
 		PlayMoanonlyVarB()
-	else
-		if IsGettingDoublePenetrated()
+	elseif IsGettingDoublePenetrated()
+		;Penetrated Comments Over The Top
+		PlaySound("TeaseAggressivePartner", mainFemaleActor, debugtext = "Penetrated Comments Over The Top")
+	elseif ASLCurrentlyintense && utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
+		if IsGettingAnallyPenetrated() && utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
+			;Penetrated Anal Comments Intense
+			PlaySound("IntenseAnal", mainFemaleActor, debugtext = "Penetrated Anal Comments Intense")
+		else
 			;Penetrated Comments Over The Top
 			PlaySound("TeaseAggressivePartner", mainFemaleActor, debugtext = "Penetrated Comments Over The Top")
-
-		elseif ASLCurrentlyintense && utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
-			if IsGettingAnallyPenetrated() && utility.RandomFloat(0.0, 1.0) < chancetocommentonintensestage
-				;Penetrated Anal Comments Intense
-				PlaySound("IntenseAnal", mainFemaleActor, debugtext = "Penetrated Anal Comments Intense")
-			else
-				;Penetrated Comments Over The Top
-				PlaySound("TeaseAggressivePartner", mainFemaleActor, debugtext = "Penetrated Comments Over The Top")
-			endif
-		elseif !ASLCurrentlyintense && utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
-			;Penetrated Comments VIctim
-			PlaySound("RefractoryPeriod", mainFemaleActor,soundPriority = 2 , debugtext = "Penetrated Comments VIctim")
-
-		else
-			PlayMoanonlyVarB()
 		endif
+	elseif !ASLCurrentlyintense && utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
+		;Penetrated Comments Victim
+		PlaySound("RefractoryPeriod", mainFemaleActor, soundPriority = 2 , debugtext = "Penetrated Comments Victim")
+	else
+		PlayMoanonlyVarB()
 	endif
 
 EndFunction
