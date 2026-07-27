@@ -3004,7 +3004,7 @@ EndFunction
 Bool Function IsUnconcious()
 	if	sexlab.getsex(mainMaleActor) > 2
 		return false
-	elseif (CurrentThread.HasSceneTag("faint") || CurrentThread.HasSceneTag("sleep") || CurrentThread.HasSceneTag("necro") || CurrentThread.HasSceneTag("unconscious"))
+	elseif (CurrentThread.HasSceneTag("faint") || CurrentThread.HasSceneTag("sleep") || CurrentThread.HasSceneTag("sleeping") || CurrentThread.HasSceneTag("necro") || CurrentThread.HasSceneTag("unconscious"))
 		EnableOrgasm()
 		Return true
 	else

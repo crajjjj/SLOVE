@@ -1538,7 +1538,7 @@ endfunction
 Function PlayBlowjobVarB()
 
 		if Utility.RandomFloat(0.0, 1.0) < ChanceToCommentonBlowjobStage && currentstage > 1 && !femaleisvictim() && !ASLIsBroken()
-			if currentthread.HasTag("Forced") || IsgettingPenetrated()
+			if SceneHasTag("Forced") || IsgettingPenetrated()
 				;Blowjob Forced Comments
 				PlaySound("NoticeMaleWantsMore", mainFemaleActor, requiredChemistry = 0 , debugtext = "Blowjob Forced Comments")
 			elseif ASLcurrentlyIntense
@@ -1548,7 +1548,7 @@ Function PlayBlowjobVarB()
 				;Blowjob Comments
 				PlaySound("BlowjobRemarks", mainFemaleActor, requiredChemistry = 0 , debugtext = "Blowjob Comments")
 			endif
-		elseif currentthread.HasTag("Forced") || IsgettingPenetrated()
+		elseif SceneHasTag("Forced") || IsgettingPenetrated()
 			;Blowjob Forced
 			PlaySound("AskForAnal", mainFemaleActor, requiredChemistry = 0 , debugtext = "Blowjob Forced")
 		elseif ASLcurrentlyIntense
@@ -2130,7 +2130,7 @@ if ASLCurrentlyintense
 				PlaySound("PenetrativeCommentsIntense", mainFemaleActor, requiredChemistry = 0 , debugtext = "PenetrativeCommentsIntense")
 			endif
 		else
-			if currentthread.HasTag("Tentacles")
+			if SceneHasTag("Tentacles")
 				PlaySound("NearOrgasmNoises", mainFemaleActor, requiredChemistry = 0 , debugtext = "NearOrgasmNoises")
 			else
 				PlaySound("SensitivePleasure", mainFemaleActor, requiredChemistry = 0 , debugtext = "SensitivePleasure")
@@ -2149,7 +2149,7 @@ else
 		elseIf  Utility.RandomFloat(0.0, 1.0) < ChanceToCommentonNonIntenseStage
 			PlaySound("TeaseAggressivePartner", mainFemaleActor, requiredChemistry = 0 , debugtext = "TeaseAggressivePartner")
 		else
-			if currentthread.HasTag("Tentacles")
+			if SceneHasTag("Tentacles")
 				PlaySound("PenetrativeGrunts", mainFemaleActor, requiredChemistry = 0 , soundPriority = 1 , debugtext = "PenetrativeGrunts")
 			else
 				PlaySound("NearOrgasmNoises", mainFemaleActor, requiredChemistry = 0 , debugtext = "NearOrgasmNoises")
@@ -2211,7 +2211,7 @@ endif
 		else
 			PlaySound("AfterOrgasmExclamations", mainFemaleActor, requiredChemistry = 0 ,debugtext = "AfterOrgasmExclamations")
 		EndIf
-	elseif currentthread.HasTag("femdom") && Utility.RandomFloat(0.0, 1.0) < ChanceToCommentononAttackingStage
+	elseif SceneHasTag("femdom") && Utility.RandomFloat(0.0, 1.0) < ChanceToCommentononAttackingStage
 		PlaySound("Amused", mainFemaleActor, requiredChemistry = 0 ,debugtext = "Amused")
 	else
 		PlaySound("AfterOrgasmExclamations", mainFemaleActor, requiredChemistry = 0 ,debugtext = "AfterOrgasmExclamations")
@@ -3001,10 +3001,25 @@ Int Function CurrentPenetrationLvl()
 
 EndFunction
 
+;Scene-tag check that actually sees the playing animation's tags on classic SexLab.
+;sslThreadModel.HasTag reads the thread's context Tags array, which stock SexLab
+;initializes EMPTY and never fills from the chosen animation - so tags carried by the
+;SLAL pack json (or SLATE edits), like FunnyBizness "Necro", are invisible to it and
+;every gate built on it silently never fires. The active sslBaseAnimation's own tag
+;list is the real scene-tag source; the thread check stays as a bonus for mods that
+;AddTag() context onto their threads.
+Bool Function SceneHasTag(String asTag)
+	if !CurrentThread
+		return false
+	endif
+	sslBaseAnimation anim = CurrentThread.Animation
+	return (anim && anim.HasTag(asTag)) || CurrentThread.HasTag(asTag)
+EndFunction
+
 Bool Function IsUnconcious()
 	if	SexLab.GetGender(mainMaleActor) > 1
 		return false
-	elseif (currentthread.HasTag("faint") || currentthread.HasTag("sleep") || currentthread.HasTag("necro") || currentthread.HasTag("unconscious"))
+	elseif (SceneHasTag("faint") || SceneHasTag("sleep") || SceneHasTag("sleeping") || SceneHasTag("necro") || SceneHasTag("unconscious"))
 		EnableOrgasm()
 		Return true
 	else
@@ -3030,7 +3045,7 @@ EndFunction
 
 Bool Function MainMaleCanControl()
 	;cowgirl femdom and non forced blowjob -> false
-	if (currentthread.HasTag("Cowgirl") || currentthread.HasTag("femdom") || currentthread.HasTag("Amazon") || (IsSuckingoffOther() && !currentthread.HasTag("Forced")))  && ActorsInPlay[0] == mainFemaleActor
+	if (SceneHasTag("Cowgirl") || SceneHasTag("femdom") || SceneHasTag("Amazon") || (IsSuckingoffOther() && !SceneHasTag("Forced")))  && ActorsInPlay[0] == mainFemaleActor
 
 		return false
 	else
@@ -3132,7 +3147,7 @@ Bool Function IsFemdom()
 
 	if	femaleisvictim()
 		return false
-	elseif  currentthread.HasTag("Femdom") ||  (PCPosition == 0 && currentthread.HasTag("Cowgirl") &&  currentthread.HasTag("Forced"))
+	elseif  SceneHasTag("Femdom") ||  (PCPosition == 0 && SceneHasTag("Cowgirl") &&  SceneHasTag("Forced"))
 		return TRUE
 	elseif IsGivingAnalPenetration() || IsGivingOthersIntenseStimulation || IsGivingVaginalPenetration()
 		return TRUE

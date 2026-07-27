@@ -877,7 +877,7 @@ Function HentairimUpdateStageData()
 
 		SFXRefreshSound()
 		UpdateFuckingPartner()
-		StageShouldplayClap = EndingLabel != "ENO" && EndingLabel != "ENI" && (SFXTag == "FC" || SFXTag == "MC" || SFXTag == "SC" || currentthread.HasTag("Doggy") || currentthread.HasTag("DoggyStyle")) && (IsGivingVaginalPenetration() || IsGivingAnalPenetration())
+		StageShouldplayClap = EndingLabel != "ENO" && EndingLabel != "ENI" && (SFXTag == "FC" || SFXTag == "MC" || SFXTag == "SC" || SceneHasTag("Doggy") || SceneHasTag("DoggyStyle")) && (IsGivingVaginalPenetration() || IsGivingAnalPenetration())
 
 		UpdateNow = false
 		DirectorLastLabelTime = MasterScript.GetDirectorLastLabelTime()
@@ -888,6 +888,17 @@ Function HentairimUpdateStageData()
 
 
 endfunction
+
+;See SLOVE_Voice.SceneHasTag: on classic SexLab the thread's Tags array is start-context
+;only (never filled from the chosen animation), so read the active sslBaseAnimation's own
+;tag list - what the SLAL json registers and SLATE edits - with the thread check as bonus.
+Bool Function SceneHasTag(String asTag)
+	if !CurrentThread
+		return false
+	endif
+	sslBaseAnimation anim = CurrentThread.Animation
+	return (anim && anim.HasTag(asTag)) || CurrentThread.HasTag(asTag)
+EndFunction
 
 String Stimulationlabel
 String PenisActionLabel

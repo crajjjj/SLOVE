@@ -1233,11 +1233,16 @@ float Function GetTimeTotal()
 	return CurrentThread.TotalTime
 EndFunction
 
+;On classic SexLab the thread's Tags array is start-context only - stock SexLab never
+;copies the chosen animation's tags onto the thread - so the ANIMATION's own tag list
+;(what the SLAL json registers and SLATE edits) is the real scene-tag source. The
+;thread check stays as a bonus for mods that AddTag() context onto their threads.
 bool Function HasSceneTag(string asTag)
 	if !CurrentThread
 		return false
 	endif
-	return CurrentThread.HasTag(asTag)
+	sslBaseAnimation anim = CurrentThread.Animation
+	return (anim && anim.HasTag(asTag)) || CurrentThread.HasTag(asTag)
 EndFunction
 
 bool Function IsSubmissive(actor char)

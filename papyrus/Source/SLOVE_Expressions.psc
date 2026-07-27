@@ -1367,7 +1367,7 @@ Function HentairimUpdateStageData()
 		currentstage = GetLegacyStageNum(CurrentSceneID, currentStageID)
 		if CurrentSceneID != prevSceneID
 			;new scene - refresh the per-scene tag cache
-			SceneTagFaint = CurrentThread.HasSceneTag("faint") || CurrentThread.HasSceneTag("sleep") || CurrentThread.HasSceneTag("necro")
+			SceneTagFaint = CurrentThread.HasSceneTag("faint") || CurrentThread.HasSceneTag("sleep") || CurrentThread.HasSceneTag("sleeping") || CurrentThread.HasSceneTag("necro") || CurrentThread.HasSceneTag("unconscious")
 			SceneTagDoggy = CurrentThread.HasSceneTag("Doggy") || CurrentThread.HasSceneTag("Doggystyle") || CurrentThread.HasSceneTag("Doggy Style")
 		endif
 		

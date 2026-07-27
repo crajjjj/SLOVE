@@ -1135,6 +1135,17 @@ Bool Function NecroTargetByPosition(Actor a)
 	return CurrentThread.Positions.Find(a) == 0
 EndFunction
 
+;See SLOVE_Voice.SceneHasTag: on classic SexLab the thread's Tags array is start-context
+;only (never filled from the chosen animation), so read the active sslBaseAnimation's own
+;tag list - what the SLAL json registers and SLATE edits - with the thread check as bonus.
+Bool Function SceneHasTag(String asTag)
+	if !CurrentThread
+		return false
+	endif
+	sslBaseAnimation anim = CurrentThread.Animation
+	return (anim && anim.HasTag(asTag)) || CurrentThread.HasTag(asTag)
+EndFunction
+
 
 
 int function  GetFullEnjoyment()
@@ -1367,8 +1378,8 @@ Function HentairimUpdateStageData()
 		currentstage = CurrentThread.Stage
 		if CurrentSceneID != prevSceneID
 			;new scene - refresh the per-scene tag cache
-			SceneTagFaint = currentthread.HasTag("faint") || currentthread.HasTag("sleep") || currentthread.HasTag("necro")
-			SceneTagDoggy = currentthread.HasTag("Doggy") || currentthread.HasTag("Doggystyle") || currentthread.HasTag("Doggy Style")
+			SceneTagFaint = SceneHasTag("faint") || SceneHasTag("sleep") || SceneHasTag("sleeping") || SceneHasTag("necro") || SceneHasTag("unconscious")
+			SceneTagDoggy = SceneHasTag("Doggy") || SceneHasTag("Doggystyle") || SceneHasTag("Doggy Style")
 		endif
 		
 		UpdateLabels(actorref)	
