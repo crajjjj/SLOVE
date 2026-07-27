@@ -2744,7 +2744,18 @@ Bool Function AllowMaleVoice()
 	;moanonly suppresses ALL male spoken lines: the male voice set is speech-only
 	;(no grunt/breath categories - see SLOVE_VoiceCategories.AllMaleCategories), so
 	;there is no "male moan" to fall back to. moanonly = males stay quiet.
-	return  Utility.RandomFloat(0.0, 1.0) <= ChanceForMaleToComment && EnableMaleVoice == 1 && moanonly != 1 && mainMaleIsVoiced ;fallback partners (creatures) have no human voice
+	if EnableMaleVoice != 1 || moanonly == 1
+		return false
+	endif
+
+	;fallback partners (creatures) have no human voice
+	if !mainMaleIsVoiced
+		return false
+	endif
+
+	;chance gate, rolled fresh on every call: this answers "does he comment right
+	;NOW", not "is male voice enabled"
+	return Utility.RandomFloat(0.0, 1.0) <= ChanceForMaleToComment
 
 endfunction
 
