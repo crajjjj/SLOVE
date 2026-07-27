@@ -72,6 +72,8 @@ bool ASLpreviouslyintense = False
 bool commentedcumlocation = false
 bool commentedorgasmremark = false
 Bool ASLCurrentlyintense = false
+Bool ASLTagIntense = false     ;authored-tag/huge intensity baseline; enjoyment overlays it (classic)
+int intenseenjoyment           ;classic: PC enjoyment at/above which the voice goes intense (mirrors SLSO sl_hot_voice_strength; 0 = off)
 
 int CameInsideCount = 0
 Bool ReacttoFemaleOrgasmNext = false
@@ -145,6 +147,7 @@ Function InitializeConfigValues()
 	ChanceToCommentWhenCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenclosetoorgasm",0) as float /100
 	ChanceToCommentWhenMaleCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenmaleclosetoorgasm",0) as float /100
 	FemaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment",0)
+	intenseenjoyment = SLOVE_Config.GetInt("voice.intenseenjoyment", 75)
 	MaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.maleorgasmhypeenjoyment",0)
 	EnableDDGagVoice = SLOVE_Config.GetInt("voice.enableddgagvoice",0)
 	EnableMaleVoice = SLOVE_Config.GetInt("voice.enablemalevoice",0)
@@ -214,10 +217,15 @@ Function PerformInitialization()
 	UpdateLabels(CurrentThread.Animation , currentstage , PCPosition) ;update only for PC
 
 	if stringutil.find(Labelsconcat ,"1F") > -1 || IsGettingInsertedBig()
-		ASLCurrentlyintense = true
+		ASLTagIntense = true
 	else
-		ASLCurrentlyintense = false
+		ASLTagIntense = false
 	endif
+	;classic: SLSO plays its hot moan once enjoyment passes sl_hot_voice_strength (75).
+	;Overlay that onto the authored-tag baseline (ASLTagIntense) so a high-enjoyment PC
+	;reads intense even on a soft-tagged stage; relaxes when enjoyment drops post-orgasm.
+	;(P+ doesn't need this - it overlays measured thrust velocity instead.)
+	ASLCurrentlyintense = ASLTagIntense || (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment)
 
 	if currentstage <= 2
 		ReactedtoFemaleOrgasmThisSession = false
@@ -669,6 +677,9 @@ Event OnUpdate()
 		mainMaleEnjoyment = GetActorEnjoyment(mainMaleActor)
 		printdebug(" PC Enjoyment = " + mainFemaleEnjoyment)
 		printdebug(" main Male Enjoyment = " + mainMaleEnjoyment)
+		;classic: refresh the SLSO enjoyment->intense overlay with the value just read,
+		;so rising enjoyment flips the scene to intense mid-stage (not only at stage change)
+		ASLCurrentlyintense = ASLTagIntense || (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment)
 
 		if !isShortenedScene() && !isLinearScene()
 			ProcessReadytoAdvanceStage()
@@ -1142,10 +1153,12 @@ Function IVDTUpdate()
 		ASLpreviouslyintense = ASLcurrentlyIntense
 
 		if stringutil.find(Labelsconcat ,"1F") > -1 || IsGettingInsertedBig()
-			ASLCurrentlyintense = true
+			ASLTagIntense = true
 		else
-			ASLCurrentlyintense = false
+			ASLTagIntense = false
 		endif
+		;classic: overlay SLSO enjoyment onto the tag baseline (see PerformInitialization)
+		ASLCurrentlyintense = ASLTagIntense || (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment)
 
 		if currentstage <= 2
 			ReactedtoFemaleOrgasmThisSession = false

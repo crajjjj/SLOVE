@@ -59,6 +59,7 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 | `enablevictimscenario` | `1` | Special line set when she is the submissive/victim of the scene. |
 | `femaleorgasmhypeenjoyment` | `75` | Enjoyment threshold above which orgasm hype lines start. |
 | `maleorgasmhypeenjoyment` | `75` | Same, for the male. |
+| `intenseenjoyment` | `75` | **Classic/SLSO build only.** PC enjoyment at/above which voices switch to the intense (hot) set — mirrors SLSO's own `sl_hot_voice_strength`, so high enjoyment sounds intense even on a soft-tagged stage. `0` = off (authored tags only). On **P+** intensity comes from measured thrust, so this is ignored. |
 | ~~`hypebeforeorgasm`~~ | `0` | **Deprecated — ignored.** Held climax back for an extra hype pass, but it disabled the SexLab orgasm with no release path, freezing **SLSO**'s meter at 100%. Now always ignored; leave at `0`. |
 | ~~`voicevariation`~~ | — | **Removed.** Variation A/B is now a per-pack property — set `variation = "B"` on the pack's `[[slot]]` in its AudioUtil config (see `SLOVE_zpack_*.toml`). |
 | `useblowjobsoundforkissing` | `1` | Reuse blowjob action audio for kissing stages. |
