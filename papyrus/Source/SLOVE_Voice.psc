@@ -196,7 +196,6 @@ Function PerformInitialization()
 	if hypebeforeorgasm == 1
 		WritetoErrorlogs("SLOVE", "voice.hypebeforeorgasm is deprecated and ignored - it froze SLSO's orgasm at 100%. Set it to 0 in SLOVE.toml to silence this warning.")
 	endif
-	EnableOrgasm()
 
 	;set volume
 
@@ -656,7 +655,6 @@ Event OnUpdate()
 	printdebug(" Updating")
 
 	if Masterscript.AnimationisEnding()
-		EnableOrgasm()
 		ASLEndScene()
 	endif
 
@@ -732,7 +730,6 @@ Event OnUpdate()
 		;dialect voices it.
 		if HasDeviousGag(mainFemaleActor)
 
-			EnableOrgasm()
 			if EnableDDGagVoice == 1
 				PlayGaggedSound()
 			endif
@@ -1421,7 +1418,6 @@ Function PlayBlowjobVarB()
 	endif
 
 	If femaleCloseToOrgasm() && IsgettingPenetrated() ;When female close to orgasm
-		EnableOrgasm()
 		CommentedClosetoOrgasm = true
 	endif
 endfunction
@@ -1780,9 +1776,6 @@ Function PlayMoanonly()
 	endif
 	printdebug("Play Moan only")
 
-	if moanonly == 1
-		EnableOrgasm()
-	endif
 
 	if ASLCurrentlyintense
 		if IsSuckingoffOther()
@@ -1811,9 +1804,6 @@ endfunction
 
 Function PlayMoanonlyVarB()
 	printdebug("Play Moan only")
-	if moanonly == 1
-		EnableOrgasm()
-	endif
 
 	if ASLCurrentlyintense
 		if IsSuckingoffOther()
@@ -2047,9 +2037,6 @@ Function PlayEnding()
 	endif
 	printdebug("PLay Ending")
 	;SLO VE: dropped - sr_fillherup thick cum leak chance (cum shaders are not part of SLO VE)
-	if !isLinearScene()
-		EnableOrgasm()
-	endif
 
 	if AllowMaleVoice()
 		if MaleIsVictim()
@@ -2090,9 +2077,6 @@ endfunction
 Function PlayEndingVarB()
 	printdebug("PLay Ending Var B")
 	;SLO VE: dropped - sr_fillherup thick cum leak chance (cum shaders are not part of SLO VE)
-	if !isLinearScene()
-		EnableOrgasm()
-	endif
 
 	if AllowMaleVoice()
 		if MaleIsVictim()
@@ -2239,7 +2223,6 @@ Function ASLPlayFemaleOrgasmHype()
 	endif
 	;skip commenting orgasm if orgasm in quick succession
 	if CurrentThread.GetTimeTotal() - timeOfLastRecordedFemaleOrgasm <= 8
-		EnableOrgasm()
 		CommentedClosetoOrgasm = true
 
 		return
@@ -2275,7 +2258,6 @@ Function ASLPlayFemaleOrgasmHype()
 			EndIf
 		endif
 	endif
-	EnableOrgasm()
 	printdebug("Allow Female Orgasm")
 	CommentedClosetoOrgasm = true
 
@@ -2525,7 +2507,6 @@ Function ASLPlayStageTransition()
 		endif
 		return
 	elseif HasDeviousGag(mainFemaleActor)
-		EnableOrgasm()
 		if EnableDDGagVoice == 1
 			PlayGaggedSound()
 		endif
@@ -2773,7 +2754,6 @@ Bool Function IsUnconcious()
 	if	sexlab.getsex(mainMaleActor) > 2
 		return false
 	elseif (CurrentThread.HasSceneTag("faint") || CurrentThread.HasSceneTag("sleep") || CurrentThread.HasSceneTag("sleeping") || CurrentThread.HasSceneTag("necro") || CurrentThread.HasSceneTag("unconscious"))
-		EnableOrgasm()
 		Return true
 	else
 		return false
@@ -3125,11 +3105,6 @@ bool Function isLinearScene()
 	return false ;SLO VE: no linear scenes
 endfunction
 
-Function EnableOrgasm()
-	if !isLinearScene()
-		MasterScript.EnableOrgasm(MainfemaleActor)
-	endif
-EndFunction
 
 
 function WritetoErrorlogs(string Header = "Not Specified" ,String contents = "")

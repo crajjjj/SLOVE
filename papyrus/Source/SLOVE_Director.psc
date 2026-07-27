@@ -801,23 +801,9 @@ bool function IsMale(actor char)
 endfunction
 
 ;---------------------------Stage Control FUNCTIONS (trimmed)------------------------
-
-Function DisableOrgasm(Actor char)
-
-	CurrentThread.DisableOrgasm(char, true)
-
-	if char
-		PrintDebug("DisableOrgasm - Orgasm disabled for: " + char.GetDisplayName())
-	else
-		PrintDebug("DisableOrgasm - Orgasm disabled for NONE actor")
-	endif
-EndFunction
-
-Function EnableOrgasm(Actor char)
-	;SLO VE: no linear scenes, so this always enables
-	PrintDebug("EnableOrgasm - " + char.GetDisplayName() + " orgasm ENABLED.")
-	CurrentThread.DisableOrgasm(char, false)
-EndFunction
+;SLO VE: dropped - Enable/DisableOrgasm wrappers. They existed only for
+;Hentairim's edging system (hold the orgasm during "hype" lines, release it
+;later); SLO VE never disables orgasm, so the enables were re-enabling nothing.
 
 Bool Function AllFemale()
 
