@@ -3,7 +3,7 @@ Scriptname SLOVE_Expressions extends ActiveMagicEffect
  HentairimExpressions; driven by SLOVE_Director labels and JSON face presets.}
 
 SLOVE_Director Property MasterScript Auto
-SexLabFramework Property SexLab Auto 
+SexLabFramework Property SexLab Auto
 sslThreadController CurrentThread = None
 actor Actorref
 actor[] actorlist
@@ -32,7 +32,7 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
 EndEvent
 
 Function PerformInitialization()
-PrintDebug("Perform Initialization")
+	PrintDebug("Perform Initialization")
 
 	CurrentThread = Sexlab.GetActorController(Actorref)
 	if CurrentThread == none
@@ -54,7 +54,7 @@ PrintDebug("Perform Initialization")
 
 	;Base Hentairim Preparation
 	InitializeConfigandForms()
-	HentairimPrepare()	
+	HentairimPrepare()
 	CheckHasMFEE()
 	printdebug("initialized complete")
 	RegisterForSingleUpdate(0.1)
@@ -743,9 +743,9 @@ Float pcnonintenseexpressionupdateinseconds
 Float pcintenseexpressionupdateinseconds
 Float npcnonintenseexpressionupdateinseconds
 Float npcintenseexpressionupdateinseconds
-	  
+
 Function InitializeConfigandForms()
-printdebug("------------------Initialize Hentai Expressions Configs and Forms Start-------------------------")
+	printdebug("------------------Initialize Hentai Expressions Configs and Forms Start-------------------------")
 	playerref = game.getplayer()
 	IsPlayer = actorref == playerref
 	Gender = sexlab.GetGender(ActorRef)
@@ -754,13 +754,13 @@ printdebug("------------------Initialize Hentai Expressions Configs and Forms St
 	if IsPlayer
 		SLSAhegaoActive = StorageUtil.GetIntValue(None, "_SLS_IsAhegaoing", 0) == 1
 	endif
-	
+
 	if IsPlayer
 		ExpressionsFile = "SLOVE/PCExpressions.json"
 	elseif gender == 0	;Male
 		ExpressionsFile = "SLOVE/MaleExpressions.json"
 	elseif gender == 1	;female
-		ExpressionsFile ="SLOVE/FemaleExpressions.json"	
+		ExpressionsFile ="SLOVE/FemaleExpressions.json"
 	endif
 
 	BlowjobOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"blowjobphonemeoverride","") ,","))
@@ -780,7 +780,7 @@ printdebug("------------------Initialize Hentai Expressions Configs and Forms St
 	chancetostickouttongueduringintense = SLOVE_Config.GetInt("expressions.chancetostickouttongueduringintense", 0)
 	chancetostickouttongueduringattacking = SLOVE_Config.GetInt("expressions.chancetostickouttongueduringattacking", 0)
 	enableprintdebug = SLOVE_Config.GetInt("expressions.printdebug", 0)
-	
+
 	enablebreathing = SLOVE_Config.GetInt("expressions.enablebreathing", 1)
 	breathingupdateinseconds = SLOVE_Config.GetFloat("expressions.breathingupdateinseconds", 0.55)
 	tonguemouthopenthreshold = SLOVE_Config.GetFloat("expressions.tonguemouthopenthreshold", 0.4)
@@ -788,7 +788,7 @@ printdebug("------------------Initialize Hentai Expressions Configs and Forms St
 	pcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.pcintenseexpressionupdateinseconds", 3.0)
 	npcnonintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcnonintenseexpressionupdateinseconds", 3.0)
 	npcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcintenseexpressionupdateinseconds", 3.0)
-	
+
 	printdebug("enabletongue : " +enabletongue)
 	printdebug("fhutonguetype : " +fhutonguetype)
 	printdebug("removetongueonblowjob : " +removetongueonblowjob)
@@ -804,16 +804,16 @@ printdebug("------------------Initialize Hentai Expressions Configs and Forms St
 	printdebug("pcintenseexpressionupdateinseconds : "+pcintenseexpressionupdateinseconds)
 	printdebug("npcnonintenseexpressionupdateinseconds : "+npcnonintenseexpressionupdateinseconds)
 	printdebug("npcintenseexpressionupdateinseconds : "+npcintenseexpressionupdateinseconds)
-	
+
 	LoadAhegaoItems()
 	LoadAhegaoStorageKeys()
 	InitializeAddNPCTongue()
-printdebug("------------------Initialize Hentai Expressions Configs and Forms END-------------------------")
+	printdebug("------------------Initialize Hentai Expressions Configs and Forms END-------------------------")
 endfunction
 
 Function ResetHentaiExpressionGroup()
-int type
-	Type = Utility.Randomint(1,3)	
+	int type
+	Type = Utility.Randomint(1,3)
 	if type == 1
 		ExpressionGroup = "a"
 	elseif type == 2
@@ -859,8 +859,8 @@ Function AddTongue()
 	else
 		if Game.GetModByName("sr_fillherup.esp") != 255
 			printdebug("AddTongue: sr_fillherup.esp detected, equipping FHUTongueTypeArmor if available.")
-			armor temptongue 
-			
+			armor temptongue
+
 			if FHUTongueTypeArmor
 				printdebug("AddTongue: Equipping FHUTongueTypeArmor=" + FHUTongueTypeArmor)
 				actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
@@ -876,40 +876,40 @@ EndFunction
 
 Function RemoveTongue()
 
-if HasMFEE && MFEEAddTongue
-	MFEEAddTongue = false
-else
-	if EquippedTongue()
-	
-		actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
-		actorref.removeItem(FHUTongueTypeArmor , abSilent=true)
-	
+	if HasMFEE && MFEEAddTongue
+		MFEEAddTongue = false
+	else
+		if EquippedTongue()
+
+			actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
+			actorref.removeItem(FHUTongueTypeArmor , abSilent=true)
+
+		endif
 	endif
-endif
 endfunction
 
 Function unequipmask(actor char)
-Armor Mask = wearingmask(char)
-if Mask
-	actorref.unEquipItem(Mask, abSilent=true)
-endif
+	Armor Mask = wearingmask(char)
+	if Mask
+		actorref.unEquipItem(Mask, abSilent=true)
+	endif
 
 endfunction
 
 Armor Function WearingMask(actor char)
-if Maskslots.length == 0
-	return none
-endif
+	if Maskslots.length == 0
+		return none
+	endif
 
-int slotlength = Maskslots.length
-int slotindex = 0
-int masklength = Masks.length
-int maskindex = 0
-int excludelength = exclude.length
-int excludeindex = 0
-Armor Mask
-Armor WearingMask = none
-string Maskname
+	int slotlength = Maskslots.length
+	int slotindex = 0
+	int masklength = Masks.length
+	int maskindex = 0
+	int excludelength = exclude.length
+	int excludeindex = 0
+	Armor Mask
+	Armor WearingMask = none
+	string Maskname
 
 	while slotindex < slotlength
 		Mask = char.GetWornForm(Armor.GetMaskForSlot(Maskslots[slotindex] as int)) as armor
@@ -920,7 +920,7 @@ string Maskname
 		endif
 		excludeindex = 0
 		maskindex = 0
-		
+
 		;check to see if its excluded opened Mask
 		while excludeindex < excludelength
 			if stringutil.find(Maskname ,Masks[excludeindex]) > -1
@@ -929,7 +929,7 @@ string Maskname
 			endif
 			excludeindex += 1
 		endwhile
-		
+
 		;check to see if its wearing mask
 		while maskindex < masklength
 			if stringutil.find(Maskname ,Masks[maskindex]) > -1
@@ -940,10 +940,10 @@ string Maskname
 			maskindex += 1
 		endwhile
 
-	slotindex += 1
+		slotindex += 1
 	endwhile
 	printdebug("Wearing Mask :" + WearingMask)
-return WearingMask 
+	return WearingMask
 endfunction
 
 Bool Function HasDeviousGag(Actor char)
@@ -1158,64 +1158,64 @@ bool IsOrgasming
 
 String Function GetHentaiExpression()
 
-string 	HentaiScenario = StorageUtil.GetStringValue(None, "HentaiScenario", "")
-if !isplayer || (isplayer && HentaiScenario == "")
-	bool giving = IsGivingAnalPenetration() || IsGivingVaginalPenetration() || IsGettingSuckedoff()
-	int enj = 0
-	if gender == 0
-		enj = GetFullEnjoyment() ;one thread call, reused by both branches below
-	endif
-	if IsOrgasming
-		HentaiScenario = "orgasm"
-	elseif giving && !Isintense()
-		HentaiScenario = "grunt"
-	elseif giving && Isintense()
-		HentaiScenario = "intensegrunt"
-	elseif enj > 70 && !Isintense() && gender == 0
-		HentaiScenario = "closetoorgasm"
-	elseif enj > 70 && Isintense() && gender == 0
-		HentaiScenario = "closetoorgasmintense"
-	elseif (IsCowgirl() || IsGivingAnalPenetration() || IsGivingVaginalPenetration() ) && !IsVictim
-		HentaiScenario = "attacking"
-	elseif IsGettingStimulated()
-		if Isintense()
+	string 	HentaiScenario = StorageUtil.GetStringValue(None, "HentaiScenario", "")
+	if !isplayer || (isplayer && HentaiScenario == "")
+		bool giving = IsGivingAnalPenetration() || IsGivingVaginalPenetration() || IsGettingSuckedoff()
+		int enj = 0
+		if gender == 0
+			enj = GetFullEnjoyment() ;one thread call, reused by both branches below
+		endif
+		if IsOrgasming
+			HentaiScenario = "orgasm"
+		elseif giving && !Isintense()
 			HentaiScenario = "grunt"
-		else
-			HentaiScenario = "Leadin"
-		endif
-	elseif IsEnding()
-		if IsVictim
-			HentaiScenario = "unamusedending"
-		else
-			HentaiScenario = "Panting"
-		endif
-	else
-		if Isintense()
+		elseif giving && Isintense()
 			HentaiScenario = "intensegrunt"
+		elseif enj > 70 && !Isintense() && gender == 0
+			HentaiScenario = "closetoorgasm"
+		elseif enj > 70 && Isintense() && gender == 0
+			HentaiScenario = "closetoorgasmintense"
+		elseif (IsCowgirl() || IsGivingAnalPenetration() || IsGivingVaginalPenetration() ) && !IsVictim
+			HentaiScenario = "attacking"
+		elseif IsGettingStimulated()
+			if Isintense()
+				HentaiScenario = "grunt"
+			else
+				HentaiScenario = "Leadin"
+			endif
+		elseif IsEnding()
+			if IsVictim
+				HentaiScenario = "unamusedending"
+			else
+				HentaiScenario = "Panting"
+			endif
 		else
-			HentaiScenario = "grunt"
-		endif
-	Endif
-endif
+			if Isintense()
+				HentaiScenario = "intensegrunt"
+			else
+				HentaiScenario = "grunt"
+			endif
+		Endif
+	endif
 
-return HentaiScenario
+	return HentaiScenario
 
 EndFunction
 
 function resetexpressions()
 
-;SLS owns the player's face during its ahegao and wants it to persist past the
-;scene end - don't wipe it. SLS clears its own face when its ahegao finishes.
-if SLSAhegaoActive
-	return
-endif
+	;SLS owns the player's face during its ahegao and wants it to persist past the
+	;scene end - don't wipe it. SLS clears its own face when its ahegao finishes.
+	if SLSAhegaoActive
+		return
+	endif
 
-;0.1 = near-instant: the default 0.75 makes the reset itself a slow smooth
-;transition that a concurrently-interpolating apply can win against
-MfgConsoleFuncExt.resetmfg(actorref, 0.1)
-if hasmfee || HasMFEEVanillaRace
-	MuFacialExpressionExtended.RevertExpression(actorref)
-endif
+	;0.1 = near-instant: the default 0.75 makes the reset itself a slow smooth
+	;transition that a concurrently-interpolating apply can win against
+	MfgConsoleFuncExt.resetmfg(actorref, 0.1)
+	if hasmfee || HasMFEEVanillaRace
+		MuFacialExpressionExtended.RevertExpression(actorref)
+	endif
 
 endfunction
 
@@ -1236,13 +1236,13 @@ Function CheckHasMFEE()
 	;check if has MFEE
 	if MuFacialExpressionExtended.GetVersion() > 0   &&  (actorref.GetRace().getname() =="Erin" || actorref.GetRace().getname() =="Elin" )
 		HasMFEE = true
-		EnabledMFEETongue = JsonUtil.GetIntValue(EnableErinMFEE,"enablemfeetongue",0)  
+		EnabledMFEETongue = JsonUtil.GetIntValue(EnableErinMFEE,"enablemfeetongue",0)
 		EnabledMFEEAhegao = JsonUtil.GetIntValue(EnableErinMFEE,"enablemfeeahegao",0)
 		ahegaophonemebigaah = JsonUtil.GetIntValue(EnableErinMFEE,"ahegaophonemebigaah",0)
 		tonguephonemebigaah = JsonUtil.GetIntValue(EnableErinMFEE,"tonguephonemebigaah",0)
-		tonguephonemeoh	 = JsonUtil.GetIntValue(EnableErinMFEE,"tonguephonemeoh",0)	
+		tonguephonemeoh	 = JsonUtil.GetIntValue(EnableErinMFEE,"tonguephonemeoh",0)
 		ahegaolookupmodifier = JsonUtil.GetIntValue(EnableErinMFEE,"ahegaolookupmodifier",0)
-    elseif MuFacialExpressionExtended.GetVersion() > 0
+	elseif MuFacialExpressionExtended.GetVersion() > 0
 		HasMFEEVanillaRace = true
 	endif
 endfunction
@@ -1250,45 +1250,45 @@ endfunction
 
 Float function GetSecondsSinceLastOrgasm()
 
-return currentthread.TotalTime - LastOrgasmtime 
+	return currentthread.TotalTime - LastOrgasmtime
 
 endfunction
 
 float function GetExpressionUpdateSeconds()
-if IsPlayer
-	if Isintense()
-		return pcintenseexpressionupdateinseconds
+	if IsPlayer
+		if Isintense()
+			return pcintenseexpressionupdateinseconds
+		else
+			return pcnonintenseexpressionupdateinseconds
+		endif
 	else
-		return pcnonintenseexpressionupdateinseconds
+		if Isintense()
+			return npcintenseexpressionupdateinseconds
+		else
+			return npcnonintenseexpressionupdateinseconds
+		endif
 	endif
-else
-	if Isintense()
-		return npcintenseexpressionupdateinseconds
-	else
-		return npcnonintenseexpressionupdateinseconds
-	endif	
-endif
 
 EndFunction
 
 Bool function isDependencyReady(String modname)
-  int index = Game.GetModByName(modname)
-  if index == 255 || index == -1
-    return false
-  else
-    return true
-  endif
+	int index = Game.GetModByName(modname)
+	if index == 255 || index == -1
+		return false
+	else
+		return true
+	endif
 endfunction
 
 string NPCTongueFile  = "SLOVE/NPCTongue.json"
 int enablenpctongue = 0
 
 Function InitializeAddNPCTongue()
-printdebug("enablenpctongue : " + enablenpctongue)
-enablenpctongue = JsonUtil.GetIntValue(NPCTongueFile, "enablenpctongue", 0)
+	printdebug("enablenpctongue : " + enablenpctongue)
+	enablenpctongue = JsonUtil.GetIntValue(NPCTongueFile, "enablenpctongue", 0)
 
-FHUTongueTypeArmor =  GetTongueType()
-endfunction 
+	FHUTongueTypeArmor =  GetTongueType()
+endfunction
 
 armor FHUTongueTypeArmor
 
@@ -1296,7 +1296,7 @@ Armor function GetTongueType()
 
 	if FHUTongueType == 0
 		FHUTongueType = Utility.RandomInt(1, 10)
-	endif	
+	endif
 	string name = actorref.getdisplayname()
 	int TongueType
 	armor Tongue
@@ -1305,31 +1305,31 @@ Armor function GetTongueType()
 	elseif enablenpctongue == 1
 		TongueType = JsonUtil.GetIntValue(NPCTongueFile, name, 99)
 	endif
-	
-	if TongueType == 1
-	Tongue = Game.GetFormFromFile(0x263B2, "sr_fillherup.esp") as Armor
-elseif  TongueType == 2
-	Tongue = Game.GetFormFromFile(0x263B3, "sr_fillherup.esp") as Armor
-elseif  TongueType == 3
-	Tongue = Game.GetFormFromFile(0x263B4, "sr_fillherup.esp") as Armor
-elseif  TongueType == 4
-	Tongue = Game.GetFormFromFile(0x263B5, "sr_fillherup.esp") as Armor
-elseif  TongueType == 5
-	Tongue = Game.GetFormFromFile(0x263B6, "sr_fillherup.esp") as Armor	
-elseif  TongueType == 6
-	Tongue = Game.GetFormFromFile(0x263B7, "sr_fillherup.esp") as Armor	
-elseif  TongueType == 7
-	Tongue = Game.GetFormFromFile(0x263B8, "sr_fillherup.esp") as Armor	
-elseif  TongueType == 8
-	Tongue = Game.GetFormFromFile(0x263B9, "sr_fillherup.esp") as Armor	
-elseif  TongueType == 9
-	Tongue = Game.GetFormFromFile(0x263BA, "sr_fillherup.esp") as Armor	
-elseif  TongueType == 10
-	Tongue = Game.GetFormFromFile(0x263BB, "sr_fillherup.esp") as Armor	
-endif
 
-FHUTongueTypeArmor = Tongue
-return Tongue
+	if TongueType == 1
+		Tongue = Game.GetFormFromFile(0x263B2, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 2
+		Tongue = Game.GetFormFromFile(0x263B3, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 3
+		Tongue = Game.GetFormFromFile(0x263B4, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 4
+		Tongue = Game.GetFormFromFile(0x263B5, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 5
+		Tongue = Game.GetFormFromFile(0x263B6, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 6
+		Tongue = Game.GetFormFromFile(0x263B7, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 7
+		Tongue = Game.GetFormFromFile(0x263B8, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 8
+		Tongue = Game.GetFormFromFile(0x263B9, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 9
+		Tongue = Game.GetFormFromFile(0x263BA, "sr_fillherup.esp") as Armor
+	elseif  TongueType == 10
+		Tongue = Game.GetFormFromFile(0x263BB, "sr_fillherup.esp") as Armor
+	endif
+
+	FHUTongueTypeArmor = Tongue
+	return Tongue
 endfunction
 
 
@@ -1356,7 +1356,7 @@ Function HentairimPrepare()
 	IsHugePP = IsHugePP()
 	HentairimUpdateStageData()
 	IsVictim = IsVictim(Actorref)
-	
+
 	printdebug("ThreadID : " + ThreadID)
 	printdebug("Partner IsHugePP : " + IsHugePP)
 
@@ -1381,21 +1381,21 @@ Function HentairimUpdateStageData()
 			SceneTagFaint = SceneHasTag("faint") || SceneHasTag("sleep") || SceneHasTag("sleeping") || SceneHasTag("necro") || SceneHasTag("unconscious")
 			SceneTagDoggy = SceneHasTag("Doggy") || SceneHasTag("Doggystyle") || SceneHasTag("Doggy Style")
 		endif
-		
-		UpdateLabels(actorref)	
+
+		UpdateLabels(actorref)
 
 		printdebug("PC Thread Position : " + currentthread.Positions.Find(Actorref))
 		printdebug("current Animation : " + CurrentSceneID)
 		printdebug("current StageID : " + currentStageID)
 		printdebug("current stage number: " + currentstage)
-		
+
 
 		int rand = Utility.RandomInt(1,100)
 		float chancemultiplier = 1
 		if IsBroken()
 			chancemultiplier = chancemultiplier * 2
 		EndIf
-		
+
 		if EquippedTongue()
 			if Utility.RandomInt(1,2) == 1
 				RemoveTongue()
@@ -1409,7 +1409,7 @@ Function HentairimUpdateStageData()
 				endif
 			EndIf
 		endif
-		
+
 		;remove mask if giving BJ
 		if IsSuckingoffOther()
 			unequipmask(actorref)
@@ -1429,18 +1429,18 @@ string Labelsconcat
 ;sexLabThreadController.ActorAlias(actorInQuestion).GetFullEnjoyment()
 
 Function UpdateLabels(actor char)
- 	printdebug("--------------------Hentairim Updating Labels START-----------------")
-	
- Stimulationlabel = MasterScript.GetStimulationlabel(char)
- PenisActionLabel  = MasterScript.GetPenisActionLabel(char)
- OralLabel  = MasterScript.GetOralLabel(char)
- EndingLabel  = MasterScript.GetEndingLabel(char)
- PenetrationLabel = MasterScript.GetPenetrationLabel(char)
- 
- Labelsconcat = "1" +Stimulationlabel + "1" + PenisActionLabel + "1" + OralLabel + "1" + PenetrationLabel + "1" + EndingLabel
- PrintDebug("Stimulationlabel :" + Stimulationlabel + ", PenisActionLabel :" +  PenisActionLabel  + ", OralLabel :" +  OralLabel  + ", PenetrationLabel :" +  PenetrationLabel  + ", EndingLabel :" +  EndingLabel)
+	printdebug("--------------------Hentairim Updating Labels START-----------------")
 
-printdebug("--------------------Hentairim Updating Labels END-----------------")
+	Stimulationlabel = MasterScript.GetStimulationlabel(char)
+	PenisActionLabel  = MasterScript.GetPenisActionLabel(char)
+	OralLabel  = MasterScript.GetOralLabel(char)
+	EndingLabel  = MasterScript.GetEndingLabel(char)
+	PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+
+	Labelsconcat = "1" +Stimulationlabel + "1" + PenisActionLabel + "1" + OralLabel + "1" + PenetrationLabel + "1" + EndingLabel
+	PrintDebug("Stimulationlabel :" + Stimulationlabel + ", PenisActionLabel :" +  PenisActionLabel  + ", OralLabel :" +  OralLabel  + ", PenetrationLabel :" +  PenetrationLabel  + ", EndingLabel :" +  EndingLabel)
+
+	printdebug("--------------------Hentairim Updating Labels END-----------------")
 endfunction
 ;-----------------------BASE HENTAIRIM Update Functions END-----------------------------
 
@@ -1456,7 +1456,7 @@ Bool Function IsGettingStimulated()
 endfunction
 
 Bool Function IsSuckingoffOther()
-	return OralLabel == "SBJ" ||  OralLabel == "FBJ" 
+	return OralLabel == "SBJ" ||  OralLabel == "FBJ"
 endfunction
 
 
@@ -1509,11 +1509,11 @@ endfunction
 
 
 Bool Function IsGettingSuckedoff()
-	return PenisActionLabel == "SMF" ||  PenisActionLabel == "FMF"	 
+	return PenisActionLabel == "SMF" ||  PenisActionLabel == "FMF"
 endfunction
 
 Bool Function IsCowgirl()
-	return PenetrationLabel == "SCG" ||  PenetrationLabel == "FCG" ||  PenetrationLabel == "SAC" ||  PenetrationLabel == "FAC"			
+	return PenetrationLabel == "SCG" ||  PenetrationLabel == "FCG" ||  PenetrationLabel == "SAC" ||  PenetrationLabel == "FAC"
 endfunction
 
 Bool Function IsEnding()
@@ -1539,7 +1539,7 @@ EndFunction
 
 
 Bool Function IsVictim(actor char)
-  return currentthread.IsVictim(char)
+	return currentthread.IsVictim(char)
 endFunction
 
 Bool Function IsBroken()
@@ -1550,7 +1550,7 @@ endfunction
 
 
 form function get_form(int id, string filename)
-	if Game.GetModbyName(filename) == 255 
+	if Game.GetModbyName(filename) == 255
 		return None
 	endif
 	return Game.GetFormFromFile(id, filename)
@@ -1558,21 +1558,21 @@ endfunction
 
 
 Function PrintDebug(string Contents = "")
-if enableprintdebug == 1
-	miscutil.printconsole(actorref.getdisplayname() + " HentaiRim Expressions " + Contents)
-endif
-endfunction 
+	if enableprintdebug == 1
+		miscutil.printconsole(actorref.getdisplayname() + " HentaiRim Expressions " + Contents)
+	endif
+endfunction
 
 
 Int Function FindInt(Int[] arr, Int target)
-    Int i = 0
-    While i < arr.Length
-        If arr[i] == target
-            Return i ; Found, return index
-        EndIf
-        i += 1
-    EndWhile
-    Return -1 ; Not found
+	Int i = 0
+	While i < arr.Length
+		If arr[i] == target
+			Return i ; Found, return index
+		EndIf
+		i += 1
+	EndWhile
+	Return -1 ; Not found
 EndFunction
 ;-----------------------Hentairim Common Utilities END--------------------------------------
 function WritetoErrorlogs(string Header = "Not Specified" ,String contents = "")

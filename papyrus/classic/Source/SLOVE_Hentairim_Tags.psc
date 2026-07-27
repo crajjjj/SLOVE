@@ -15,8 +15,8 @@ Scriptname SLOVE_Hentairim_Tags Hidden
 
 string Function GetLabel(sslBaseAnimation anim , int stage , String actorpos = "0" ) Global
 
-string ActorPosition = ""
-	
+	string ActorPosition = ""
+
 	if ActorPos == 0
 		ActorPosition = "A"
 	elseif ActorPos == 1
@@ -36,25 +36,25 @@ string ActorPosition = ""
 		return "FA"
 	elseif HasASLTag(anim, stage+"SA") || HasASLTag(anim, stage+ActorPosition+"SAP")
 		return "SA"
-	elseif HasASLTag(anim, stage+"BA") 
+	elseif HasASLTag(anim, stage+"BA")
 		return "BA"
 	elseif HasASLTag(anim, stage+"BV")
 		return "BV"
 	elseif HasASLTag(anim, stage+"FV") || HasASLTag(anim, stage+ActorPosition+"FVP")
-		return "FV"	
+		return "FV"
 	elseif HasASLTag(anim, stage+"SV") || HasASLTag(anim, stage+ActorPosition+"SVP")
-		return "SV"	
+		return "SV"
 	elseif HasASLTag(anim, stage+"DP") || HasASLTag(anim, stage+ActorPosition+"SDP") || HasASLTag(anim, stage+ActorPosition+"FDP")
 		return "DP"
 	elseif HasASLTag(anim, stage+"FB") || HasASLTag(anim, stage+ActorPosition+"FBJ")
 		return "FB"
 	elseif HasASLTag(anim, stage+"SB") || HasASLTag(anim, stage+ActorPosition+"SBJ")
-		return "SB"	
+		return "SB"
 	elseif HasASLTag(anim, stage+"EN") || HasASLTag(anim, stage+ActorPosition+"ENO") || HasASLTag(anim, stage+ActorPosition+"ENI")
 		return "EN"
 	elseif HasASLTag(anim, stage+"TP") || ((HasASLTag(anim, stage+ActorPosition+"SDP") || HasASLTag(anim, stage+ActorPosition+"FDP")) && (HasASLTag(anim, stage+ActorPosition+"SBJ") || HasASLTag(anim, stage+ActorPosition+"FBJ")))
 		return "TP"
-	elseif HasASLTag(anim, stage+"SR") || (HasASLTag(anim, stage+ActorPosition+"SVP") && HasASLTag(anim, stage+ActorPosition+"SBJ")) || (HasASLTag(anim, stage+ActorPosition+"FVP") && HasASLTag(anim, stage+ActorPosition+"FBJ")) || (HasASLTag(anim, stage+ActorPosition+"FAP") && HasASLTag(anim, stage+ActorPosition+"FBJ"))  || (HasASLTag(anim, stage+ActorPosition+"SAP") && HasASLTag(anim, stage+ActorPosition+"SBJ"))   
+	elseif HasASLTag(anim, stage+"SR") || (HasASLTag(anim, stage+ActorPosition+"SVP") && HasASLTag(anim, stage+ActorPosition+"SBJ")) || (HasASLTag(anim, stage+ActorPosition+"FVP") && HasASLTag(anim, stage+ActorPosition+"FBJ")) || (HasASLTag(anim, stage+ActorPosition+"FAP") && HasASLTag(anim, stage+ActorPosition+"FBJ"))  || (HasASLTag(anim, stage+ActorPosition+"SAP") && HasASLTag(anim, stage+ActorPosition+"SBJ"))
 		return "SR"
 	else
 		return "LI" ;default lead in if no stimulating actions
@@ -65,8 +65,8 @@ endfunction
 
 string Function StimulationLabel(sslBaseAnimation anim , int stage , Int ActorPos) Global
 
-		string ActorPosition = ""
-	
+	string ActorPosition = ""
+
 	if ActorPos == 0
 		ActorPosition = "A"
 	elseif ActorPos == 1
@@ -78,13 +78,13 @@ string Function StimulationLabel(sslBaseAnimation anim , int stage , Int ActorPo
 	elseif ActorPos == 4
 		ActorPosition = "E"
 	endif
-	
+
 	if HasASLTag(anim, stage+ActorPosition + "SST")
-		return "SST"	
+		return "SST"
 	elseif HasASLTag(anim, stage+ActorPosition + "FST")
-		returN "FST"	
+		returN "FST"
 	elseif HasASLTag(anim, stage+ActorPosition + "BST")
-		return "BST"	
+		return "BST"
 	endif
 	;no per-position tag; the ASL scheme has no stimulation code, so lead-in
 	return "LDI"
@@ -94,7 +94,7 @@ endfunction
 string Function PenetrationLabel(sslBaseAnimation anim , int stage , Int ActorPos) Global
 
 	string ActorPosition = ""
-	
+
 	if ActorPos == 0
 		ActorPosition = "A"
 	elseif ActorPos == 1
@@ -106,7 +106,7 @@ string Function PenetrationLabel(sslBaseAnimation anim , int stage , Int ActorPo
 	elseif ActorPos == 4
 		ActorPosition = "E"
 	endif
-	
+
 	if HasASLTag(anim, stage+ ActorPosition + "SVP")
 		return "SVP"
 	elseif HasASLTag(anim, stage+ActorPosition + "SAP")
@@ -132,9 +132,9 @@ string Function PenetrationLabel(sslBaseAnimation anim , int stage , Int ActorPo
 endfunction
 
 string Function PenisActionLabel(sslBaseAnimation anim , int stage , Int ActorPos) Global
-	
+
 	string ActorPosition = ""
-	
+
 	if ActorPos == 0
 		ActorPosition = "A"
 	elseif ActorPos == 1
@@ -146,11 +146,11 @@ string Function PenisActionLabel(sslBaseAnimation anim , int stage , Int ActorPo
 	elseif ActorPos == 4
 		ActorPosition = "E"
 	endif
-	
+
 	if HasASLTag(anim, stage+ActorPosition + "SDV")
 		return "SDV"
 	elseif HasASLTag(anim, stage+ActorPosition + "FDV")
-		return "FDV"	
+		return "FDV"
 	elseif HasASLTag(anim, stage+ActorPosition + "SDA")
 		retuRN "SDA"
 	elseif HasASLTag(anim, stage+ActorPosition + "FDA")
@@ -177,9 +177,9 @@ endfunction
 
 
 String Function OralLabel(sslBaseAnimation anim , int stage , Int ActorPos) Global
-	
+
 	string ActorPosition = ""
-	
+
 	if ActorPos == 0
 		ActorPosition = "A"
 	elseif ActorPos == 1
@@ -191,7 +191,7 @@ String Function OralLabel(sslBaseAnimation anim , int stage , Int ActorPos) Glob
 	elseif ActorPos == 4
 		ActorPosition = "E"
 	endif
-	
+
 	if HasASLTag(anim, stage+ ActorPosition + "KIS")
 		return "KIS"
 	elseif HasASLTag(anim, stage+ ActorPosition + "CUN")
@@ -207,9 +207,9 @@ endfunction
 
 String Function EndingLabel(sslBaseAnimation anim , int stage , Int ActorPos) Global
 	;Labels that identify actions on partners
-	
+
 	string ActorPosition = ""
-	
+
 	if ActorPos == 0
 		ActorPosition = "A"
 	elseif ActorPos == 1
@@ -221,7 +221,7 @@ String Function EndingLabel(sslBaseAnimation anim , int stage , Int ActorPos) Gl
 	elseif ActorPos == 4
 		ActorPosition = "E"
 	endif
-	
+
 	if HasASLTag(anim, stage+ ActorPosition + "ENO")
 		return "ENO"
 	elseif HasASLTag(anim, stage+ ActorPosition + "ENI")
@@ -265,16 +265,16 @@ EndFunction
 
 
 string[] Function GetHentairimLabels(string anim) Global
-string Path = "HentairimTags/HentairimTags.json"
-return papyrusutil.stringsplit(JsonUtil.GetStringValue(Path,anim,""),",")
+	string Path = "HentairimTags/HentairimTags.json"
+	return papyrusutil.stringsplit(JsonUtil.GetStringValue(Path,anim,""),",")
 
 endfunction
 
 
 
 Function AddHentairimLabels(string anim , string Label) Global
-string Path = "HentairimTags/HentairimTags.json"
-String CurrentLabelstring = JsonUtil.GetStringValue(Path,anim,"")
+	string Path = "HentairimTags/HentairimTags.json"
+	String CurrentLabelstring = JsonUtil.GetStringValue(Path,anim,"")
 	if stringutil.Find(CurrentLabelstring , Label) <= -1
 		jsonutil.SetStringValue(Path,anim,CurrentLabelstring+","+Label)
 	endif

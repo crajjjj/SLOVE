@@ -23,10 +23,10 @@ String Function MaleOnlyRemap(String femaleCategory) Global
 		return "Aggressive"
 	elseif femaleCategory == "PenetrativeCommentsSoft"
 		return "TeaseAggressivePartner"
-	;NearOrgasmNoises is a non-verbal MOAN - deliberately NOT remapped to a spoken
-	;male line. Left unremapped it resolves against the male slot and falls through
-	;its `fallback = "M0"` to the SexLab vMaleMoan stock, so a male PC moans instead
-	;of repeating "Struggling Subtle" (see AudioUtil SLOVE_voices.toml [male_only_remap]).
+		;NearOrgasmNoises is a non-verbal MOAN - deliberately NOT remapped to a spoken
+		;male line. Left unremapped it resolves against the male slot and falls through
+		;its `fallback = "M0"` to the SexLab vMaleMoan stock, so a male PC moans instead
+		;of repeating "Struggling Subtle" (see AudioUtil SLOVE_voices.toml [male_only_remap]).
 	elseif femaleCategory == "NearOrgasmExclamations"
 		return "StrugglingOvert"
 	elseif femaleCategory == "CumTogetherTease"

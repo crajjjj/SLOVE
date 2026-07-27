@@ -251,181 +251,181 @@ float gapeanalhuge
 
 Bool SearchingFoundVelocity
 Function InitializeConfigandForms()
-volume = SLOVE_Config.GetInt("sfx.volume", 100) as float / 100
-usevelocity = SLOVE_Config.GetInt("sfx.usevelocity", 0)
-useadaptivevelocity = SLOVE_Config.GetInt("sfx.useadaptivevelocity", 0)
-usecontactsfx = SLOVE_Config.GetInt("sfx.usecontactsfx", 1)
-usecontactvictimreactions = SLOVE_Config.GetInt("sfx.usecontactvictimreactions", 1)
-victiminsertiontrauma = SLOVE_Config.GetInt("resistance.victiminsertiontrauma", 5)
-timestosearch = SLOVE_Config.GetInt("sfx.timestosearch", 0)
-velocitypoll = SLOVE_Config.GetFloat("sfx.velocitypoll", 0.1)
-normalpoll = SLOVE_Config.GetFloat("sfx.normalpoll", 0.5)
-updateRate = velocitypoll
-enableprintdebug = SLOVE_Config.GetInt("sfx.printdebug", 0)
-gapevaginalaverage = SLOVE_Config.GetFloat("sfx.gapevaginalaverage", 2.0)
-gapevaginalhuge = SLOVE_Config.GetFloat("sfx.gapevaginalhuge", 2.7)
-gapeanalaverage = SLOVE_Config.GetFloat("sfx.gapeanalaverage", 2.8)
-gapeanalhuge = SLOVE_Config.GetFloat("sfx.gapeanalhuge", 4.0)
+	volume = SLOVE_Config.GetInt("sfx.volume", 100) as float / 100
+	usevelocity = SLOVE_Config.GetInt("sfx.usevelocity", 0)
+	useadaptivevelocity = SLOVE_Config.GetInt("sfx.useadaptivevelocity", 0)
+	usecontactsfx = SLOVE_Config.GetInt("sfx.usecontactsfx", 1)
+	usecontactvictimreactions = SLOVE_Config.GetInt("sfx.usecontactvictimreactions", 1)
+	victiminsertiontrauma = SLOVE_Config.GetInt("resistance.victiminsertiontrauma", 5)
+	timestosearch = SLOVE_Config.GetInt("sfx.timestosearch", 0)
+	velocitypoll = SLOVE_Config.GetFloat("sfx.velocitypoll", 0.1)
+	normalpoll = SLOVE_Config.GetFloat("sfx.normalpoll", 0.5)
+	updateRate = velocitypoll
+	enableprintdebug = SLOVE_Config.GetInt("sfx.printdebug", 0)
+	gapevaginalaverage = SLOVE_Config.GetFloat("sfx.gapevaginalaverage", 2.0)
+	gapevaginalhuge = SLOVE_Config.GetFloat("sfx.gapevaginalhuge", 2.7)
+	gapeanalaverage = SLOVE_Config.GetFloat("sfx.gapeanalaverage", 2.8)
+	gapeanalhuge = SLOVE_Config.GetFloat("sfx.gapeanalhuge", 4.0)
 
 
-;Velocity SFX (AudioUtil [sfx] names from the AudioUtil.toml preset)
-SmallWetSlush = "SmallWetSlush"
-SmallWetSlush2 = "SmallWetSlush2"
-SmallFastSlush = "SmallFastSlush"
-SmallFastSlush2 = "SmallFastSlush2"
-MediumSlush = "MediumSlush"
-FastSlush = "FastSlush"
-BigSlush = "BigSlush"
-SmallImpact = "SmallImpact"
-MediumImpact1 = "MediumImpact1"
-MediumImpact2 = "MediumImpact2"
-MediumImpact3 = "MediumImpact3"
-MediumImpact4 = "MediumImpact4"
-MediumImpact5Wet = "MediumImpact5Wet"
-FastImpact1 = "FastImpact1"
-FastImpact2 = "FastImpact2"
-FastImpact3 = "FastImpact3"
+	;Velocity SFX (AudioUtil [sfx] names from the AudioUtil.toml preset)
+	SmallWetSlush = "SmallWetSlush"
+	SmallWetSlush2 = "SmallWetSlush2"
+	SmallFastSlush = "SmallFastSlush"
+	SmallFastSlush2 = "SmallFastSlush2"
+	MediumSlush = "MediumSlush"
+	FastSlush = "FastSlush"
+	BigSlush = "BigSlush"
+	SmallImpact = "SmallImpact"
+	MediumImpact1 = "MediumImpact1"
+	MediumImpact2 = "MediumImpact2"
+	MediumImpact3 = "MediumImpact3"
+	MediumImpact4 = "MediumImpact4"
+	MediumImpact5Wet = "MediumImpact5Wet"
+	FastImpact1 = "FastImpact1"
+	FastImpact2 = "FastImpact2"
+	FastImpact3 = "FastImpact3"
 
-;Normal
-FastClap = "FastClap"
-HeavySlushing = "HeavySlushing"
-LightSlushing = "LightSlushing"
-MediumClap = "MediumClap"
-MediumSlushing = "MediumSlushing"
-RapidSlushing = "RapidSlushing"
-SlowClap = "SlowClap"
+	;Normal
+	FastClap = "FastClap"
+	HeavySlushing = "HeavySlushing"
+	LightSlushing = "LightSlushing"
+	MediumClap = "MediumClap"
+	MediumSlushing = "MediumSlushing"
+	RapidSlushing = "RapidSlushing"
+	SlowClap = "SlowClap"
 
-Kiss1 = "Kiss1"
-Kiss2 = "Kiss2"
-Kiss3 = "Kiss3"
-Kiss4 = "Kiss4"
-Kiss5 = "Kiss5"
-Blowjob1 = "Blowjob1"
-Blowjob2 = "Blowjob2"
-Blowjob3 = "Blowjob3"
-Blowjob4 = "Blowjob4"
-Blowjob5 = "Blowjob5"
-Blowjob6 = "Blowjob6"
-FastBlowjob1 = "FastBlowjob1"
-FastBlowjob2 = "FastBlowjob2"
-FastBlowjob3 = "FastBlowjob3"
-FastBlowjob4 = "FastBlowjob4"
-FastBlowjob5 = "FastBlowjob5"
-
-
-EjacHeavy        = "EjacHeavy"
-EjacHeavySharp   = "EjacHeavySharp"
-EjacHeavyWet     = "EjacHeavyWet"
-EjacNormal       = "EjacNormal"
-EjacNormalDeep   = "EjacNormalDeep"
-EjacSharp        = "EjacSharp"
-EjacSmall        = "EjacSmall"
-EjacSmallDeep    = "EjacSmallDeep"
-
-GapeAverage      = "GapeAverage"
-GapeHuge         = "GapeHuge"
+	Kiss1 = "Kiss1"
+	Kiss2 = "Kiss2"
+	Kiss3 = "Kiss3"
+	Kiss4 = "Kiss4"
+	Kiss5 = "Kiss5"
+	Blowjob1 = "Blowjob1"
+	Blowjob2 = "Blowjob2"
+	Blowjob3 = "Blowjob3"
+	Blowjob4 = "Blowjob4"
+	Blowjob5 = "Blowjob5"
+	Blowjob6 = "Blowjob6"
+	FastBlowjob1 = "FastBlowjob1"
+	FastBlowjob2 = "FastBlowjob2"
+	FastBlowjob3 = "FastBlowjob3"
+	FastBlowjob4 = "FastBlowjob4"
+	FastBlowjob5 = "FastBlowjob5"
 
 
-printdebug("volume : " + volume)
+	EjacHeavy        = "EjacHeavy"
+	EjacHeavySharp   = "EjacHeavySharp"
+	EjacHeavyWet     = "EjacHeavyWet"
+	EjacNormal       = "EjacNormal"
+	EjacNormalDeep   = "EjacNormalDeep"
+	EjacSharp        = "EjacSharp"
+	EjacSmall        = "EjacSmall"
+	EjacSmallDeep    = "EjacSmallDeep"
+
+	GapeAverage      = "GapeAverage"
+	GapeHuge         = "GapeHuge"
+
+
+	printdebug("volume : " + volume)
 endfunction
 
 ;-------------------------------Hentairim SFX Functions START---------------------------------
 
 Function RandomizeVariousVelocitySounds()
 
-; initiate small slush
-int rand = Utility.randomint(1,2)
-if rand == 1
-	SmallS = SmallWetSlush
-elseif rand == 2
-	SmallS = SmallWetSlush2
-endif
+	; initiate small slush
+	int rand = Utility.randomint(1,2)
+	if rand == 1
+		SmallS = SmallWetSlush
+	elseif rand == 2
+		SmallS = SmallWetSlush2
+	endif
 
-; initiate Medium slush
-MediumS = MediumSlush
+	; initiate Medium slush
+	MediumS = MediumSlush
 
-; initialize fast slush
-rand = Utility.randomint(1,3)
-if rand == 1
-	FastS = SmallFastSlush
-elseif rand == 2
-	FastS = SmallFastSlush2
-elseif rand == 3
-	FastS = FastSlush
-endif
+	; initialize fast slush
+	rand = Utility.randomint(1,3)
+	if rand == 1
+		FastS = SmallFastSlush
+	elseif rand == 2
+		FastS = SmallFastSlush2
+	elseif rand == 3
+		FastS = FastSlush
+	endif
 
-;initialize small impact
-SmallI = SmallImpact
+	;initialize small impact
+	SmallI = SmallImpact
 
-; initialize medium impact
-rand = Utility.randomint(1,5)
-if rand == 1
-	MediumI = MediumImpact1
-elseif rand == 2
-	MediumI = MediumImpact2
-elseif rand == 3
-	MediumI = MediumImpact3
-elseif rand == 4
-	MediumI = MediumImpact4
-elseif rand == 5
-	MediumI = MediumImpact5Wet
-endif
+	; initialize medium impact
+	rand = Utility.randomint(1,5)
+	if rand == 1
+		MediumI = MediumImpact1
+	elseif rand == 2
+		MediumI = MediumImpact2
+	elseif rand == 3
+		MediumI = MediumImpact3
+	elseif rand == 4
+		MediumI = MediumImpact4
+	elseif rand == 5
+		MediumI = MediumImpact5Wet
+	endif
 
 
-; initialize Fast impact
-rand = Utility.randomint(1,3)
-if rand == 1
-	FastI = FastImpact1
-elseif rand == 2
-	FastI = FastImpact2
-elseif rand == 3
-	FastI = FastImpact3
-endif
+	; initialize Fast impact
+	rand = Utility.randomint(1,3)
+	if rand == 1
+		FastI = FastImpact1
+	elseif rand == 2
+		FastI = FastImpact2
+	elseif rand == 3
+		FastI = FastImpact3
+	endif
 
-;initialize Kiss
-rand = utility.randomint(1,5)
-if rand == 1
-	Kissing = Kiss1
-elseif rand == 2
-	Kissing = Kiss2
-elseif rand == 3
-	Kissing = Kiss3
-elseif rand == 4
-	Kissing = Kiss4
-elseif rand == 5
-	Kissing = Kiss5
-endif
+	;initialize Kiss
+	rand = utility.randomint(1,5)
+	if rand == 1
+		Kissing = Kiss1
+	elseif rand == 2
+		Kissing = Kiss2
+	elseif rand == 3
+		Kissing = Kiss3
+	elseif rand == 4
+		Kissing = Kiss4
+	elseif rand == 5
+		Kissing = Kiss5
+	endif
 
-;initialize blowjob
-rand = utility.randomint(1,6)
-if rand == 1
-	SlowBlowjob = Blowjob1
-elseif rand == 2
-	SlowBlowjob = Blowjob2
-elseif rand == 3
-	SlowBlowjob = Blowjob3
-elseif rand == 4
-	SlowBlowjob = Blowjob4
-elseif rand == 5
-	SlowBlowjob = Blowjob5
-elseif rand == 6
-	SlowBlowjob = Blowjob6
-endif
+	;initialize blowjob
+	rand = utility.randomint(1,6)
+	if rand == 1
+		SlowBlowjob = Blowjob1
+	elseif rand == 2
+		SlowBlowjob = Blowjob2
+	elseif rand == 3
+		SlowBlowjob = Blowjob3
+	elseif rand == 4
+		SlowBlowjob = Blowjob4
+	elseif rand == 5
+		SlowBlowjob = Blowjob5
+	elseif rand == 6
+		SlowBlowjob = Blowjob6
+	endif
 
-;initialize fast blowjob
-rand = utility.randomint(1,5)
-if rand == 1
-	FastBlowjob = Blowjob1
-elseif rand == 2
-	FastBlowjob = FastBlowjob2
-elseif rand == 3
-	FastBlowjob = FastBlowjob3
-elseif rand == 4
-	FastBlowjob = FastBlowjob4
-elseif rand == 5
-	FastBlowjob = FastBlowjob5
+	;initialize fast blowjob
+	rand = utility.randomint(1,5)
+	if rand == 1
+		FastBlowjob = Blowjob1
+	elseif rand == 2
+		FastBlowjob = FastBlowjob2
+	elseif rand == 3
+		FastBlowjob = FastBlowjob3
+	elseif rand == 4
+		FastBlowjob = FastBlowjob4
+	elseif rand == 5
+		FastBlowjob = FastBlowjob5
 
-endif
+	endif
 
 EndFunction
 
@@ -458,69 +458,69 @@ Function RandomizeEjacSound()
 endFunction
 
 String Function GetSlushSoundToPlay(int InteractionType, float TimetoThrust)
-    PRINTDEBUG("GetSlushSound | TimetoThrust: " + TimetoThrust + " | InteractionType: " + InteractionType)
+	PRINTDEBUG("GetSlushSound | TimetoThrust: " + TimetoThrust + " | InteractionType: " + InteractionType)
 
 	if IshugePP && Utility.randomint(1,3) == 1
 		PrintDebug("GetSlushSoundToPlay: Using BigSlush (IshugePP triggered)")
 		return BigSlush
 	Endif
 
-    if InteractionType == 1 ; vaginal
+	if InteractionType == 1 ; vaginal
 		PrintDebug("GetSlushSoundToPlay: Vaginal | TimetoThrust=" + TimetoThrust)
 		if TimetoThrust <= 0.25
 			PrintDebug("GetSlushSoundToPlay: Returning FastS")
-            return FastS
-        elseif TimetoThrust <= 0.45
+			return FastS
+		elseif TimetoThrust <= 0.45
 			PrintDebug("GetSlushSoundToPlay: Returning MediumS")
-            return MediumS
-        else
+			return MediumS
+		else
 			PrintDebug("GetSlushSoundToPlay: Returning SmallS")
-            return SmallS
-        endif
+			return SmallS
+		endif
 
-    elseif InteractionType == 2 ; anal
+	elseif InteractionType == 2 ; anal
 		PrintDebug("GetSlushSoundToPlay: Anal | TimetoThrust=" + TimetoThrust)
 		if TimetoThrust <= 0.25
 			PrintDebug("GetSlushSoundToPlay: Returning MediumS")
-            return MediumS
-        elseif TimetoThrust <= 0.45
+			return MediumS
+		elseif TimetoThrust <= 0.45
 			PrintDebug("GetSlushSoundToPlay: Returning SmallS")
-            return SmallS
-        else
+			return SmallS
+		else
 			PrintDebug("GetSlushSoundToPlay: Returning SmallS")
-            return SmallS
-        endif
+			return SmallS
+		endif
 
-    elseif InteractionType == 3 ; oral (TBD)
+	elseif InteractionType == 3 ; oral (TBD)
 		PrintDebug("GetSlushSoundToPlay: Oral | Returning none (no sound yet)")
-        return "" ; no sound yet
-    endif
+		return "" ; no sound yet
+	endif
 
 	PrintDebug("GetSlushSoundToPlay: Returning none (no valid condition met)")
-    return ""
+	return ""
 EndFunction
 
 
 String Function GetImpactSoundToPlay(float TimetoThrust)
-    if !StageShouldplayClap
+	if !StageShouldplayClap
 		PrintDebug("GetImpactSoundToPlay: StageShouldplayClap is false, returning none")
-        return ""
-    endif
+		return ""
+	endif
 
-    PRINTDEBUG("GetImpactSound | TimetoThrust: " + TimetoThrust)
+	PRINTDEBUG("GetImpactSound | TimetoThrust: " + TimetoThrust)
 	if TimetoThrust <= 0.25
 		PrintDebug("GetImpactSoundToPlay: Returning FastI")
-        return FastI
-    elseif TimetoThrust <= 0.45
+		return FastI
+	elseif TimetoThrust <= 0.45
 		PrintDebug("GetImpactSoundToPlay: Returning MediumI")
-        return MediumI
-    elseif TimetoThrust <= 0.75
+		return MediumI
+	elseif TimetoThrust <= 0.75
 		PrintDebug("GetImpactSoundToPlay: Returning SmallI")
-        return SmallI
+		return SmallI
 	else
 		PrintDebug("GetImpactSoundToPlay: Returning none (no range matched)")
 		return ""
-    endif
+	endif
 EndFunction
 
 float updateRate = 0.1
@@ -529,72 +529,72 @@ Float TimeLastReverseOut
 Bool CanPlayReverseIn
 ;Calculate play sound
 Function CalculateAndPlayVelocitySFX()
-    if FuckingPartner == none || FuckingPartnerInteractionType == 0
+	if FuckingPartner == none || FuckingPartnerInteractionType == 0
 		UpdateFuckingPartner()
-        return
-    endif
+		return
+	endif
 	Float TimetoThrust = 0
-    Float velocity
+	Float velocity
 	Float LastVelocity
 	String SlushVelocitySFX = ""
 	String ImpactVelocitySFX = ""
 
 	while Currentthread.getstatus() == 3 && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
 
-			velocity = Currentthread.GetVelocity(FuckingPartner, Actorref, FuckingPartnerInteractionType)
-			if velocity == 0
-				UpdateFuckingPartner()
-				return
-			endif
+		velocity = Currentthread.GetVelocity(FuckingPartner, Actorref, FuckingPartnerInteractionType)
+		if velocity == 0
+			UpdateFuckingPartner()
+			return
+		endif
 
-			PrintDebug("lastVelocity=" + lastVelocity as String + " | velocity=" + velocity as String)
+		PrintDebug("lastVelocity=" + lastVelocity as String + " | velocity=" + velocity as String)
 
-			if lastVelocity >= 0 && velocity < 0 ; Reversal From Inside
-				Float CurrentReverseOutTIme = CurrentThread.GetTimeTotal()
-				PrintDebug("Seconds Since Last Reverse Out : " + (CurrentReverseOutTime - TimeLastReverseOut) as String + " Seconds | CurrentReverseOutTime=" + CurrentReverseOutTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String)
-				if StageShouldplayClap
-					printdebug("playing Impact Velocity")
-					ImpactVelocitySFX = GetImpactSoundToPlay(TimetoThrust)
-					if ImpactVelocitySFX != ""
-						AudioUtil.PlaySFX(ImpactVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_impact_" + position)
-					else
-						printdebug("ImpactVelocitySFX : is none!")
-					endif
-				Endif
-
-					SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
-					if SlushVelocitySFX != ""
-						printdebug("playing Slush Velocity")
-						AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
-					else
-						printdebug("SlushVelocitySFX : is none!")
-					endif
-				TimeLastReverseOut = CurrentReverseOutTIme
-				TimetoThrust = 0
-			elseif CanPlayReverseIn && lastVelocity <= 0 && velocity > 0 ;reversal from outside
-				printdebug("Velocity : " + Velocity + " | lastVelocity : " + LastVelocity + " | FuckingPartnerInteractionType : " + FuckingPartnerInteractionType)
-				Float CurrentReverseInTIme = CurrentThread.GetTimeTotal()
-
-				PrintDebug("CurrentReverseInTime=" + CurrentReverseInTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String + " | Seconds Since Last Reverse In=" + (CurrentReverseInTime - TimeLastReverseOut) as String + " Seconds")
-				SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
-				if SlushVelocitySFX != ""
-					printdebug("playing Slush Velocity")
-					AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
+		if lastVelocity >= 0 && velocity < 0 ; Reversal From Inside
+			Float CurrentReverseOutTIme = CurrentThread.GetTimeTotal()
+			PrintDebug("Seconds Since Last Reverse Out : " + (CurrentReverseOutTime - TimeLastReverseOut) as String + " Seconds | CurrentReverseOutTime=" + CurrentReverseOutTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String)
+			if StageShouldplayClap
+				printdebug("playing Impact Velocity")
+				ImpactVelocitySFX = GetImpactSoundToPlay(TimetoThrust)
+				if ImpactVelocitySFX != ""
+					AudioUtil.PlaySFX(ImpactVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_impact_" + position)
 				else
-					printdebug("SlushVelocitySFX : is none!")
+					printdebug("ImpactVelocitySFX : is none!")
 				endif
-				TimeLastReverseIn = CurrentReverseInTIme
+			Endif
+
+			SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
+			if SlushVelocitySFX != ""
+				printdebug("playing Slush Velocity")
+				AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
 			else
-				printdebug("Wait")
-				if Velocity > 0
-					TimetoThrust += updateRate
-				endif
+				printdebug("SlushVelocitySFX : is none!")
 			endif
+			TimeLastReverseOut = CurrentReverseOutTIme
+			TimetoThrust = 0
+		elseif CanPlayReverseIn && lastVelocity <= 0 && velocity > 0 ;reversal from outside
+			printdebug("Velocity : " + Velocity + " | lastVelocity : " + LastVelocity + " | FuckingPartnerInteractionType : " + FuckingPartnerInteractionType)
+			Float CurrentReverseInTIme = CurrentThread.GetTimeTotal()
 
-			ProcessContactEdges()
-			Utility.wait(updateRate)
+			PrintDebug("CurrentReverseInTime=" + CurrentReverseInTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String + " | Seconds Since Last Reverse In=" + (CurrentReverseInTime - TimeLastReverseOut) as String + " Seconds")
+			SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
+			if SlushVelocitySFX != ""
+				printdebug("playing Slush Velocity")
+				AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
+			else
+				printdebug("SlushVelocitySFX : is none!")
+			endif
+			TimeLastReverseIn = CurrentReverseInTIme
+		else
+			printdebug("Wait")
+			if Velocity > 0
+				TimetoThrust += updateRate
+			endif
+		endif
 
-			LastVelocity = velocity
+		ProcessContactEdges()
+		Utility.wait(updateRate)
+
+		LastVelocity = velocity
 	endwhile
 
 EndFunction
@@ -768,139 +768,139 @@ EndFunction
 
 Function RunAdaptiveVelocitySFX()
 	int z
-    while (FuckingPartner == none || FuckingPartnerInteractionType == 0) && Z < timestosearch
+	while (FuckingPartner == none || FuckingPartnerInteractionType == 0) && Z < timestosearch
 		printdebug("---------------------RunAdaptiveVelocitySFX : START SEARCHING---------------" )
 		SearchingFoundVelocity = false
 		PenisSearchForVelocity()
 		z += 1
-    endwhile
+	endwhile
 
 	Float TimetoThrust = 0
-    Float velocity
+	Float velocity
 	Float LastVelocity
 	String SlushVelocitySFX = ""
 	String ImpactVelocitySFX = ""
 
 	while !Masterscript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && !UpdateNow
-			int TimesNotFoundVelocity
-			velocity = Currentthread.GetVelocity(FuckingPartner, Actorref, FuckingPartnerInteractionType)
+		int TimesNotFoundVelocity
+		velocity = Currentthread.GetVelocity(FuckingPartner, Actorref, FuckingPartnerInteractionType)
 
-			if velocity == 0 && !SearchingFoundVelocity
-				PlayFillerSounds()
+		if velocity == 0 && !SearchingFoundVelocity
+			PlayFillerSounds()
+		endif
+
+		if Velocity == 0 && SearchingFoundVelocity
+			TimesNotFoundVelocity += 1
+			if TimesNotFoundVelocity > 10
+				UpdateFuckingPartner()
+				return
 			endif
+		endif
 
-			if Velocity == 0 && SearchingFoundVelocity
-				TimesNotFoundVelocity += 1
-				if TimesNotFoundVelocity > 10
-					UpdateFuckingPartner()
-					return
-				endif
-			endif
+		PrintDebug("lastVelocity=" + lastVelocity as String + " | velocity=" + velocity as String)
 
-			PrintDebug("lastVelocity=" + lastVelocity as String + " | velocity=" + velocity as String)
-
-			if lastVelocity >= 0 && velocity < 0 ; Reversal From Inside
-				TimesNotFoundVelocity = 0
-				Float CurrentReverseOutTIme = CurrentThread.GetTimeTotal()
-				PrintDebug("Seconds Since Last Reverse Out : " + (CurrentReverseOutTime - TimeLastReverseOut) as String + " Seconds | CurrentReverseOutTime=" + CurrentReverseOutTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String)
-				if StageShouldplayClap
-					printdebug("playing Impact Velocity")
-					ImpactVelocitySFX = GetImpactSoundToPlay(TimetoThrust)
-					if ImpactVelocitySFX != ""
-						AudioUtil.PlaySFX(ImpactVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_impact_" + position)
-					else
-						printdebug("ImpactVelocitySFX : is none!")
-					endif
-				Endif
-
-					SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
-					if SlushVelocitySFX != ""
-						printdebug("playing Slush Velocity")
-						AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
-					else
-						printdebug("SlushVelocitySFX : is none!")
-					endif
-				TimeLastReverseOut = CurrentReverseOutTIme
-				TimetoThrust = 0
-			elseif CanPlayReverseIn && lastVelocity <= 0 && velocity > 0 ;reversal from outside
-				TimesNotFoundVelocity = 0
-				printdebug("Velocity : " + Velocity + " | lastVelocity : " + LastVelocity + " | FuckingPartnerInteractionType : " + FuckingPartnerInteractionType)
-				Float CurrentReverseInTIme = CurrentThread.GetTimeTotal()
-
-				PrintDebug("CurrentReverseInTime=" + CurrentReverseInTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String + " | Seconds Since Last Reverse In=" + (CurrentReverseInTime - TimeLastReverseOut) as String + " Seconds")
-				SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
-				if SlushVelocitySFX != ""
-					printdebug("playing Slush Velocity")
-					AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
+		if lastVelocity >= 0 && velocity < 0 ; Reversal From Inside
+			TimesNotFoundVelocity = 0
+			Float CurrentReverseOutTIme = CurrentThread.GetTimeTotal()
+			PrintDebug("Seconds Since Last Reverse Out : " + (CurrentReverseOutTime - TimeLastReverseOut) as String + " Seconds | CurrentReverseOutTime=" + CurrentReverseOutTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String)
+			if StageShouldplayClap
+				printdebug("playing Impact Velocity")
+				ImpactVelocitySFX = GetImpactSoundToPlay(TimetoThrust)
+				if ImpactVelocitySFX != ""
+					AudioUtil.PlaySFX(ImpactVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_impact_" + position)
 				else
-					printdebug("SlushVelocitySFX : is none!")
+					printdebug("ImpactVelocitySFX : is none!")
 				endif
-				TimeLastReverseIn = CurrentReverseInTIme
+			Endif
+
+			SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
+			if SlushVelocitySFX != ""
+				printdebug("playing Slush Velocity")
+				AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
 			else
-				printdebug("Wait")
-				if Velocity > 0
-					TimetoThrust += updateRate
-				endif
+				printdebug("SlushVelocitySFX : is none!")
 			endif
+			TimeLastReverseOut = CurrentReverseOutTIme
+			TimetoThrust = 0
+		elseif CanPlayReverseIn && lastVelocity <= 0 && velocity > 0 ;reversal from outside
+			TimesNotFoundVelocity = 0
+			printdebug("Velocity : " + Velocity + " | lastVelocity : " + LastVelocity + " | FuckingPartnerInteractionType : " + FuckingPartnerInteractionType)
+			Float CurrentReverseInTIme = CurrentThread.GetTimeTotal()
 
-			ProcessContactEdges()
-			Utility.wait(updateRate)
+			PrintDebug("CurrentReverseInTime=" + CurrentReverseInTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String + " | Seconds Since Last Reverse In=" + (CurrentReverseInTime - TimeLastReverseOut) as String + " Seconds")
+			SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
+			if SlushVelocitySFX != ""
+				printdebug("playing Slush Velocity")
+				AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
+			else
+				printdebug("SlushVelocitySFX : is none!")
+			endif
+			TimeLastReverseIn = CurrentReverseInTIme
+		else
+			printdebug("Wait")
+			if Velocity > 0
+				TimetoThrust += updateRate
+			endif
+		endif
 
-			LastVelocity = velocity
+		ProcessContactEdges()
+		Utility.wait(updateRate)
+
+		LastVelocity = velocity
 	endwhile
 
 EndFunction
 
 
 Bool Function UpdateFuckingPartner()
-    PrintDebug(actorname + " UpdateFuckingPartner - Starting partner search.")
+	PrintDebug(actorname + " UpdateFuckingPartner - Starting partner search.")
 
-    if currentthread == None || !currentthread.IsInteractionRegistered()
-        PrintDebug(actorname + " UpdateFuckingPartner - Interaction not registered, skipping.")
-        return false
-    endif
-
-    FuckingPartner = None
-    FuckingPartnerInteractionType = 0
-    int[] Interactionarr
-
-    int z = 0
-    while z < actorList.length
-        Actor candidate = actorList[z]
-
-        if candidate != actorref ; skip self
-
-            Interactionarr = currentthread.GetInteractionTypes(candidate, actorref)
-
-            if Interactionarr && Interactionarr.length > 0
-
-                ; Vaginal interaction
-                if findint(Interactionarr, 1) > -1
-                    FuckingPartner = candidate
-                    FuckingPartnerInteractionType = 1
-                    z = actorList.length
-                ; Anal interaction
-                elseif findint(Interactionarr, 2) > -1
-                    FuckingPartner = candidate
-                    FuckingPartnerInteractionType = 2
-                    z = actorList.length
-                endif
-            endif
-        endif
-
-        z += 1
-    endwhile
-
-    ; Final result
-    if FuckingPartner
-		SearchingFoundVelocity = true
-        PrintDebug(actorname + " UpdateFuckingPartner - Final partner: " + FuckingPartner.GetDisplayName() + " | Type=" + FuckingPartnerInteractionType)
-		return true
-    else
-		SearchingFoundVelocity = false
-        PrintDebug(actorname + " UpdateFuckingPartner - No valid partner found.")
+	if currentthread == None || !currentthread.IsInteractionRegistered()
+		PrintDebug(actorname + " UpdateFuckingPartner - Interaction not registered, skipping.")
 		return false
-    endif
+	endif
+
+	FuckingPartner = None
+	FuckingPartnerInteractionType = 0
+	int[] Interactionarr
+
+	int z = 0
+	while z < actorList.length
+		Actor candidate = actorList[z]
+
+		if candidate != actorref ; skip self
+
+			Interactionarr = currentthread.GetInteractionTypes(candidate, actorref)
+
+			if Interactionarr && Interactionarr.length > 0
+
+				; Vaginal interaction
+				if findint(Interactionarr, 1) > -1
+					FuckingPartner = candidate
+					FuckingPartnerInteractionType = 1
+					z = actorList.length
+					; Anal interaction
+				elseif findint(Interactionarr, 2) > -1
+					FuckingPartner = candidate
+					FuckingPartnerInteractionType = 2
+					z = actorList.length
+				endif
+			endif
+		endif
+
+		z += 1
+	endwhile
+
+	; Final result
+	if FuckingPartner
+		SearchingFoundVelocity = true
+		PrintDebug(actorname + " UpdateFuckingPartner - Final partner: " + FuckingPartner.GetDisplayName() + " | Type=" + FuckingPartnerInteractionType)
+		return true
+	else
+		SearchingFoundVelocity = false
+		PrintDebug(actorname + " UpdateFuckingPartner - No valid partner found.")
+		return false
+	endif
 EndFunction
 
 
@@ -1059,7 +1059,7 @@ EndFunction
 ;-------------------------------Contact Edge SFX END---------------------------------
 
 Function SFXRefreshSound()
-;refreshing
+	;refreshing
 
 	SFXTag = SLOVE_Hentairim_Tags.GetSFX(CurrentSceneID, currentstage)
 	printdebug("SFXTag :" + SFXTag )
@@ -1104,7 +1104,7 @@ Function SFXRefreshSound()
 		endif
 
 	elseif IsGivingAnalPenetration() || IsGivingVaginalPenetration()
-	printdebug("Is giving penetration" )
+		printdebug("Is giving penetration" )
 		if	isintense && ishugepp
 			SFXtoPlay = HeavySlushing
 			FillerTimetoThrustMin = 0.0
@@ -1123,7 +1123,7 @@ Function SFXRefreshSound()
 			SFXtoPlay = SlowBlowjob
 		endif
 	elseif IsStimulatingOthers()
-	printdebug("IsGettingStimulated" )
+		printdebug("IsGettingStimulated" )
 		if isintense
 			SFXtoPlay = MediumSlushing
 		else
@@ -1131,7 +1131,7 @@ Function SFXRefreshSound()
 		endif
 
 	elseif IsCunnilingus()
-	printdebug("IsCunnilingus" )
+		printdebug("IsCunnilingus" )
 		SFXtoPlay = LightSlushing
 	elseif IsKissing()
 		printdebug("IsKissing" )
@@ -1147,15 +1147,15 @@ endfunction
 
 Bool Function Shouldplaysound()
 
-return IsCunnilingus() || IsKissing() || IsGivingAnalPenetration() || IsGivingVaginalPenetration() || IsGettingStimulated() || IsGettingSuckedoff()
+	return IsCunnilingus() || IsKissing() || IsGivingAnalPenetration() || IsGivingVaginalPenetration() || IsGettingStimulated() || IsGettingSuckedoff()
 
 endfunction
 
 
 Function RemoveSFX()
 
-spell SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as spell
-actorref.RemoveSpell(SFXSpell)
+	spell SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as spell
+	actorref.RemoveSpell(SFXSpell)
 
 EndFunction
 
@@ -1236,16 +1236,16 @@ string Labelsconcat
 float DirectorLastLabelTime
 float DirectorLastPhysicsLabelTime
 Function UpdateLabels(actor char)
- printdebug("Updating Labels")
- PrevPenisActionLabel = PenisActionLabel
- Stimulationlabel = MasterScript.GetStimulationlabel(char)
- PenisActionLabel = MasterScript.GetPenisActionLabel(char)
- OralLabel = MasterScript.GetOralLabel(char)
- EndingLabel = MasterScript.GetEndingLabel(char)
- PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	printdebug("Updating Labels")
+	PrevPenisActionLabel = PenisActionLabel
+	Stimulationlabel = MasterScript.GetStimulationlabel(char)
+	PenisActionLabel = MasterScript.GetPenisActionLabel(char)
+	OralLabel = MasterScript.GetOralLabel(char)
+	EndingLabel = MasterScript.GetEndingLabel(char)
+	PenetrationLabel = MasterScript.GetPenetrationLabel(char)
 
- Labelsconcat = "1" +Stimulationlabel + "1" + PenisActionLabel + "1" + OralLabel + "1" + PenetrationLabel + "1" + EndingLabel
- PrintDebug("Stimulationlabel :" + Stimulationlabel + ", PenisActionLabel :" + PenisActionLabel + ", OralLabel :" + OralLabel + ", PenetrationLabel :" + PenetrationLabel + ", EndingLabel :" + EndingLabel)
+	Labelsconcat = "1" +Stimulationlabel + "1" + PenisActionLabel + "1" + OralLabel + "1" + PenetrationLabel + "1" + EndingLabel
+	PrintDebug("Stimulationlabel :" + Stimulationlabel + ", PenisActionLabel :" + PenisActionLabel + ", OralLabel :" + OralLabel + ", PenetrationLabel :" + PenetrationLabel + ", EndingLabel :" + EndingLabel)
 
 endfunction
 ;-----------------------BASE HENTAIRIM Update Functions END-----------------------------
@@ -1271,7 +1271,7 @@ endfunction
 
 Bool Function IsGettingDoublePenetrated()
 
-return PenetrationLabel == "SDP" || PenetrationLabel == "FDP"
+	return PenetrationLabel == "SDP" || PenetrationLabel == "FDP"
 endfunction
 
 Bool Function IsgettingPenetrated()
@@ -1343,24 +1343,24 @@ Function PlaySound(String theSound, Actor actorMakingSound, Bool waitForCompleti
 EndFunction
 
 Bool Function IsVictim(actor char)
-  return CurrentThread.GetSubmissive(char)
+	return CurrentThread.GetSubmissive(char)
 endFunction
 
 Function PrintDebug(string Contents = "")
-if enableprintdebug == 1 && !isplayer
-miscutil.printconsole(actorname + " - SLO VE SFX " + Contents)
-endif
+	if enableprintdebug == 1 && !isplayer
+		miscutil.printconsole(actorname + " - SLO VE SFX " + Contents)
+	endif
 endfunction
 
 Int Function FindInt(Int[] arr, Int target)
-    Int i = 0
-    While i < arr.Length
-        If arr[i] == target
-            Return i ; Found, return index
-        EndIf
-        i += 1
-    EndWhile
-    Return -1 ; Not found
+	Int i = 0
+	While i < arr.Length
+		If arr[i] == target
+			Return i ; Found, return index
+		EndIf
+		i += 1
+	EndWhile
+	Return -1 ; Not found
 EndFunction
 
 Bool Function HasCreature()

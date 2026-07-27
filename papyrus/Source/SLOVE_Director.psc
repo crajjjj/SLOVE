@@ -177,38 +177,38 @@ Function PerformInitialization()
 	RegisterForTheEventsWeNeed()
 	playerref = game.getplayer() ;player
 
-;Modules (SLO VE: both spells live in our own plugin)
-if Game.GetModbyName("SLOVE.esp") != 255
-	ExpressionsSpell = Game.GetFormFromFile(0x800, "SLOVE.esp") as Spell
-	VoiceSpell = Game.GetFormFromFile(0x802, "SLOVE.esp") as Spell
-	SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as Spell
-	ResistanceSpell = Game.GetFormFromFile(0x808, "SLOVE.esp") as Spell
-endif
+	;Modules (SLO VE: both spells live in our own plugin)
+	if Game.GetModbyName("SLOVE.esp") != 255
+		ExpressionsSpell = Game.GetFormFromFile(0x800, "SLOVE.esp") as Spell
+		VoiceSpell = Game.GetFormFromFile(0x802, "SLOVE.esp") as Spell
+		SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as Spell
+		ResistanceSpell = Game.GetFormFromFile(0x808, "SLOVE.esp") as Spell
+	endif
 
-if !ExpressionsSpell
-	WritetoErrorlogs("Director", "Expressions Spell is Missing! Make Sure the Mod is properly installed and Plugin Enabled")
-endif
+	if !ExpressionsSpell
+		WritetoErrorlogs("Director", "Expressions Spell is Missing! Make Sure the Mod is properly installed and Plugin Enabled")
+	endif
 
-if !VoiceSpell
-	WritetoErrorlogs("Director", "Voice Spell is Missing! Make Sure the Mod is properly installed and Plugin Enabled")
-endif
+	if !VoiceSpell
+		WritetoErrorlogs("Director", "Voice Spell is Missing! Make Sure the Mod is properly installed and Plugin Enabled")
+	endif
 
-if !SFXSpell
-	WritetoErrorlogs("Director", "SFX Spell is Missing! Make Sure the Mod is properly installed and Plugin Enabled")
-endif
+	if !SFXSpell
+		WritetoErrorlogs("Director", "SFX Spell is Missing! Make Sure the Mod is properly installed and Plugin Enabled")
+	endif
 
-if Game.GetModbyName("devious devices - assets.esm") != 255
-	zad_DeviousGag = Game.GetFormFromFile(0x7EB8, "devious devices - assets.esm") as Keyword
-endif
+	if Game.GetModbyName("devious devices - assets.esm") != 255
+		zad_DeviousGag = Game.GetFormFromFile(0x7EB8, "devious devices - assets.esm") as Keyword
+	endif
 
-;Others
-if Game.GetModbyName("Schlongs of Skyrim.esp") != 255
-	schlongfaction = Game.GetFormFromFile(0xAFF8 , "Schlongs of Skyrim.esp") as Faction
-EndIf
+	;Others
+	if Game.GetModbyName("Schlongs of Skyrim.esp") != 255
+		schlongfaction = Game.GetFormFromFile(0xAFF8 , "Schlongs of Skyrim.esp") as Faction
+	EndIf
 
-if isDependencyReady("TheNewGentleman.esp")
-	TNG_Gentlewoman = Game.GetFormFromFile(0xFF8, "TheNewGentleman.esp") as Keyword
-endif
+	if isDependencyReady("TheNewGentleman.esp")
+		TNG_Gentlewoman = Game.GetFormFromFile(0xFF8, "TheNewGentleman.esp") as Keyword
+	endif
 EndFunction
 
 Function RegisterForTheEventsWeNeed()
@@ -716,7 +716,7 @@ Function ApplySpells()
 					actorList[z].AddSpell(ExpressionsSpell, abVerbose = False)
 				endif
 			endif
-		z += 1
+			z += 1
 		EndWhile
 	EndIf
 
@@ -741,7 +741,7 @@ Function ApplySpells()
 				printdebug(actorList[r].getdisplayname() + " added Resistance Spell")
 				actorList[r].AddSpell(ResistanceSpell, abVerbose = False)
 			endif
-		r += 1
+			r += 1
 		EndWhile
 	EndIf
 EndFunction
@@ -804,13 +804,13 @@ endfunction
 
 Function DisableOrgasm(Actor char)
 
-    CurrentThread.DisableOrgasm(char, true)
+	CurrentThread.DisableOrgasm(char, true)
 
-    if char
-        PrintDebug("DisableOrgasm - Orgasm disabled for: " + char.GetDisplayName())
-    else
-        PrintDebug("DisableOrgasm - Orgasm disabled for NONE actor")
-    endif
+	if char
+		PrintDebug("DisableOrgasm - Orgasm disabled for: " + char.GetDisplayName())
+	else
+		PrintDebug("DisableOrgasm - Orgasm disabled for NONE actor")
+	endif
 EndFunction
 
 Function EnableOrgasm(Actor char)
@@ -1290,7 +1290,7 @@ EndFunction
 
 bool Function isFinalStage()
 
-		return CurrentStageNum >= GetFinalStageNum()
+	return CurrentStageNum >= GetFinalStageNum()
 EndFunction
 
 int Function GetFinalStageNum()
@@ -1348,14 +1348,14 @@ bool Function isVictim(actor char)
 EndFunction
 
 bool Function PCisAggressor()
-	 actor[] victimlist = CurrentThread.GetSubmissives()
-	 int z = 0
-	 while z < victimlist.length
+	actor[] victimlist = CurrentThread.GetSubmissives()
+	int z = 0
+	while z < victimlist.length
 		if victimlist[z] == playerref
 			return false
 		endif
 		z += 1
-	 endwhile
+	endwhile
 
 	if victimlist.length > 0
 		return true
@@ -1369,31 +1369,31 @@ Bool Function ScenehasCreatures()
 endfunction
 
 Bool function isDependencyReady(String modname)
-  return PO3_SKSEFunctions.IsPluginFound(modname)
+	return PO3_SKSEFunctions.IsPluginFound(modname)
 endfunction
 
 Bool function IshugePP(actor char)
-  int HugePPSchlongSize
+	int HugePPSchlongSize
 	HugePPSchlongSize = SLOVE_Config.GetInt("director.soshugeppsize" ,6)
-  Race charRace = char.GetRace()
-  String charraceName = charRace.GetName()
-  if stringutil.find(charraceName, "Brute") > -1 || stringutil.find(charraceName, "Spider") > -1 || stringutil.find(charraceName, "Lurker") > -1 || stringutil.find(charraceName, "Daedroth") > -1 || stringutil.find(charraceName, "Horse") > -1 || stringutil.find(charraceName, "Bear") > -1 || stringutil.find(charraceName, "Chaurus") > -1 || stringutil.find(charraceName, "Dragon") > -1 || charraceName == "Frost Atronach" || stringutil.find(charraceName, "Giant") > -1 || charraceName == "Mammoth" || charraceName == "Sabre Cat" || stringutil.find(charraceName, "Troll") > -1 || charraceName == "Werewolf" || stringutil.find(charraceName, "Gargoyle") > -1 || charraceName == "Dwarven Centurion" || stringutil.find(charraceName, "Ogre") > -1 || charraceName == "Ogrim" || charraceName == "Nest Ant Flier"
-    return True
-  else
-    ;if Schlong is big
-    if (SchlongFaction)
-      return char.GetFactionRank(SchlongFaction) >= HugePPSchlongSize
-	elseif TNG_Gentlewoman
-		if char.GetActorBase().GetSex() == 1 && char.HasKeyword(TNG_Gentlewoman) && TNG_PapyrusUtil.GetActorSize(char) == 4
+	Race charRace = char.GetRace()
+	String charraceName = charRace.GetName()
+	if stringutil.find(charraceName, "Brute") > -1 || stringutil.find(charraceName, "Spider") > -1 || stringutil.find(charraceName, "Lurker") > -1 || stringutil.find(charraceName, "Daedroth") > -1 || stringutil.find(charraceName, "Horse") > -1 || stringutil.find(charraceName, "Bear") > -1 || stringutil.find(charraceName, "Chaurus") > -1 || stringutil.find(charraceName, "Dragon") > -1 || charraceName == "Frost Atronach" || stringutil.find(charraceName, "Giant") > -1 || charraceName == "Mammoth" || charraceName == "Sabre Cat" || stringutil.find(charraceName, "Troll") > -1 || charraceName == "Werewolf" || stringutil.find(charraceName, "Gargoyle") > -1 || charraceName == "Dwarven Centurion" || stringutil.find(charraceName, "Ogre") > -1 || charraceName == "Ogrim" || charraceName == "Nest Ant Flier"
+		return True
+	else
+		;if Schlong is big
+		if (SchlongFaction)
+			return char.GetFactionRank(SchlongFaction) >= HugePPSchlongSize
+		elseif TNG_Gentlewoman
+			if char.GetActorBase().GetSex() == 1 && char.HasKeyword(TNG_Gentlewoman) && TNG_PapyrusUtil.GetActorSize(char) == 4
+				return true
+			else
+				return false
+			endif
+		elseif PO3_SKSEFunctions.IsPluginFound("TheNewGentleman.esp") && TNG_PapyrusUtil.GetActorSize(char) == 4
 			return true
-		else
-			return false
 		endif
-    elseif PO3_SKSEFunctions.IsPluginFound("TheNewGentleman.esp") && TNG_PapyrusUtil.GetActorSize(char) == 4
-      return true
-    endif
-    return false
-  endif
+		return false
+	endif
 EndFunction
 
 Int Function GetNormalizedPenisSize(Actor char)
