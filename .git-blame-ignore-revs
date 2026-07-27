@@ -1,0 +1,8 @@
+# Whitespace-only commits, skipped by git blame when configured with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# (GitHub's blame view picks this file up automatically.)
+
+# style(voice): normalize indentation (tabs by nesting depth, both variants)
+828ea2586e6ebcf54836a42d20431d162b12d69b
+# style: normalize indentation across all remaining Papyrus masters
+24f132c65b313bf4220994599650d81e8a13362b
