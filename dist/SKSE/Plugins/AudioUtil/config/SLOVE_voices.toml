@@ -57,7 +57,7 @@ MaleOldGrumpy = "MaleBrute"
 MaleOldKindly = "MaleEvenToned"
 MaleSlyCynical = "MaleCondescending"
 MaleDarkElfCynical = "MaleDarkElf"
-MaleKhajiitAccented = "MaleKhajitt"
+MaleKhajiitAccented = "MaleKhajiit"
 
 # VoiceType -> slot. A value may list several slots; actors sharing the
 # voicetype spread across them deterministically (same NPC = same slot).
@@ -69,7 +69,7 @@ MaleNord = "M4"
 MaleBandit = ["M3", "M4"]
 MaleCondescending = "M5"
 MaleDarkElf = "M6"
-MaleKhajitt = "M7"
+MaleKhajiit = "M7"
 MaleOrc = "M8"
 
 # female voicetypes -> the NPC VOICE POOL (F2-F10). Every listed voicetype
