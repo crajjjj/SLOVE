@@ -337,6 +337,16 @@ Bool Function FullExpressionPass()
 	;jaw gate: retry a suppressed tongue, or drop an active one whose mouth stayed closed
 	UpdateTongueJawGate()
 
+	;double-tongue guard: FHU equips its armor tongues on its own (inflation
+	;ahegao), which the MFEE morph tongue can't see - if one shows up while the
+	;MFEE tongue is painted, retract ours and let the armor tongue stand
+	;(unequipping FHU's would just fight its re-equip)
+	bool tonguearmorworn = EquippedTongue()
+	if MFEEAddTongue && tonguearmorworn
+		printdebug("Double tongue: FHU armor tongue worn while MFEE tongue painted - retracting MFEE tongue")
+		RemoveTongue()
+	endif
+
 	if IsUnconcious()
 		MfgConsoleFunc.SetModifier(actorref, 0, 100) ;left blink
 		MfgConsoleFunc.SetModifier(actorref, 1, 100) ;right blink
@@ -378,7 +388,7 @@ Bool Function FullExpressionPass()
 	;the orgasm / huge-partner ahegao face owns the open mouth this pass - hand it
 	;the jaw by blocking lipsync (else a playing line lipsyncs over the climax
 	;face). Released automatically once neither is active any more.
-	ApplyFaceMouthOwnership(IsOrgasming || brokenface || MFEEAddAhegao || MFEEAddTongue)
+	ApplyFaceMouthOwnership(IsOrgasming || brokenface || MFEEAddAhegao || MFEEAddTongue || tonguearmorworn)
 
 	float[] result = BuildTickPreset(GetCachedPhase(Phase), varPct, mouthblowjob, brokenface)
 
@@ -842,10 +852,26 @@ endfunction
 
 
 Bool Function EquippedTongue()
-	if !FHUTongueTypeArmor
+	if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
+		return true
+	endif
+	;FHU equips tongue armors on its own (inflation ahegao), and not necessarily
+	;the variant we rolled - spot any of the ten via their shared worn slot
+	if FHUTongueSlotMask == 0
 		return false
 	endif
-	return actorref.IsEquipped(FHUTongueTypeArmor)
+	Form worn = actorref.GetWornForm(FHUTongueSlotMask)
+	if !worn
+		return false
+	endif
+	int i = 0
+	while i < 10
+		if worn == FHUAllTongues[i]
+			return true
+		endif
+		i += 1
+	endwhile
+	return false
 EndFunction
 
 Function AddTongue()
@@ -1298,6 +1324,7 @@ Function InitializeAddNPCTongue()
 	enablenpctongue = JsonUtil.GetIntValue(NPCTongueFile, "enablenpctongue", 0)
 
 	FHUTongueTypeArmor =  GetTongueType()
+	CacheFHUTongues()
 endfunction
 
 armor FHUTongueTypeArmor
@@ -1324,6 +1351,29 @@ Armor function GetTongueType()
 	FHUTongueTypeArmor = Tongue
 	return Tongue
 endfunction
+
+;all ten FHU tongue variants and their shared biped slot mask, cached once so
+;EquippedTongue can also spot a tongue FHU itself equipped (its inflation
+;ahegao does), or a different variant than the one we rolled
+Form[] FHUAllTongues
+int FHUTongueSlotMask = 0
+
+Function CacheFHUTongues()
+	FHUTongueSlotMask = 0
+	if Game.GetModByName("sr_fillherup.esp") == 255
+		return
+	endif
+	FHUAllTongues = new Form[10]
+	int i = 0
+	while i < 10
+		FHUAllTongues[i] = Game.GetFormFromFile(0x263B2 + i, "sr_fillherup.esp")
+		i += 1
+	endwhile
+	Armor firstTongue = FHUAllTongues[0] as Armor
+	if firstTongue
+		FHUTongueSlotMask = firstTongue.GetSlotMask()
+	endif
+EndFunction
 
 
 ;-------------------------------Hentairim Expressions Functions END---------------------------------
