@@ -168,3 +168,75 @@ String[] Function AllMaleCategories() Global
 	cats[14] = "MCMSampleSounds"
 	return cats
 EndFunction
+
+;Variation-B scene-label folders the female engine can request - for pack audits
+;of a Variation-B pack (SLOVE_Test.AuditVoicePack runs this extra pass when the
+;slot declares variation = "B"). These are the PARTITIONED labels - victim,
+;broken, femdom, over-the-top, forced, and breathing filler - passed as debugtext
+;and swapped in by the per-line B-remap in SLOVE_Voice, NOT the collapsed A names
+;in AllFemaleCategories, which a clean B pack deliberately drops to its fallback.
+;Source of truth: the distinct debugtext labels emitted by SLOVE_Voice that are
+;real, shippable B folders (Aika's layout, per the A-to-B conversion plan).
+;Internal debug-only labels that always fall back (DefaultMaleOrgasm, FemaleOrgasm,
+;PullOutGape) and the gag pool (routed via gag_slot, not this slot) are excluded.
+;Names match case- and space-insensitively in AudioUtil, so exact casing is cosmetic.
+String[] Function AllFemaleVariationBCategories() Global
+	String[] cats = new String[56]
+	cats[0] = "After Orgasm Comments"
+	cats[1] = "After Orgasm Comments Intense"
+	cats[2] = "Blowjob Action"
+	cats[3] = "Blowjob Comments"
+	cats[4] = "Blowjob Comments Intense"
+	cats[5] = "Blowjob Forced"
+	cats[6] = "Blowjob Forced Comments"
+	cats[7] = "Breathing"
+	cats[8] = "Breathing Intense"
+	cats[9] = "Broken Begging"
+	cats[10] = "Ending Broken"
+	cats[11] = "Ending Orgasmed Inside Ass"
+	cats[12] = "Ending Orgasmed Inside Mouth"
+	cats[13] = "Ending Orgasmed Inside Pussy"
+	cats[14] = "Ending Victim Comments"
+	cats[15] = "Foreplay BoobJob Comments"
+	cats[16] = "Foreplay Femdom Comments"
+	cats[17] = "Foreplay FootJob Comments"
+	cats[18] = "Foreplay Handjob Comments"
+	cats[19] = "Foreplay Tease Orgasm"
+	cats[20] = "Insertion Over The Top"
+	cats[21] = "KneeJerk"
+	cats[22] = "KneeJerk Intense"
+	cats[23] = "Kissing"
+	cats[24] = "Male Orgasm Soon Ask For Anal Cum"
+	cats[25] = "Male Orgasm Soon Ask For Oral Cum"
+	cats[26] = "Male Orgasm Soon Ask For Vaginal Cum"
+	cats[27] = "Male Orgasm Soon Ask For Vaginal Cum Intense"
+	cats[28] = "Male Orgasm Soon Femdom"
+	cats[29] = "Male Orgasmed Inside"
+	cats[30] = "Male Orgasmed Inside Femdom"
+	cats[31] = "Male Orgasmed Inside Intense"
+	cats[32] = "Male Orgasmed Inside Mouth"
+	cats[33] = "Male Orgasmed Inside Victim"
+	cats[34] = "Orgasm Soon Comments"
+	cats[35] = "Orgasm Soon Comments Intense"
+	cats[36] = "Panting"
+	cats[37] = "Panting Heavy"
+	cats[38] = "Penetrated Anal Comments Intense"
+	cats[39] = "Penetrated Broken Comments"
+	cats[40] = "Penetrated Broken Comments Intense"
+	cats[41] = "Penetrated Comments"
+	cats[42] = "Penetrated Comments Femdom"
+	cats[43] = "Penetrated Comments Femdom Intense"
+	cats[44] = "Penetrated Comments Intense"
+	cats[45] = "Penetrated Comments Over The Top"
+	cats[46] = "Penetrated Comments Victim"
+	cats[47] = "Penetrated Double Comments"
+	cats[48] = "Penetrated Grunt"
+	cats[49] = "Penetrated Grunt Intense"
+	cats[50] = "Penetrated Grunt Over The Top"
+	cats[51] = "Penetrated Grunt Victim"
+	cats[52] = "Penetrated Grunt Victim Intense"
+	cats[53] = "Penetrated Tell Male to Pull Out"
+	cats[54] = "Stimulated Comments"
+	cats[55] = "Stimulated Victim Comments"
+	return cats
+EndFunction
