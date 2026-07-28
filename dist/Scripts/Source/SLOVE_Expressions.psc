@@ -122,6 +122,12 @@ Function ApplyFaceMouthOwnership(bool faceOwnsMouth)
 	endif
 	LipSyncBlockedForFace = faceOwnsMouth
 	StorageUtil.SetIntValue(actorref, "SLOVE_FaceOwnsMouth_Expr", faceOwnsMouth as int)
+	if faceOwnsMouth && AudioUtil.IsLipSyncActive(actorref)
+		;blockLipSync gates only lines started from now on - also stop the
+		;in-flight envelope so the currently playing line can't keep flapping
+		;the jaw over the face that just claimed the mouth
+		AudioUtil.StopLipSync(actorref)
+	endif
 	printdebug("Climax/ahegao face mouth ownership - lipsync blocked = " + faceOwnsMouth)
 EndFunction
 
@@ -311,7 +317,12 @@ Bool Function FullExpressionPass()
 
 	;Check if should add tongue or ahegao
 	if !IsBroken() && HasMFEE && EnabledMFEEAhegao == 1
-		MFEEAddAhegao = false
+		if MFEEAddAhegao
+			MFEEAddAhegao = false
+			;retract the painted ahegao - clearing the flag alone leaves the MFEE
+			;morph at 100 until scene-end RevertExpression
+			MuFacialExpressionExtended.SetExpressionByNumber(actorref, 0, 0, 0)
+		endif
 	endif
 
 	if IsSuckingoffOther() && removetongueonblowjob == 1
@@ -373,11 +384,11 @@ Bool Function FullExpressionPass()
 
 	;MFEE side effects, hoisted out of the per-cell loops so they run once per cycle
 	if MFEEAddAhegao
-		if MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,1) != 100
+		if MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 100
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,100) ;ahegao 1
 		endif
 		;make sure tongue out and tongue down is not applied as ahegao already has tongue out and down
-		if MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,8,0) != 0 || MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,2,0) != 0
+		if MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,8,0) != 0 || MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,8,2) != 0
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,8,0,0) ;tongueout
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,8,2,0) ;tongue down
 		endif
@@ -387,7 +398,7 @@ Bool Function FullExpressionPass()
 	else
 		if !mouthblowjob && MFEEAddTongue
 			;apply MFEE tongue out and down
-			if MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,8,0) != 100 || MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,2,0) != 100
+			if MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,8,0) != 100 || MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,8,2) != 100
 				MuFacialExpressionExtended.SetExpressionByNumber(actorref,8,0,100) ;tongueout
 				MuFacialExpressionExtended.SetExpressionByNumber(actorref,8,2,100) ;tongue down
 			endif
@@ -397,6 +408,10 @@ Bool Function FullExpressionPass()
 		;the MFEE expression-0 ahegao painted on top here
 		if enableahegao == 1 && brokenface && HasMFEEVanillaRace && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 100
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,100) ;ahegao 1
+		elseif HasMFEEVanillaRace && (!brokenface || enableahegao != 1) && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 0
+			;the broken face ended mid-scene - retract the painted ahegao (it
+			;otherwise persists until scene-end RevertExpression)
+			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,0)
 		endif
 	endif
 
@@ -881,6 +896,11 @@ Function RemoveTongue()
 
 	if HasMFEE && MFEEAddTongue
 		MFEEAddTongue = false
+		;clearing the flag only stops re-asserting the tongue - the painted MFEE
+		;morphs persist until scene-end RevertExpression, so retract them now
+		;(blowjob, jaw gate and the ahegao yields all expect it actually gone)
+		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 0, 0) ;tongue out
+		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 2, 0) ;tongue down
 	else
 		if EquippedTongue()
 
