@@ -75,5 +75,40 @@ Install order: SexLab 1.63 - SLSO - SLATE + tags - AudioUtil - voice packs - SLO
       </optionalFileGroups>
     </installStep>
 
+    <installStep name="Compatibility">
+      <optionalFileGroups order="Explicit">
+
+        <group name="Precision Penetration Adjustment (PPA)" type="SelectAny">
+          <plugins order="Explicit">
+
+            <plugin name="Silence contact SFX (for PPA users)">
+              <description>
+Check this ONLY if you run PPA (Accurate Penetration). PPA plays its own
+physics-driven thrust audio, so without this option you hear doubled contact
+sounds - SLO VE's clap/slushing/impact/blowjob SFX on top of PPA's.
+
+This option overrides those ten SFX folders (blowjob, FastClap, HeavySlushing,
+Impact, LightSlushing, MediumClap, MediumSlushing, RapidSlushing, SlowClap,
+WetSlush) with silent files of identical length, leaving everything PPA does
+NOT cover - kissing, ejaculation, gape and all voices - fully audible.
+
+Leave unchecked if you do not use PPA, or you will lose all contact SFX.
+
+Based on the silent-SFX replacer approach by DuskWanderer.
+              </description>
+              <files>
+                <folder source="PPACompat" destination="" priority="2" />
+              </files>
+              <typeDescriptor>
+                <type name="Optional" />
+              </typeDescriptor>
+            </plugin>
+
+          </plugins>
+        </group>
+
+      </optionalFileGroups>
+    </installStep>
+
   </installSteps>
 </config>

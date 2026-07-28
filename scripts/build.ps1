@@ -131,6 +131,42 @@ function Build-Fomod {
         Write-Warning 'dist-classic not built - FOMOD will offer only the P+ option'
     }
 
+    # PPACompat = silent twins of the contact-SFX folders that collide with PPA's
+    # own thrust audio (idea + folder set by DuskWanderer). Generated, not stored:
+    # each shipped wav is copied and its PCM data chunk zeroed, so format and
+    # DURATION are preserved - the SFX loop paces itself with PlaySFXAndWait, so a
+    # shorter silent file would speed the loop up. Kissing / Ejaculation / Gape
+    # stay audible on purpose: PPA does not cover them.
+    $ppaFolders = @('blowjob', 'FastClap', 'HeavySlushing', 'Impact', 'LightSlushing',
+                    'MediumClap', 'MediumSlushing', 'RapidSlushing', 'SlowClap', 'WetSlush')
+    $sfxRoot = Join-Path $root 'dist\Sound\fx\SloveSFX'
+    $script:ppaCount = 0   # $script: scope - ForEach-Object body below can't see a plain local
+    foreach ($pf in $ppaFolders) {
+        $src = Join-Path $sfxRoot $pf
+        if (-not (Test-Path $src)) { Write-Warning "PPACompat: SFX folder missing: $src"; continue }
+        Get-ChildItem $src -Recurse -Filter '*.wav' | ForEach-Object {
+            $rel = $_.FullName.Substring($sfxRoot.Length + 1)
+            $out = Join-Path $stage "PPACompat\Sound\fx\SloveSFX\$rel"
+            New-Item -ItemType Directory -Force (Split-Path $out) | Out-Null
+            $bytes = [System.IO.File]::ReadAllBytes($_.FullName)
+            # walk RIFF chunks to the data chunk, zero its payload
+            $pos = 12
+            while ($pos + 8 -le $bytes.Length) {
+                $id = [System.Text.Encoding]::ASCII.GetString($bytes, $pos, 4)
+                $size = [BitConverter]::ToUInt32($bytes, $pos + 4)
+                if ($id -eq 'data') {
+                    $end = [Math]::Min($pos + 8 + $size, $bytes.Length)
+                    [Array]::Clear($bytes, $pos + 8, $end - ($pos + 8))
+                    break
+                }
+                $pos += 8 + $size + ($size % 2)   # chunks are word-aligned
+            }
+            [System.IO.File]::WriteAllBytes($out, $bytes)
+            $script:ppaCount++
+        }
+    }
+    Write-Host "PPACompat: $($script:ppaCount) silent SFX twins generated" -ForegroundColor Cyan
+
     # Release archives are named SLO_VE_v<version>.zip. The version is read from
     # fomod\info.xml so there is a single source of truth and the archive name can
     # never drift from what the installer reports.
