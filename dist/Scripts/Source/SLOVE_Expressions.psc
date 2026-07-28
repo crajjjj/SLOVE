@@ -1329,7 +1329,14 @@ Armor function GetTongueType()
 	if isplayer
 		TongueType = FHUTongueType
 	elseif enablenpctongue == 1
-		TongueType = JsonUtil.GetIntValue(NPCTongueFile, name, 99)
+		;named entry wins (-1 opts that NPC out); unlisted NPCs fall back to the
+		;configured fhutonguetype instead of getting no tongue at all - the old
+		;default of 99 meant every unlisted NPC silently lost the tongue (CUN
+		;label fired, AddTongue ran, but there was no armor to equip)
+		TongueType = JsonUtil.GetIntValue(NPCTongueFile, name, 0)
+		if TongueType == 0
+			TongueType = FHUTongueType
+		endif
 	endif
 
 	;sr_fillherup tongue armors are sequential: type 1..10 = 0x263B2..0x263BB
