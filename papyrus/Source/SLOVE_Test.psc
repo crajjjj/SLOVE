@@ -6,6 +6,9 @@ Scriptname SLOVE_Test Hidden
 
 ;Check every category the engines can request against an installed slot.
 ;Prints missing ones to the console; ends with a found/total summary.
+;With AudioUtil API v3+ each resolving category is also attributed to the slot
+;that actually supplies it, so a pack that "resolves" everything purely via its
+;fallback slot (stock moans) is visible at a glance instead of looking healthy.
 Function AuditVoicePack(String slot) Global
 	String[] cats
 	if StringUtil.Substring(slot, 0, 1) == "F" || StringUtil.Substring(slot, 0, 1) == "f"
@@ -13,17 +16,33 @@ Function AuditVoicePack(String slot) Global
 	else
 		cats = SLOVE_VoiceCategories.AllMaleCategories()
 	endif
+	bool haveSource = AudioUtil.GetAPIVersion() >= 3
 	int found = 0
+	int inPack = 0
+	String src = ""
 	int i = 0
 	while i < cats.length
 		if AudioUtil.CategoryExists(slot, cats[i])
 			found += 1
+			if haveSource
+				src = AudioUtil.GetResolvingSlot(slot, cats[i])
+				;slot ids are case-insensitive; compare via Find (case-insensitive) not ==
+				if StringUtil.GetLength(src) == StringUtil.GetLength(slot) && StringUtil.Find(src, slot) == 0
+					inPack += 1
+				else
+					MiscUtil.PrintConsole("SLOVE audit " + slot + ": " + cats[i] + " <- backfill from " + src)
+				endif
+			endif
 		else
 			MiscUtil.PrintConsole("SLOVE audit " + slot + ": MISSING " + cats[i])
 		endif
 		i += 1
 	endwhile
-	MiscUtil.PrintConsole("SLOVE audit " + slot + ": " + found + "/" + cats.length + " categories resolve")
+	if haveSource
+		MiscUtil.PrintConsole("SLOVE audit " + slot + ": " + found + "/" + cats.length + " categories resolve (" + inPack + " in-pack, " + (found - inPack) + " backfilled)")
+	else
+		MiscUtil.PrintConsole("SLOVE audit " + slot + ": " + found + "/" + cats.length + " categories resolve")
+	endif
 EndFunction
 
 ;Play one clip from an explicit slot/category at the player.

@@ -181,4 +181,4 @@ SLOVE_Test SampleCategory F1 Orgasm       ; play one clip from a slot/category r
 au reload                        ; re-read the TOMLs and rescan folders, live
 ```
 
-`AuditVoicePack` loops the full category list for that sex (71 female / 15 male) against the slot **after** aliases and fallbacks, so a healthy pack reports `71/71 categories resolve` even if the pack itself only ships 20 folders.
+`AuditVoicePack` loops the full category list for that sex (71 female / 15 male) against the slot **after** aliases and fallbacks, so a healthy pack reports `71/71 categories resolve` even if the pack itself only ships 20 folders. With AudioUtil **0.9.4+** the summary also splits `(n in-pack, m backfilled)` and prints a `<- backfill from F0` line per backfilled category — so "everything resolves" and "everything resolves *from the pack*" are no longer the same claim. A pack that scans wrong (bad path, extra nesting, deleted `SLOVE_zpack_*.toml`) shows up as `0 in-pack` while still playing stock moans.

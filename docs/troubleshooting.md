@@ -36,7 +36,7 @@ SLOVE_Config Reload                        ; re-read SLOVE.toml
 au reload                     ; re-read the AudioUtil TOMLs and rescan folders
 ```
 
-`AuditVoicePack` picks the female or male category list from the slot id's first letter (`F…` → female, otherwise male).
+`AuditVoicePack` picks the female or male category list from the slot id's first letter (`F…` → female, otherwise male). With AudioUtil **0.9.4+** it also attributes every resolving category to the slot that actually supplies it — `<- backfill from F0` lines plus an `(n in-pack, m backfilled)` summary — so a pack that only *appears* healthy because everything backfills from the stock moans is visible at a glance.
 
 ## Nothing happens at all
 
@@ -103,7 +103,7 @@ If those lines look healthy and you still hear nothing, work the console command
 1. Are the WAVs **loose** — not inside a BSA? Folder scans cannot see into archives.
 2. Are they at exactly `Data\Sound\fx\SLOVE\F1\<Category>\*.wav`? A pack that installs one level too deep (`…\F1\F1\…`) scans as nothing.
 3. `au reload` — a fresh install needs a rescan (or a game restart).
-4. `SLOVE_Test AuditVoicePack F1` — a healthy pack reports a high `n/71`, because missing categories backfill from the stock moans. **All** missing means the path is wrong.
+4. `SLOVE_Test AuditVoicePack F1` — a healthy pack reports a high `n/71`, because missing categories backfill from the stock moans. **All** missing means the path is wrong. With AudioUtil **0.9.4+** the summary splits into `(n in-pack, m backfilled)` — **`0 in-pack` is the smoking gun** for "audio plays but it's never the pack": the pack folders aren't being scanned (wrong path / nesting) or the slot lost its pack config (e.g. a Variation-B pack whose `SLOVE_zpack_*.toml` was deleted, so the B folder names never match).
 5. `SLOVE_Test SampleCategory F1 Orgasm` — `handle=0` = nothing resolved for that category.
 6. Did an update overwrite your `SLOVE_voices.toml` edits? Move them into [your own overlay](packs/female.md#keeping-your-edits-across-updates).
 

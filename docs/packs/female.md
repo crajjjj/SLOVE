@@ -167,7 +167,7 @@ Full details: [Configuration Overview](../config/index.md).
 
 1. `au reload` — did the parse succeed? (check `AudioUtil.log`)
 2. `SLOVE_Test DumpState` — is the player actually on `F1`?
-3. `SLOVE_Test AuditVoicePack F1` — which categories are `MISSING`?
+3. `SLOVE_Test AuditVoicePack F1` — which categories are `MISSING`? With AudioUtil 0.9.4+, is the **in-pack** count non-zero? `71/71` with `0 in-pack` means everything is stock backfill and the pack itself is never played (wrong path, extra nesting, or a Variation-B pack whose config overlay was removed).
 4. `SLOVE_Test SampleCategory F1 Orgasm` — `handle=0` means nothing resolved.
 5. Are the WAVs **loose** (not in a BSA) and under exactly `Data\Sound\fx\SLOVE\F1\<Category>\`?
 6. Is SLO VE still winning the `.toml` conflict after your last install?
