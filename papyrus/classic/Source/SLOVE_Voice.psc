@@ -2469,24 +2469,23 @@ endfunction
 
 Function ASLHandleFemaleOrgasmReactionVarB()
 
-	;chance to react after orgasm
-
+	;chance to react after orgasm - mirror the Variation-A path's guarantee: the B
+	;reaction must always voice ONE after-orgasm line. The A twin falls through to
+	;AfterOrgasmExclamations so it never goes silent; the old B body only reacted when
+	;CurrentPenetrationLvl() >= 2 AND a probability roll passed (with no else), so oral /
+	;foreplay climaxes and unlucky rolls played nothing - the "no after-orgasm" report.
+	;Both partitions collapse to the two folders every B pack ships (After Orgasm
+	;Comments [Intense]); the femdom / non-intense cases folded into the base line.
 	if IsSuckingoffOther() ;blowjob always first because muffled by cock
 
 		PlayBlowjobVarB()
 
-	elseif CurrentPenetrationLvl() >= 2
-		if	ASLIsBroken() || ASLCurrentlyintense || isHugePP || timesGaped > 8
-			;After Orgasm Comments Intense
-			PlaySound("AskForPacingBreak", mainFemaleActor, soundPriority = 1 , debugtext="After Orgasm Comments Intense")
-		elseif IsFemdom() && Utility.RandomFloat(0.0, 1.0) < ChanceToCommentononAttackingStage
-			;After Orgasm Comments
-			PlaySound("AfterOrgasmRemarks", mainFemaleActor, soundPriority = 1 , debugtext="After Orgasm Comments")
-
-		elseif !ASLCurrentlyintense && Utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
-			;After Orgasm Comments
-			PlaySound("AfterOrgasmRemarks", mainFemaleActor, soundPriority = 1 , debugtext="After Orgasm Comments")
-		endif
+	elseif ASLIsBroken() || ASLCurrentlyintense || isHugePP || timesGaped > 8
+		;After Orgasm Comments Intense
+		PlaySound("AskForPacingBreak", mainFemaleActor, soundPriority = 1 , debugtext="After Orgasm Comments Intense")
+	else
+		;After Orgasm Comments (guaranteed base line)
+		PlaySound("AfterOrgasmRemarks", mainFemaleActor, soundPriority = 1 , debugtext="After Orgasm Comments")
 	endif
 
 	ReacttoFemaleOrgasmNext = false

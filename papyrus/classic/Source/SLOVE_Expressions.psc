@@ -367,7 +367,7 @@ Bool Function FullExpressionPass()
 	;the orgasm / huge-partner ahegao face owns the open mouth this pass - hand it
 	;the jaw by blocking lipsync (else a playing line lipsyncs over the climax
 	;face). Released automatically once neither is active any more.
-	ApplyFaceMouthOwnership(IsOrgasming || brokenface || MFEEAddAhegao)
+	ApplyFaceMouthOwnership(IsOrgasming || brokenface || MFEEAddAhegao || MFEEAddTongue)
 
 	float[] result = BuildTickPreset(GetCachedPhase(Phase), varPct, mouthblowjob, brokenface)
 
