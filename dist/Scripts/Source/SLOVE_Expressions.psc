@@ -1429,7 +1429,11 @@ Function HentairimUpdateStageData()
 		EndIf
 
 		if EquippedTongue()
-			if Utility.RandomInt(1,2) == 1
+			;the 50% retract roll is for the RANDOM tongue (intense/attacking rolls) -
+			;the cunnilingus tongue is deterministic while the act lasts, so don't
+			;strip it mid-lick (the MFEE morph path already survives this roll by
+			;construction: EquippedTongue() only sees the armor tongue)
+			if !(IsCunnilingus() && cunusetongue == 1) && Utility.RandomInt(1,2) == 1
 				RemoveTongue()
 			EndIf
 		else

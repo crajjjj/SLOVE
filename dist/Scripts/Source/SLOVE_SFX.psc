@@ -922,10 +922,12 @@ EndFunction
 Bool PrevContactPenetrating
 Bool PrevContactKissing
 Bool PrevContactSucked
+Bool PrevContactCunni
 Float ContactPenStartTime
 Float ContactPenLastSeen
 Float ContactKisLastSeen
 Float ContactSuckLastSeen
+Float ContactCunniLastSeen
 Actor LastPenReceiver
 
 ;edge one-shots get their own instance slot: PlaySound()'s channel is the lane
@@ -1055,6 +1057,32 @@ Function ProcessContactEdges()
 	elseif PrevContactSucked && now - ContactSuckLastSeen >= 0.5
 		PrevContactSucked = false
 	endif
+
+	;--- cunnilingus start (actorref licking a female partner) ---
+	;aOral with a FEMALE oral target = cunnilingus; a male target is a blowjob
+	;(handled by the oral edge above), so the gender gate keeps the two apart -
+	;the same rule the Director's OralLabel bridge uses to assign "CUN". No SLPP
+	;cunnilingus flag exists, so it shares the kiss SFX (a wet mouth sound).
+	bool cun = false
+	if f[12] ;aOral - actorref's mouth is active on a partner
+		Actor lickTarget = CurrentThread.GetPartnerByTypeRev(actorref, 3)
+		cun = lickTarget != none && Sexlab.GetGender(lickTarget) % 2 == 1
+	endif
+	if cun
+		ContactCunniLastSeen = now
+		if !PrevContactCunni
+			PrevContactCunni = true
+			;same guard as the kiss/oral edges: only fire when the label system has
+			;NOT already classified the act - once OralLabel is CUN the steady-state
+			;cadence loops this same sound, and the one-shot would stack on top
+			if !IsCunnilingus() && Kissing != ""
+				printdebug("Contact edge: cunnilingus started (kiss SFX)")
+				PlayContactSound(Kissing, actorref)
+			endif
+		endif
+	elseif PrevContactCunni && now - ContactCunniLastSeen >= 0.5
+		PrevContactCunni = false
+	endif
 EndFunction
 ;-------------------------------Contact Edge SFX END---------------------------------
 
@@ -1132,7 +1160,7 @@ Function SFXRefreshSound()
 
 	elseif IsCunnilingus()
 		printdebug("IsCunnilingus" )
-		SFXtoPlay = LightSlushing
+		SFXtoPlay = Kissing ; cunnilingus shares the kiss (wet mouth) SFX
 	elseif IsKissing()
 		printdebug("IsKissing" )
 		SFXtoPlay = Kissing

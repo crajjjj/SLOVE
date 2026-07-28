@@ -796,7 +796,7 @@ Function SFXRefreshSound()
 
 	elseif IsCunnilingus()
 		printdebug("IsCunnilingus" )
-		SFXtoPlay = LightSlushing
+		SFXtoPlay = Kissing ; cunnilingus shares the kiss (wet mouth) SFX
 	elseif IsKissing()
 		printdebug("IsKissing" )
 		SFXtoPlay = Kissing
