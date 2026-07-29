@@ -925,6 +925,7 @@ Function AddTongue()
 						actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
 					endif
 					actorref.EquipItem(FHUTongueTypeArmor, true, true)
+					WaitForTongueNode()
 				endif
 				PO3_SKSEFunctions.ToggleChildNode(actorref, FHUTongueNodeName, false)
 				FHUTongueShown = true
@@ -957,20 +958,21 @@ Function RemoveTongue()
 	endif
 endfunction
 
-;scene-end teardown for the FHU tongue: it stayed worn (hidden) all scene -
-;NOW unequip and remove it; the scene is over, a redress no longer matters
+;scene-end teardown for the FHU tongue: unequip only - the item deliberately
+;STAYS in the inventory (NonPlayable, weightless, invisible in menus), so
+;later scenes never AddItem again: inventory CHANGES are what wake the NPC
+;outfit AI (redress), a plain EquipItem of an already-carried item is not
 Function CleanupTongueItem()
 	FHUTongueShown = false
-	if FHUTongueTypeArmor && actorref.GetItemCount(FHUTongueTypeArmor) > 0
+	if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
 		actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
-		actorref.removeItem(FHUTongueTypeArmor, actorref.GetItemCount(FHUTongueTypeArmor), abSilent=true)
 	endif
 endfunction
 
 ;Equip the rolled FHU tongue ONCE at scene start and park it hidden. All
 ;mid-scene show/hide is then a PO3 node-visibility toggle with zero
 ;inventory/equip traffic - the NPC outfit AI (which re-dresses stripped NPCs
-;on equip changes) never wakes up mid-scene.
+;on inventory changes) never wakes up mid-scene.
 Function EquipTongueBase()
 	FHUTongueShown = false
 	if !FHUTongueTypeArmor || FHUTongueNodeName == ""
@@ -979,18 +981,47 @@ Function EquipTongueBase()
 	if HasMFEE && EnabledMFEETongue == 1
 		return ;MFEE tongue is a morph, the armor is never used
 	endif
+	bool addedNow = false
 	if actorref.GetItemCount(FHUTongueTypeArmor) == 0
 		actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+		addedNow = true
 	endif
 	actorref.EquipItem(FHUTongueTypeArmor, true, true) ;abPreventRemoval - SexLab strapon pattern
-	;3D attach is async - wait for the tongue shape before parking it hidden
-	;(a miss only means the tongue shows until the first RemoveTongue)
+	WaitForTongueNode()
+	HideTongueNode()
+	if enableprintdebug == 1
+		printdebug("EquipTongueBase: added=" + addedNow + " equipped=" + actorref.IsEquipped(FHUTongueTypeArmor) + " node(" + FHUTongueNodeName + ")=" + NetImmerse.HasNode(actorref, FHUTongueNodeName, false))
+	endif
+	if addedNow && !isplayer
+		;the AddItem inventory change can wake the NPC outfit AI (redress) - ask
+		;SexLab to re-strip with the scene's own settings. Re-stripped gear is
+		;merged into the alias equipment list, so it comes back at scene end;
+		;the tongue survives the strip (NonPlayable items are never stripped).
+		;Only ever fires on the actor's FIRST tongue scene: the item stays in
+		;the inventory across scenes now
+		sslThreadModel model = CurrentThread as sslThreadModel
+		if model
+			sslActorAlias slAlias = model.ActorAlias(actorref)
+			if slAlias
+				slAlias.Strip()
+				;Strip() queues a NiNode rebuild - the rebuilt tongue node spawns
+				;visible, so park it again
+				WaitForTongueNode()
+				HideTongueNode()
+				printdebug("EquipTongueBase: post-add re-strip done")
+			endif
+		endif
+	endif
+EndFunction
+
+;3D attach after EquipItem (and rebuilds after QueueNiNodeUpdate) is async -
+;wait for the tongue shape to exist before toggling it (up to ~1.5s)
+Function WaitForTongueNode()
 	int tries = 0
-	while tries < 10 && !NetImmerse.HasNode(actorref, FHUTongueNodeName, false)
+	while tries < 15 && !NetImmerse.HasNode(actorref, FHUTongueNodeName, false)
 		Utility.Wait(0.1)
 		tries += 1
 	endwhile
-	HideTongueNode()
 EndFunction
 
 ;hidden-flag re-assert lives in its own helper: also called per gate tick while
