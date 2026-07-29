@@ -56,6 +56,7 @@ Function PerformInitialization()
 	ResetHentaiExpressionGroup()
 	HentairimPrepare()
 	CheckHasMFEE()
+	EquipTongueBase()
 	printdebug("initialized complete")
 	RegisterForSingleUpdate(0.1)
 EndFunction
@@ -716,6 +717,9 @@ Function UpdateTongueJawGate()
 
 	if !(MFEEAddTongue || EquippedTongue())
 		TongueClosedTicks = 0
+		;re-assert the parked tongue's hidden flag - a mid-scene 3D rebuild
+		;(armor swap, RaceMenu edit) resets node flags and would pop it visible
+		HideTongueNode()
 		return
 	endif
 
@@ -854,16 +858,18 @@ endfunction
 
 
 Bool Function EquippedTongue()
-	if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
+	;semantic: a tongue is visibly OUT via worn armor. Ours is worn (hidden)
+	;for the whole scene, so worn alone no longer means shown - the flag does
+	if FHUTongueShown
 		return true
 	endif
 	;FHU equips tongue armors on its own (inflation ahegao), and not necessarily
-	;the variant we rolled - spot any of the ten via their shared worn slot
+	;the variant we rolled - spot any foreign variant via their shared worn slot
 	if FHUTongueSlotMask == 0
 		return false
 	endif
 	Form worn = actorref.GetWornForm(FHUTongueSlotMask)
-	if !worn
+	if !worn || worn == FHUTongueTypeArmor
 		return false
 	endif
 	int i = 0
@@ -908,16 +914,20 @@ Function AddTongue()
 		if Game.GetModByName("sr_fillherup.esp") != 255
 			printdebug("AddTongue: sr_fillherup.esp detected, equipping FHUTongueTypeArmor if available.")
 			if FHUTongueTypeArmor
-				printdebug("AddTongue: Equipping FHUTongueTypeArmor=" + FHUTongueTypeArmor)
-				;abPreventRemoval=true is the SexLab strapon equip pattern - without
-				;it, equipping on a stripped scene NPC makes her outfit AI re-dress
-				;her in her armor. Also don't re-add if a mid-scene retract left the
-				;item in inventory (mid-scene RemoveTongue only unequips; the item
-				;itself is removed once, at scene end)
-				if actorref.GetItemCount(FHUTongueTypeArmor) == 0
-					actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+				printdebug("AddTongue: Showing FHUTongueTypeArmor=" + FHUTongueTypeArmor)
+				;the armor was equipped hidden at scene start (EquipTongueBase) -
+				;showing it is a pure node toggle, no inventory/equip traffic, so
+				;the NPC outfit AI never redresses mid-scene. Re-equip only as a
+				;fallback if something knocked it out of the slot (e.g. FHU's own
+				;inflation-ahegao tongue took the slot and was removed again)
+				if !actorref.IsEquipped(FHUTongueTypeArmor)
+					if actorref.GetItemCount(FHUTongueTypeArmor) == 0
+						actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+					endif
+					actorref.EquipItem(FHUTongueTypeArmor, true, true)
 				endif
-				actorref.EquipItem(FHUTongueTypeArmor, true, true)
+				PO3_SKSEFunctions.ToggleChildNode(actorref, FHUTongueNodeName, false)
+				FHUTongueShown = true
 			else
 				printdebug("AddTongue: FHUTongueTypeArmor not defined, skipping equip.")
 			endif
@@ -937,20 +947,57 @@ Function RemoveTongue()
 		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 0, 0) ;tongue out
 		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 2, 0) ;tongue down
 	else
-		if EquippedTongue()
-			;unequip only - removing the item mid-scene is an inventory change
-			;that can trigger the NPC's outfit AI (re-dress). The item itself is
-			;cleaned out of the inventory at scene end (RemoveExpressions)
-			actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
+		if FHUTongueShown
+			;park the tongue hidden instead of unequipping - mid-scene equip
+			;traffic is what woke the NPC outfit AI (redress). The armor stays
+			;worn; CleanupTongueItem takes it off at scene end
+			HideTongueNode()
+			FHUTongueShown = false
 		endif
 	endif
 endfunction
 
-;scene-end inventory cleanup for the FHU tongue: safe to touch the inventory
-;now, the scene is over and a redress no longer matters
+;scene-end teardown for the FHU tongue: it stayed worn (hidden) all scene -
+;NOW unequip and remove it; the scene is over, a redress no longer matters
 Function CleanupTongueItem()
+	FHUTongueShown = false
 	if FHUTongueTypeArmor && actorref.GetItemCount(FHUTongueTypeArmor) > 0
-		actorref.removeItem(FHUTongueTypeArmor, abSilent=true)
+		actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
+		actorref.removeItem(FHUTongueTypeArmor, actorref.GetItemCount(FHUTongueTypeArmor), abSilent=true)
+	endif
+endfunction
+
+;Equip the rolled FHU tongue ONCE at scene start and park it hidden. All
+;mid-scene show/hide is then a PO3 node-visibility toggle with zero
+;inventory/equip traffic - the NPC outfit AI (which re-dresses stripped NPCs
+;on equip changes) never wakes up mid-scene.
+Function EquipTongueBase()
+	FHUTongueShown = false
+	if !FHUTongueTypeArmor || FHUTongueNodeName == ""
+		return
+	endif
+	if HasMFEE && EnabledMFEETongue == 1
+		return ;MFEE tongue is a morph, the armor is never used
+	endif
+	if actorref.GetItemCount(FHUTongueTypeArmor) == 0
+		actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+	endif
+	actorref.EquipItem(FHUTongueTypeArmor, true, true) ;abPreventRemoval - SexLab strapon pattern
+	;3D attach is async - wait for the tongue shape before parking it hidden
+	;(a miss only means the tongue shows until the first RemoveTongue)
+	int tries = 0
+	while tries < 10 && !NetImmerse.HasNode(actorref, FHUTongueNodeName, false)
+		Utility.Wait(0.1)
+		tries += 1
+	endwhile
+	HideTongueNode()
+EndFunction
+
+;hidden-flag re-assert lives in its own helper: also called per gate tick while
+;parked, because an actor 3D rebuild (armor swap, RaceMenu) resets node flags
+Function HideTongueNode()
+	if FHUTongueNodeName != "" && FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
+		PO3_SKSEFunctions.ToggleChildNode(actorref, FHUTongueNodeName, true)
 	endif
 endfunction
 
@@ -1345,6 +1392,8 @@ Function InitializeAddNPCTongue()
 endfunction
 
 armor FHUTongueTypeArmor
+string FHUTongueNodeName = "" ;BSTriShape name inside the rolled linga nif ("Tongue" / "Tongue_2".."Tongue_10")
+bool FHUTongueShown = false   ;the worn tongue's node is currently visible
 
 Armor function GetTongueType()
 
@@ -1364,8 +1413,15 @@ Armor function GetTongueType()
 	endif
 
 	;sr_fillherup tongue armors are sequential: type 1..10 = 0x263B2..0x263BB
+	FHUTongueNodeName = ""
 	if TongueType >= 1 && TongueType <= 10
 		Tongue = Game.GetFormFromFile(0x263B1 + TongueType, "sr_fillherup.esp") as Armor
+		;shape name inside the linga nif - the node PO3 toggles to show/hide
+		if TongueType == 1
+			FHUTongueNodeName = "Tongue"
+		else
+			FHUTongueNodeName = "Tongue_" + TongueType
+		endif
 	endif
 
 	FHUTongueTypeArmor = Tongue

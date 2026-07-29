@@ -56,6 +56,7 @@ Function PerformInitialization()
 	ResetHentaiExpressionGroup()
 	HentairimPrepare()
 	CheckHasMFEE()
+	EquipTongueBase()
 	printdebug("initialized complete")
 	RegisterForSingleUpdate(0.1)
 EndFunction
@@ -716,6 +717,9 @@ Function UpdateTongueJawGate()
 
 	if !(MFEEAddTongue || EquippedTongue())
 		TongueClosedTicks = 0
+		;re-assert the parked tongue's hidden flag - a mid-scene 3D rebuild
+		;(armor swap, RaceMenu edit) resets node flags and would pop it visible
+		HideTongueNode()
 		return
 	endif
 
@@ -854,16 +858,18 @@ endfunction
 
 
 Bool Function EquippedTongue()
-	if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
+	;semantic: a tongue is visibly OUT via worn armor. Ours is worn (hidden)
+	;for the whole scene, so worn alone no longer means shown - the flag does
+	if FHUTongueShown
 		return true
 	endif
 	;FHU equips tongue armors on its own (inflation ahegao), and not necessarily
-	;the variant we rolled - spot any of the ten via their shared worn slot
+	;the variant we rolled - spot any foreign variant via their shared worn slot
 	if FHUTongueSlotMask == 0
 		return false
 	endif
 	Form worn = actorref.GetWornForm(FHUTongueSlotMask)
-	if !worn
+	if !worn || worn == FHUTongueTypeArmor
 		return false
 	endif
 	int i = 0
@@ -908,16 +914,20 @@ Function AddTongue()
 		if Game.GetModByName("sr_fillherup.esp") != 255
 			printdebug("AddTongue: sr_fillherup.esp detected, equipping FHUTongueTypeArmor if available.")
 			if FHUTongueTypeArmor
-				printdebug("AddTongue: Equipping FHUTongueTypeArmor=" + FHUTongueTypeArmor)
-				;abPreventRemoval=true is the SexLab strapon equip pattern - without
-				;it, equipping on a stripped scene NPC makes her outfit AI re-dress
-				;her in her armor. Also don't re-add if a mid-scene retract left the
-				;item in inventory (mid-scene RemoveTongue only unequips; the item
-				;itself is removed once, at scene end)
-				if actorref.GetItemCount(FHUTongueTypeArmor) == 0
-					actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+				printdebug("AddTongue: Showing FHUTongueTypeArmor=" + FHUTongueTypeArmor)
+				;the armor was equipped hidden at scene start (EquipTongueBase) -
+				;showing it is a pure node toggle, no inventory/equip traffic, so
+				;the NPC outfit AI never redresses mid-scene. Re-equip only as a
+				;fallback if something knocked it out of the slot (e.g. FHU's own
+				;inflation-ahegao tongue took the slot and was removed again)
+				if !actorref.IsEquipped(FHUTongueTypeArmor)
+					if actorref.GetItemCount(FHUTongueTypeArmor) == 0
+						actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+					endif
+					actorref.EquipItem(FHUTongueTypeArmor, true, true)
 				endif
-				actorref.EquipItem(FHUTongueTypeArmor, true, true)
+				PO3_SKSEFunctions.ToggleChildNode(actorref, FHUTongueNodeName, false)
+				FHUTongueShown = true
 			else
 				printdebug("AddTongue: FHUTongueTypeArmor not defined, skipping equip.")
 			endif
@@ -937,21 +947,81 @@ Function RemoveTongue()
 		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 0, 0) ;tongue out
 		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 2, 0) ;tongue down
 	else
-		if EquippedTongue()
-			;unequip only - removing the item mid-scene is an inventory change
-			;that can trigger the NPC's outfit AI (re-dress). The item itself is
-			;cleaned out of the inventory at scene end (RemoveExpressions)
-			actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
+		if FHUTongueShown
+			;park the tongue hidden instead of unequipping - mid-scene equip
+			;traffic is what woke the NPC outfit AI (redress). The armor stays
+			;worn; CleanupTongueItem takes it off at scene end
+			HideTongueNode()
+			FHUTongueShown = false
 		endif
 	endif
 endfunction
 
-;scene-end inventory cleanup for the FHU tongue: safe to touch the inventory
-;now, the scene is over and a redress no longer matters
+;scene-end teardown for the FHU tongue: it stayed worn (hidden) all scene -
+;NOW unequip and remove it; the scene is over, a redress no longer matters
 Function CleanupTongueItem()
+	FHUTongueShown = false
 	if FHUTongueTypeArmor && actorref.GetItemCount(FHUTongueTypeArmor) > 0
-		actorref.removeItem(FHUTongueTypeArmor, abSilent=true)
+		actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
+		actorref.removeItem(FHUTongueTypeArmor, actorref.GetItemCount(FHUTongueTypeArmor), abSilent=true)
 	endif
+endfunction
+
+;Equip the rolled FHU tongue ONCE at scene start and park it hidden. All
+;mid-scene show/hide is then a PO3 node-visibility toggle with zero
+;inventory/equip traffic - the NPC outfit AI (which re-dresses stripped NPCs
+;on equip changes) never wakes up mid-scene.
+Function EquipTongueBase()
+	FHUTongueShown = false
+	if !FHUTongueTypeArmor || FHUTongueNodeName == ""
+		return
+	endif
+	if HasMFEE && EnabledMFEETongue == 1
+		return ;MFEE tongue is a morph, the armor is never used
+	endif
+	if actorref.GetItemCount(FHUTongueTypeArmor) == 0
+		actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+	endif
+	actorref.EquipItem(FHUTongueTypeArmor, true, true) ;abPreventRemoval - SexLab strapon pattern
+	;3D attach is async - wait for the tongue shape before parking it hidden
+	;(a miss only means the tongue shows until the first RemoveTongue)
+	int tries = 0
+	while tries < 10 && !NetImmerse.HasNode(actorref, FHUTongueNodeName, false)
+		Utility.Wait(0.1)
+		tries += 1
+	endwhile
+	HideTongueNode()
+EndFunction
+
+;hidden-flag re-assert lives in its own helper: also called per gate tick while
+;parked, because an actor 3D rebuild (armor swap, RaceMenu) resets node flags
+Function HideTongueNode()
+	if FHUTongueNodeName != "" && FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
+		PO3_SKSEFunctions.ToggleChildNode(actorref, FHUTongueNodeName, true)
+	endif
+endfunction
+
+;The oral-tongue trigger: a scene-tag GATE then the live physics flag.
+; - gate:    SceneTagLickScene (lesbian / cunnilingus / 69 / licking) - keeps the
+;            proximity flag from misfiring a tongue in an unrelated scene.
+; - physics: f[12] aOral (mouth licking/sucking a crotch) or f[13] aLickingShaft
+;            (mouth licking a shaft) - the per-actor GIVER flags, live per SLPP
+;            update. This is more precise than the CUN label: it identifies the
+;            giver directly (the receiver carries pOral/f[23], never these) and
+;            never depends on the Director's female-target resolution succeeding.
+;P+ only - classic SexLab has no GetCurrentInteractionFlags and stays on the label.
+Bool Function IsOralTongueActive()
+	if !SceneTagLickScene
+		return false
+	endif
+	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
+		return false
+	endif
+	bool[] f = CurrentThread.GetCurrentInteractionFlags(actorref)
+	if f.Length < 28
+		return false
+	endif
+	return f[12] || f[13]
 endfunction
 
 Function unequipmask(actor char)
@@ -1334,6 +1404,8 @@ Function InitializeAddNPCTongue()
 endfunction
 
 armor FHUTongueTypeArmor
+string FHUTongueNodeName = "" ;BSTriShape name inside the rolled linga nif ("Tongue" / "Tongue_2".."Tongue_10")
+bool FHUTongueShown = false   ;the worn tongue's node is currently visible
 
 Armor function GetTongueType()
 
@@ -1353,8 +1425,15 @@ Armor function GetTongueType()
 	endif
 
 	;sr_fillherup tongue armors are sequential: type 1..10 = 0x263B2..0x263BB
+	FHUTongueNodeName = ""
 	if TongueType >= 1 && TongueType <= 10
 		Tongue = Game.GetFormFromFile(0x263B1 + TongueType, "sr_fillherup.esp") as Armor
+		;shape name inside the linga nif - the node PO3 toggles to show/hide
+		if TongueType == 1
+			FHUTongueNodeName = "Tongue"
+		else
+			FHUTongueNodeName = "Tongue_" + TongueType
+		endif
 	endif
 
 	FHUTongueTypeArmor = Tongue
@@ -1394,6 +1473,7 @@ Bool IsHugePP
 ;of 3 HasSceneTag externals per expression pass
 bool SceneTagFaint = false
 bool SceneTagDoggy = false
+bool SceneTagLickScene = false ;scene classified as one where a licking tongue fits (lesbian/cunnilingus/69/licking) - GATES the live oral physics flag
 string CurrentSceneID = ""
 string currentStageID = ""
 Int currentStage = -1
@@ -1432,6 +1512,10 @@ Function HentairimUpdateStageData()
 			;new scene - refresh the per-scene tag cache
 			SceneTagFaint = CurrentThread.HasSceneTag("faint") || CurrentThread.HasSceneTag("sleep") || CurrentThread.HasSceneTag("sleeping") || CurrentThread.HasSceneTag("necro") || CurrentThread.HasSceneTag("unconscious")
 			SceneTagDoggy = CurrentThread.HasSceneTag("Doggy") || CurrentThread.HasSceneTag("Doggystyle") || CurrentThread.HasSceneTag("Doggy Style")
+			;lowercase literals: the SLSB-converted registries store tags lowercased
+			;(billyy,sex,lesbian,...) and HasSceneTag may compare exactly
+			SceneTagLickScene = CurrentThread.HasSceneTag("lesbian") || CurrentThread.HasSceneTag("ff") || CurrentThread.HasSceneTag("cunnilingus") || CurrentThread.HasSceneTag("cun") || CurrentThread.HasSceneTag("69") || CurrentThread.HasSceneTag("licking") || CurrentThread.HasSceneTag("lick")
+			printdebug("SceneTagLickScene=" + SceneTagLickScene + " for scene " + CurrentSceneID)
 		endif
 
 		UpdateLabels(actorref)
@@ -1450,16 +1534,16 @@ Function HentairimUpdateStageData()
 
 		if EquippedTongue()
 			;the 50% retract roll is for the RANDOM tongue (intense/attacking rolls) -
-			;the cunnilingus tongue is deterministic while the act lasts, so don't
-			;strip it mid-lick (the MFEE morph path already survives this roll by
-			;construction: EquippedTongue() only sees the armor tongue)
-			if !(IsCunnilingus() && cunusetongue == 1) && Utility.RandomInt(1,2) == 1
+			;the licking tongue is deterministic while the mouth is actually at the
+			;crotch/shaft (IsOralTongueActive), so don't strip it mid-lick (the MFEE
+			;morph path already survives this roll: EquippedTongue() only sees the armor)
+			if !(IsOralTongueActive() && cunusetongue == 1) && Utility.RandomInt(1,2) == 1
 				RemoveTongue()
 			EndIf
 		else
 			;this branch is the else of "if EquippedTongue()", so no re-check needed
 			if EnableTongue == 1
-				if (IsCunnilingus() && cunusetongue == 1) || ((IsIntense() || isbroken()) && IsGettingPenetrated() && rand <= chancetostickouttongueduringintense * chancemultiplier) || ((IsCowgirl() || IsGivingAnalPenetration() || IsGivingVaginalPenetration()) && !IsVictim && rand <= chancetostickouttongueduringattacking * chancemultiplier)
+				if (IsOralTongueActive() && cunusetongue == 1) || ((IsIntense() || isbroken()) && IsGettingPenetrated() && rand <= chancetostickouttongueduringintense * chancemultiplier) || ((IsCowgirl() || IsGivingAnalPenetration() || IsGivingVaginalPenetration()) && !IsVictim && rand <= chancetostickouttongueduringattacking * chancemultiplier)
 					printdebug("Adding Tongue")
 					AddTongue()
 				endif
