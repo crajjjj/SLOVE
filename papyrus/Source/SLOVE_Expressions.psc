@@ -1418,10 +1418,14 @@ Armor function GetTongueType()
 	if isplayer
 		TongueType = FHUTongueType
 	elseif enablenpctongue == 1
-		;whitelist-only: an unlisted NPC returns 99 (outside 1-10) and gets no FHU
-		;tongue - deliberate, so the tongue armor (and its outfit-redress side
-		;effect) is limited to NPCs the user explicitly lists here
-		TongueType = JsonUtil.GetIntValue(NPCTongueFile, name, 99)
+		;named entry wins (-1 opts that NPC out); unlisted NPCs fall back to the
+		;configured fhutonguetype. The old whitelist-only default (99) existed to
+		;contain the equip-driven outfit redress - gone now that show/hide is a
+		;node-visibility toggle on a tongue equipped once per scene
+		TongueType = JsonUtil.GetIntValue(NPCTongueFile, name, 0)
+		if TongueType == 0
+			TongueType = FHUTongueType
+		endif
 	endif
 
 	;sr_fillherup tongue armors are sequential: type 1..10 = 0x263B2..0x263BB
