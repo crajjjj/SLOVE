@@ -27,6 +27,7 @@ Event OnEffectFinish(Actor akTarget, Actor akCaster)
 	ApplyFaceMouthOwnership(false) ;release any lipsync block we placed
 	resetexpressions()
 	RemoveTongue()
+	CleanupTongueItem()
 EndEvent
 
 Function PerformInitialization()
@@ -739,6 +740,7 @@ function RemoveExpressions()
 	ApplyFaceMouthOwnership(false) ;release any lipsync block we placed
 	resetexpressions()
 	RemoveTongue()
+	CleanupTongueItem()
 	Spell ExpressionsSpell = Game.GetFormFromFile(0x800, "SLOVE.esp") as Spell
 	actorref.RemoveSpell(ExpressionsSpell)
 EndFunction
@@ -907,8 +909,15 @@ Function AddTongue()
 			printdebug("AddTongue: sr_fillherup.esp detected, equipping FHUTongueTypeArmor if available.")
 			if FHUTongueTypeArmor
 				printdebug("AddTongue: Equipping FHUTongueTypeArmor=" + FHUTongueTypeArmor)
-				actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
-				actorref.EquipItem(FHUTongueTypeArmor, abSilent = true)
+				;abPreventRemoval=true is the SexLab strapon equip pattern - without
+				;it, equipping on a stripped scene NPC makes her outfit AI re-dress
+				;her in her armor. Also don't re-add if a mid-scene retract left the
+				;item in inventory (mid-scene RemoveTongue only unequips; the item
+				;itself is removed once, at scene end)
+				if actorref.GetItemCount(FHUTongueTypeArmor) == 0
+					actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+				endif
+				actorref.EquipItem(FHUTongueTypeArmor, true, true)
 			else
 				printdebug("AddTongue: FHUTongueTypeArmor not defined, skipping equip.")
 			endif
@@ -929,11 +938,19 @@ Function RemoveTongue()
 		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 2, 0) ;tongue down
 	else
 		if EquippedTongue()
-
+			;unequip only - removing the item mid-scene is an inventory change
+			;that can trigger the NPC's outfit AI (re-dress). The item itself is
+			;cleaned out of the inventory at scene end (RemoveExpressions)
 			actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
-			actorref.removeItem(FHUTongueTypeArmor , abSilent=true)
-
 		endif
+	endif
+endfunction
+
+;scene-end inventory cleanup for the FHU tongue: safe to touch the inventory
+;now, the scene is over and a redress no longer matters
+Function CleanupTongueItem()
+	if FHUTongueTypeArmor && actorref.GetItemCount(FHUTongueTypeArmor) > 0
+		actorref.removeItem(FHUTongueTypeArmor, abSilent=true)
 	endif
 endfunction
 
@@ -1329,14 +1346,10 @@ Armor function GetTongueType()
 	if isplayer
 		TongueType = FHUTongueType
 	elseif enablenpctongue == 1
-		;named entry wins (-1 opts that NPC out); unlisted NPCs fall back to the
-		;configured fhutonguetype instead of getting no tongue at all - the old
-		;default of 99 meant every unlisted NPC silently lost the tongue (CUN
-		;label fired, AddTongue ran, but there was no armor to equip)
-		TongueType = JsonUtil.GetIntValue(NPCTongueFile, name, 0)
-		if TongueType == 0
-			TongueType = FHUTongueType
-		endif
+		;whitelist-only: an unlisted NPC returns 99 (outside 1-10) and gets no FHU
+		;tongue - deliberate, so the tongue armor (and its outfit-redress side
+		;effect) is limited to NPCs the user explicitly lists here
+		TongueType = JsonUtil.GetIntValue(NPCTongueFile, name, 99)
 	endif
 
 	;sr_fillherup tongue armors are sequential: type 1..10 = 0x263B2..0x263BB
