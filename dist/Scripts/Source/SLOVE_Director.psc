@@ -336,14 +336,12 @@ Event DirectorStageStart(string eventName, string argString, float argNum, form 
 	endif
 EndEvent
 
-;Presex hook: AnimationStarting fires before SexLab strips/undresses the actors.
-;ALL inventory ADDs for the FHU tongue armors happen here: if an add wakes the
-;NPC outfit AI (redress), the strip that follows moments later re-normalizes it.
-;Mid-scene show/hide in SLOVE_Expressions is then plain EquipItem/UnequipItem -
-;equipment traffic on an already-carried item never wakes the outfit AI. All
-;ten variants are pre-added (the per-scene roll happens later in Expressions):
-;they are NonPlayable, weightless, invisible in menus, and are removed again at
-;scene end (RemoveTongueItems) so nothing lingers between scenes.
+;Presex preload - ASYNC FALLBACK. The primary preload is the SLOVE_ThreadHook blocking
+;hook, which runs in SexLab's deterministic pre-strip window (OnAnimationStarting fires
+;BEFORE UndressAndStripActors). This AnimationStarting mod event is async - it only
+;*usually* beats the strip - so it stays as a backup for threads that started before the
+;hook registered, or if the hook is somehow absent. A double-add is harmless
+;(PreloadTongueArmors skips anything already carried).
 Event DirectorSceneStarting(string eventName, string argString, float argNum, form sender)
 	if SLOVE_Config.GetInt("expressions.enabletongue", 0) != 1
 		return
@@ -352,12 +350,25 @@ Event DirectorSceneStarting(string eventName, string argString, float argNum, fo
 	if !startingThread
 		return ;player scenes only, same as DirectorSceneStart
 	endif
+	PreloadTongueArmors(startingThread.GetPositions())
+EndEvent
+
+;Pre-add all ten FHU tongue-armor variants to the player (and NPCs if enabled) BEFORE
+;SexLab strips: if an add wakes the NPC outfit AI (redress), the strip that follows
+;re-normalizes it. Mid-scene show/hide in SLOVE_Expressions is then plain
+;EquipItem/UnequipItem - equipment traffic on an already-carried item never wakes the
+;outfit AI. Variants are NonPlayable, weightless, invisible in menus, removed at scene
+;end (RemoveTongueItems). Framework-free (takes Actor[]) so the blocking hook
+;(SLOVE_ThreadHook, P+) and the async DirectorSceneStarting fallback share one path.
+Function PreloadTongueArmors(Actor[] positions)
+	if SLOVE_Config.GetInt("expressions.enabletongue", 0) != 1
+		return
+	endif
 	int npcTongue = JsonUtil.GetIntValue("SLOVE/NPCTongue.json", "enablenpctongue", 0)
-	Actor[] scenePositions = startingThread.GetPositions()
 	int added = 0
 	int i = 0
-	while i < scenePositions.Length
-		Actor pos = scenePositions[i]
+	while i < positions.Length
+		Actor pos = positions[i]
 		if pos && (pos == PlayerRef || npcTongue == 1)
 			int t = 0
 			while t < 10
@@ -373,8 +384,8 @@ Event DirectorSceneStarting(string eventName, string argString, float argNum, fo
 		endif
 		i += 1
 	endwhile
-	printdebug("PRESEX preload: npcTongue=" + npcTongue + " positions=" + scenePositions.Length + " items_added=" + added)
-EndEvent
+	printdebug("PreloadTongueArmors: npcTongue=" + npcTongue + " positions=" + positions.Length + " items_added=" + added)
+EndFunction
 
 ;Director reacts when a sexlab scene start
 Event DirectorSceneStart(string eventName, string argString, float argNum, form sender)
