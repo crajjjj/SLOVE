@@ -56,7 +56,6 @@ Function PerformInitialization()
 	ResetHentaiExpressionGroup()
 	HentairimPrepare()
 	CheckHasMFEE()
-	EquipTongueBase()
 	printdebug("initialized complete")
 	RegisterForSingleUpdate(0.1)
 EndFunction
@@ -717,9 +716,6 @@ Function UpdateTongueJawGate()
 
 	if !(MFEEAddTongue || EquippedTongue())
 		TongueClosedTicks = 0
-		;re-assert the parked tongue's hidden flag - a mid-scene 3D rebuild
-		;(armor swap, RaceMenu edit) resets node flags and would pop it visible
-		HideTongueNode()
 		return
 	endif
 
@@ -803,7 +799,7 @@ Function InitializeConfigandForms()
 	Maskslots = papyrusutil.stringsplit(JsonUtil.GetStringValue(MasksFile,"maskslots","") ,",")
 	exclude = papyrusutil.stringsplit(JsonUtil.GetStringValue(MasksFile,"exclude","") ,",")
 	enabletongue =  SLOVE_Config.GetInt("expressions.enabletongue", 0)
-	fhutonguetype = SLOVE_Config.GetInt("expressions.fhutonguetype", 0)
+	fhutonguetype = SLOVE_Config.GetInt("expressions.tonguetype", 0) ;config key renamed to tonguetype; the var keeps its FHU* name for save-compat
 	removetongueonblowjob = SLOVE_Config.GetInt("expressions.removetongueonblowjob", 0)
 	cunusetongue = SLOVE_Config.GetInt("expressions.cunusetongue", 0)
 	enableahegao = SLOVE_Config.GetInt("expressions.enableahegao", 0)
@@ -858,18 +854,17 @@ endfunction
 
 
 Bool Function EquippedTongue()
-	;semantic: a tongue is visibly OUT via worn armor. Ours is worn (hidden)
-	;for the whole scene, so worn alone no longer means shown - the flag does
+	;semantic: a tongue is visibly OUT via worn armor. The tongue is equipped
+	;on demand (worn = shown), so ANY worn variant counts - ours, or one FHU
+	;equipped on its own (inflation ahegao) - via their shared worn slot
 	if FHUTongueShown
 		return true
 	endif
-	;FHU equips tongue armors on its own (inflation ahegao), and not necessarily
-	;the variant we rolled - spot any foreign variant via their shared worn slot
 	if FHUTongueSlotMask == 0
 		return false
 	endif
 	Form worn = actorref.GetWornForm(FHUTongueSlotMask)
-	if !worn || worn == FHUTongueTypeArmor
+	if !worn
 		return false
 	endif
 	int i = 0
@@ -883,6 +878,13 @@ Bool Function EquippedTongue()
 EndFunction
 
 Function AddTongue()
+	;CLASSIC: the contact tongue (shown during cunnilingus/blowjob) is P+-only - classic
+	;has no oral-contact detection to time it, so it stays off. This no-ops BOTH backends
+	;(the MFEE morph tongue and the FHU armor tongue) and the mid-scene fallback AddItem,
+	;so NPCs never receive a tongue armor here either (no redress). Ahegao is unaffected:
+	;MFEEAddAhegao is set from the broken/orgasm path and carries its own tongue-out, and
+	;it already blocks this function anyway. (Body-only gate; function kept for save-compat.)
+	return
 
 	;one mask scan per call: WearingMask walks worn slots with externals, and a
 	;printdebug ARGUMENT is evaluated even when debug is off - the old code built
@@ -911,29 +913,25 @@ Function AddTongue()
 		printdebug("AddTongue: Using MFEE tongue expression.")
 		MFEEAddTongue = true
 	else
-		if Game.GetModByName("sr_fillherup.esp") != 255
-			printdebug("AddTongue: sr_fillherup.esp detected, equipping FHUTongueTypeArmor if available.")
-			if FHUTongueTypeArmor
-				printdebug("AddTongue: Showing FHUTongueTypeArmor=" + FHUTongueTypeArmor)
-				;the armor was equipped hidden at scene start (EquipTongueBase) -
-				;showing it is a pure node toggle, no inventory/equip traffic, so
-				;the NPC outfit AI never redresses mid-scene. Re-equip only as a
-				;fallback if something knocked it out of the slot (e.g. FHU's own
-				;inflation-ahegao tongue took the slot and was removed again)
-				if !actorref.IsEquipped(FHUTongueTypeArmor)
-					if actorref.GetItemCount(FHUTongueTypeArmor) == 0
-						actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
-					endif
-					actorref.EquipItem(FHUTongueTypeArmor, true, true)
-					WaitForTongueNode()
-				endif
-				PO3_SKSEFunctions.ToggleChildNode(actorref, FHUTongueNodeName, false)
-				FHUTongueShown = true
-			else
-				printdebug("AddTongue: FHUTongueTypeArmor not defined, skipping equip.")
+		if FHUTongueTypeArmor
+			printdebug("AddTongue: Equipping FHUTongueTypeArmor=" + FHUTongueTypeArmor)
+			;show = plain EquipItem. The armor is already in the inventory:
+			;the Director pre-adds every variant in the AnimationStarting
+			;presex window (before SexLab strips), and equipment traffic on
+			;an already-carried item does not wake the NPC outfit AI - only
+			;inventory ADDs do. The AddItem below is a fallback for scenes
+			;adopted without the presex hook (mid-scene reload, missed event)
+			if actorref.GetItemCount(FHUTongueTypeArmor) == 0
+				actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
 			endif
+			;the tongues are flagged NonPlayable - plain EquipItem is a
+			;silent no-op on the PLAYER for non-playable items; EquipItemEx
+			;bypasses the playable filter and is used for everyone (uniform
+			;path, preventUnequip on, no equip sound)
+			actorref.EquipItemEx(FHUTongueTypeArmor, 0, true, false)
+			FHUTongueShown = true
 		else
-			printdebug("AddTongue: sr_fillherup.esp not detected, skipping FHU tongue.")
+			printdebug("AddTongue: FHUTongueTypeArmor not defined (tongue disabled or not rolled), skipping equip.")
 		endif
 	endif
 EndFunction
@@ -949,25 +947,38 @@ Function RemoveTongue()
 		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 2, 0) ;tongue down
 	else
 		if FHUTongueShown
-			;park the tongue hidden instead of unequipping - mid-scene equip
-			;traffic is what woke the NPC outfit AI (redress). The armor stays
-			;worn; CleanupTongueItem takes it off at scene end
-			HideTongueNode()
+			;hide = plain UnequipItem: equipment traffic on a carried item does
+			;not wake the NPC outfit AI (only inventory ADDs do, and those all
+			;happen in the presex window). CleanupTongueItem stays as the
+			;scene-end backstop
+			if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
+				actorref.UnequipItemEx(FHUTongueTypeArmor, 0, false) ;Ex mirrors the NonPlayable-safe equip, uniform for everyone
+			endif
 			FHUTongueShown = false
 		endif
 	endif
 endfunction
 
-;scene-end teardown for the FHU tongue: unequip only - the item deliberately
-;STAYS in the inventory (NonPlayable, weightless, invisible in menus), so
-;later scenes never AddItem again: inventory CHANGES are what wake the NPC
-;outfit AI (redress), a plain EquipItem of an already-carried item is not
+;scene-end teardown for the FHU tongue: unequip our worn variant only. The
+;item REMOVAL is the Director's job (RemoveTongueItems in DirectorEndScene) -
+;the tongues must not persist between scenes, and at scene end the inventory
+;traffic is harmless (the actors are redressing anyway)
 Function CleanupTongueItem()
 	FHUTongueShown = false
 	if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
-		actorref.unEquipItem(FHUTongueTypeArmor, abSilent=true)
+		actorref.UnequipItemEx(FHUTongueTypeArmor, 0, false) ;Ex mirrors the NonPlayable-safe equip, uniform for everyone
 	endif
 endfunction
+
+;=====================================================================
+;SAVE-COMPAT ONLY - do NOT call these from new code, do NOT delete them.
+;These three functions are kept BYTE-IDENTICAL to the old node-toggle build
+;purely so a save made on that build can restore a suspended call stack parked
+;inside them (WaitForTongueNode/EquipTongueBase contain Utility.Wait). Deleting
+;a function that a save has a live/suspended stack in makes that save fail to
+;load. New scenes never reach these (EquipTongueBase is no longer called from
+;PerformInitialization); the tongue is driven by presex preload + EquipItemEx.
+;=====================================================================
 
 ;Equip the rolled FHU tongue ONCE at scene start and park it hidden. All
 ;mid-scene show/hide is then a PO3 node-visibility toggle with zero
@@ -1422,8 +1433,8 @@ Function InitializeAddNPCTongue()
 endfunction
 
 armor FHUTongueTypeArmor
-string FHUTongueNodeName = "" ;BSTriShape name inside the rolled linga nif ("Tongue" / "Tongue_2".."Tongue_10")
-bool FHUTongueShown = false   ;the worn tongue's node is currently visible
+string FHUTongueNodeName = "" ;SAVE-COMPAT: retained (unused by new code) so a save made on the old node-toggle build keeps a matching script layout - removing a script variable mid-playthrough breaks save loading
+bool FHUTongueShown = false   ;we equipped the rolled tongue and it is currently worn
 
 Armor function GetTongueType()
 
@@ -1438,45 +1449,38 @@ Armor function GetTongueType()
 	elseif enablenpctongue == 1
 		;named entry wins (-1 opts that NPC out); unlisted NPCs fall back to the
 		;configured fhutonguetype. The old whitelist-only default (99) existed to
-		;contain the equip-driven outfit redress - gone now that show/hide is a
-		;node-visibility toggle on a tongue equipped once per scene
+		;contain the equip-driven outfit redress - gone now that the armors are
+		;pre-added in the presex window and mid-scene traffic is equip-only
 		TongueType = JsonUtil.GetIntValue(NPCTongueFile, name, 0)
 		if TongueType == 0
 			TongueType = FHUTongueType
 		endif
 	endif
 
-	;sr_fillherup tongue armors are sequential: type 1..10 = 0x263B2..0x263BB
-	FHUTongueNodeName = ""
+	;SLOVE tongue armors (bundled HALO HDT lingas) are sequential in SLOVE.esp:
+	;SLOVE_Tongue1Armor..10Armor = 0x000813..0x00081C, so type N = 0x000812 + N
 	if TongueType >= 1 && TongueType <= 10
-		Tongue = Game.GetFormFromFile(0x263B1 + TongueType, "sr_fillherup.esp") as Armor
-		;shape name inside the linga nif - the node PO3 toggles to show/hide
-		if TongueType == 1
-			FHUTongueNodeName = "Tongue"
-		else
-			FHUTongueNodeName = "Tongue_" + TongueType
-		endif
+		Tongue = Game.GetFormFromFile(0x000812 + TongueType, "SLOVE.esp") as Armor
 	endif
 
 	FHUTongueTypeArmor = Tongue
 	return Tongue
 endfunction
 
-;all ten FHU tongue variants and their shared biped slot mask, cached once so
-;EquippedTongue can also spot a tongue FHU itself equipped (its inflation
-;ahegao does), or a different variant than the one we rolled
+;all ten tongue variants and their shared biped slot mask, cached once so
+;EquippedTongue can also spot a tongue another mod equipped (e.g. FHU's own
+;inflation ahegao), or a different variant than the one we rolled. Names keep
+;the FHU* prefix for save-compat (renaming a script member breaks saves)
 Form[] FHUAllTongues
 int FHUTongueSlotMask = 0
 
 Function CacheFHUTongues()
 	FHUTongueSlotMask = 0
-	if Game.GetModByName("sr_fillherup.esp") == 255
-		return
-	endif
 	FHUAllTongues = new Form[10]
 	int i = 0
 	while i < 10
-		FHUAllTongues[i] = Game.GetFormFromFile(0x263B2 + i, "sr_fillherup.esp")
+		;SLOVE_Tongue{i+1}Armor = 0x000813 + i
+		FHUAllTongues[i] = Game.GetFormFromFile(0x000813 + i, "SLOVE.esp")
 		i += 1
 	endwhile
 	Armor firstTongue = FHUAllTongues[0] as Armor
@@ -1549,18 +1553,33 @@ Function HentairimUpdateStageData()
 			chancemultiplier = chancemultiplier * 2
 		EndIf
 
+		;the three tongue justifications, shared by add and retract so the two
+		;can never disagree: cunnilingus (labels), intense receiving, and
+		;attacking positions. The chance rolls only gate the ADD
+		bool oralTongue = IsCunnilingus() && cunusetongue == 1
+		bool intenseTongue = (IsIntense() || isbroken()) && IsGettingPenetrated()
+		bool attackingTongue = (IsCowgirl() || IsGivingAnalPenetration() || IsGivingVaginalPenetration()) && !IsVictim
+
+		;full tongue-decision dump: exactly why a tongue does/doesn't appear this
+		;stage - the three conditions with their sub-parts, the roll vs thresholds,
+		;and the current equipped/shown state. Gated so the string (several external
+		;calls) is only built when debugging - printdebug args evaluate even when off
+		if enableprintdebug == 1
+			printdebug("TONGUE-EVAL actor=" + actorref.GetDisplayName() + " scene=" + CurrentSceneID + " stage=" + currentstage + " equipped=" + EquippedTongue() + " shown=" + FHUTongueShown + " EnableTongue=" + EnableTongue + " cunuse=" + cunusetongue + " || oral=" + oralTongue + " [CUN=" + IsCunnilingus() + "] intense=" + intenseTongue + " [isIntense=" + IsIntense() + " broken=" + IsBroken() + " penetrated=" + IsGettingPenetrated() + "] attacking=" + attackingTongue + " || rand=" + rand + " needIntense<=" + (chancetostickouttongueduringintense * chancemultiplier) + " needAttack<=" + (chancetostickouttongueduringattacking * chancemultiplier))
+		endif
+
 		if EquippedTongue()
-			;the 50% retract roll is for the RANDOM tongue (intense/attacking rolls) -
-			;the cunnilingus tongue is deterministic while the act lasts, so don't
-			;strip it mid-lick (the MFEE morph path already survives this roll by
-			;construction: EquippedTongue() only sees the armor tongue)
-			if !(IsCunnilingus() && cunusetongue == 1) && Utility.RandomInt(1,2) == 1
+			;deterministic retract: unequip as soon as NO tongue condition holds
+			;anymore (the stage/labels moved on) - no keep/strip roll, a tongue
+			;that randomly outlives its trigger reads as weird
+			if !(oralTongue || intenseTongue || attackingTongue)
+				printdebug("Retracting tongue - no condition holds (oral/intense/attacking all false)")
 				RemoveTongue()
 			EndIf
 		else
 			;this branch is the else of "if EquippedTongue()", so no re-check needed
 			if EnableTongue == 1
-				if (IsCunnilingus() && cunusetongue == 1) || ((IsIntense() || isbroken()) && IsGettingPenetrated() && rand <= chancetostickouttongueduringintense * chancemultiplier) || ((IsCowgirl() || IsGivingAnalPenetration() || IsGivingVaginalPenetration()) && !IsVictim && rand <= chancetostickouttongueduringattacking * chancemultiplier)
+				if oralTongue || (intenseTongue && rand <= chancetostickouttongueduringintense * chancemultiplier) || (attackingTongue && rand <= chancetostickouttongueduringattacking * chancemultiplier)
 					printdebug("Adding Tongue")
 					AddTongue()
 				endif

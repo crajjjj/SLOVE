@@ -218,6 +218,10 @@ Function RegisterForTheEventsWeNeed()
 	miscutil.printconsole("SLO VE Director Registered For Events")
 
 	RegisterForModEvent("AnimationStart", "DirectorSceneStart")
+	;presex: fires at the top of sslThreadModel.StartThread(), BEFORE the actors
+	;are stripped - the one safe window for tongue-armor AddItem traffic (see
+	;DirectorSceneStarting)
+	RegisterForModEvent("AnimationStarting", "DirectorSceneStarting")
 	RegisterForModEvent("SexLabOrgasmSeparate", "DirectorOnOrgasm")
 	RegisterForModEvent("StageStart", "DirectorStageStart")
 	;deterministic scene-end: the OnUpdate poll is not a reliable end-detector
@@ -319,6 +323,55 @@ Event DirectorStageStart(string eventName, string argString, float argNum, form 
 	endif
 EndEvent
 
+;Presex hook: AnimationStarting fires before SexLab strips/undresses the actors.
+;ALL inventory ADDs for the FHU tongue armors happen here: if an add wakes the
+;NPC outfit AI (redress), the strip that follows moments later re-normalizes it.
+;Mid-scene show/hide in SLOVE_Expressions is then plain EquipItem/UnequipItem -
+;equipment traffic on an already-carried item never wakes the outfit AI. All
+;ten variants are pre-added (the per-scene roll happens later in Expressions):
+;they are NonPlayable, weightless, invisible in menus, and are removed again at
+;scene end (RemoveTongueItems) so nothing lingers between scenes.
+Event DirectorSceneStarting(string eventName, string argString, float argNum, form sender)
+	;CLASSIC: tongues are P+-only. Classic SexLab SE 1.63 has no live oral/cunnilingus
+	;detection (no NiType collision detector), so a contact tongue could only be timed
+	;from coarse authored tags - it pops at stage boundaries and misses real contact,
+	;which reads as a bug. So we never preload the tongue armors here: no AddItem means
+	;no NPC outfit-AI redress, and AddTongue() is gated to a no-op to match. Ahegao is a
+	;separate, resistance/orgasm-driven path and is unaffected. `expressions.enabletongue`
+	;is honoured only by the P+ variant. (Body-only gate; the function is kept for save-compat.)
+	return
+
+	if SLOVE_Config.GetInt("expressions.enabletongue", 0) != 1
+		return
+	endif
+	sslThreadController startingThread = Sexlab.GetPlayerController()
+	if !startingThread
+		return ;player scenes only, same as DirectorSceneStart
+	endif
+	int npcTongue = JsonUtil.GetIntValue("SLOVE/NPCTongue.json", "enablenpctongue", 0)
+	Actor[] scenePositions = startingThread.Positions
+	int added = 0
+	int i = 0
+	while i < scenePositions.Length
+		Actor pos = scenePositions[i]
+		if pos && (pos == PlayerRef || npcTongue == 1)
+			int t = 0
+			while t < 10
+				;SLOVE tongue armors (bundled HALO HDT) are sequential in SLOVE.esp:
+				;SLOVE_Tongue{t+1}Armor = 0x000813 + t
+				Form tongueItem = Game.GetFormFromFile(0x000813 + t, "SLOVE.esp")
+				if tongueItem && pos.GetItemCount(tongueItem) == 0
+					pos.AddItem(tongueItem, abSilent = true)
+					added += 1
+				endif
+				t += 1
+			endwhile
+		endif
+		i += 1
+	endwhile
+	printdebug("PRESEX preload: npcTongue=" + npcTongue + " positions=" + scenePositions.Length + " items_added=" + added)
+EndEvent
+
 ;Director reacts when a sexlab scene start
 Event DirectorSceneStart(string eventName, string argString, float argNum, form sender)
 	;SLO VE is for handling player scenes only.
@@ -344,6 +397,7 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 			Return
 		endif
 		printdebug("Stale scene state (missed end) - reconciling before adopting the new scene")
+		SkipTongueRemovalOnce = true ;the new scene's presex preload already ran - don't strip its tongue items
 		DirectorEndScene()
 	endif
 
@@ -429,6 +483,12 @@ Event DirectorSceneEnd(string eventName, string argString, float argNum, form se
 	endif
 EndEvent
 
+;one-shot flag consumed by DirectorEndScene: set true by the stale-scene reconcile
+;path so that teardown skips tongue-item removal (the next scene's presex preload
+;already ran for shared actors). A script bool instead of a function parameter -
+;changing DirectorEndScene's SIGNATURE mid-playthrough breaks loading a save that
+;has a suspended stack in it, so the signature must stay () forever.
+bool SkipTongueRemovalOnce = false
 Function DirectorEndScene()
 	;re-entry guard: both the OnUpdate poll and the AnimationEnd hook can reach here.
 	;Clear PlayerInScene FIRST - before any external call. The StopGroup calls below
@@ -440,6 +500,8 @@ Function DirectorEndScene()
 		return
 	endif
 	PlayerInScene = false
+	bool removeTongues = !SkipTongueRemovalOnce ;consume the one-shot skip flag (set by the stale-scene reconcile path)
+	SkipTongueRemovalOnce = false
 	;SLO VE: no StopAnimation/armor/scaling/speed restore - the only end path here is
 	;the OnUpdate poll after the thread already ended
 	isEnding = true
@@ -457,6 +519,15 @@ Function DirectorEndScene()
 	LastPhysicsLabelTime = 0
 	int endedThreadID = CurrentThreadID
 
+	;take the pre-added tongue armors back off - they must not persist between
+	;scenes. RemoveItem is inventory traffic, but at scene end that is harmless
+	;(the actors are redressing anyway). Skipped (false) only on the stale-scene
+	;reconcile path, where the NEXT scene's presex preload has already run for
+	;shared actors (the player always is one)
+	if removeTongues
+		RemoveTongueItems()
+	endif
+
 	CurrentThread = none
 	CurrentAnimation = none
 	CurrentStageNum = 0
@@ -472,6 +543,37 @@ Function DirectorEndScene()
 	printdebug("SLO VE Director Scene END")
 
 endfunction
+
+;scene-end counterpart of DirectorSceneStarting: remove ALL ten pre-added SLOVE
+;tongue armors from the scene's actors (worn ones are auto-unequipped by
+;RemoveItem; SLOVE_Expressions has already unequipped ours in OnEffectFinish)
+Function RemoveTongueItems()
+	if !actorList ;NOT "== None": comparing a None array logs a cast error
+		return
+	endif
+	int removed = 0
+	int z = 0
+	while z < actorList.Length
+		Actor pos = actorList[z]
+		if pos
+			int t = 0
+			while t < 10
+				;SLOVE_Tongue{t+1}Armor = 0x000813 + t
+				Form tongueItem = Game.GetFormFromFile(0x000813 + t, "SLOVE.esp")
+				if tongueItem
+					int cnt = pos.GetItemCount(tongueItem)
+					if cnt > 0
+						pos.RemoveItem(tongueItem, cnt, abSilent = true)
+						removed += cnt
+					endif
+				endif
+				t += 1
+			endwhile
+		endif
+		z += 1
+	endwhile
+	printdebug("SCENE-END tongue cleanup: items_removed=" + removed)
+EndFunction
 
 Bool Function AnimationisEnding()
 	return isEnding

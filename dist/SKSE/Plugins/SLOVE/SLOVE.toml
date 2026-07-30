@@ -13,6 +13,14 @@ enablefemalenpcexpression = 1
 usephysicslabels = 1           # velocity-driven intense/soft (needs SLPP interactions)
 physicsfastvelocity = 25.0     # abs velocity at/above which a stage reads as Fast
 physicsslowfactor = 0.65       # hysteresis: drop back to Slow below fast*factor
+# Cunnilingus detection (SexLab P+ legacy NiType detector). Widens SexLab's live
+# in-memory clit<->mouth thresholds so the CUN oral label fires more reliably.
+# Non-destructive: written via sslSystemConfig, never touches SexLab.ini on disk;
+# re-applied on every config load. Needs SexLab.ini [Legacy_NiType] bUseLegacyNiType = 1
+# (the default) and a body with a Clitoral1 node (3BA/BHUNP). P+ only (no effect on classic).
+tunecunnilingus = 1            # 1 = apply the widened thresholds below; 0 = leave SexLab's values alone
+cunnilingusdistance = 8.0      # SexLab fDistanceMouth: max clit<->mouth distance (default 5.4)
+cunnilingusangle = 150.0       # SexLab fAngleCunnilingus: head-vs-vagina angle tolerance (default 130.0)
 soshugeppsize = 6              # SOS size / TNG size counted as "huge"
 printdebug = 0
 
@@ -85,8 +93,11 @@ pcnonintenseexpressionupdateinseconds = 2.1
 pcintenseexpressionupdateinseconds = 1.6
 npcnonintenseexpressionupdateinseconds = 2.1
 npcintenseexpressionupdateinseconds = 1.6
-enabletongue = 1
-fhutonguetype = 7              # sr_fillherup tongue model 1-10; 0 = random
+enabletongue = 1              # P+ ONLY. The contact tongue (shown during cunnilingus/blowjob)
+                              # needs SexLab P+'s oral-contact detection; the classic variant
+                              # has none, so it never shows a contact tongue regardless of this
+                              # setting (ahegao and its tongue-out are unaffected).
+tonguetype = 7                 # HALO HDT tongue model 1-10; 0 = random
 removetongueonblowjob = 1
 cunusetongue = 1
 enableahegao = 1               # huge partners trigger ahegao while penetrating
