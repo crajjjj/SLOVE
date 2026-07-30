@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<system xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="description.xsd">
+	<!-- ground -->
+	
+	<bone-default>
+		<margin-multiplier>0.4</margin-multiplier>
+	</bone-default>
+	
+	
+	<bone name="NPC Head [Head]"/>
+	
+	<per-triangle-shape name="uup">
+		<margin>0.5</margin>
+		<priority>100</priority>
+		<shared>private</shared>
+		<prenetration>0.8</prenetration>
+		<tag>e1</tag>
+		<no-collide-with-tag>body</no-collide-with-tag>
+		<no-collide-with-tag>body1</no-collide-with-tag>
+		<no-collide-with-tag>body9</no-collide-with-tag>
+		<no-collide-with-tag>body2</no-collide-with-tag>
+        <no-collide-with-tag>body3</no-collide-with-tag>
+		<no-collide-with-tag>body4</no-collide-with-tag>		
+		<no-collide-with-tag>body5</no-collide-with-tag>
+        <no-collide-with-tag>body6</no-collide-with-tag>
+		<no-collide-with-tag>body7</no-collide-with-tag>
+		<no-collide-with-tag>body8</no-collide-with-tag>
+        <no-collide-with-tag>Rbreast</no-collide-with-tag>		
+		<no-collide-with-tag>Belly</no-collide-with-tag>
+		<no-collide-with-tag>shou</no-collide-with-tag>	
+        <no-collide-with-tag>nanshou</no-collide-with-tag>
+        <no-collide-with-tag>nanjiao</no-collide-with-tag>
+        <no-collide-with-tag>ground</no-collide-with-tag>		
+        <no-collide-with-tag>Genitals</no-collide-with-tag>	
+		<no-collide-with-tag>MaleBody</no-collide-with-tag>
+		<no-collide-with-tag>e1</no-collide-with-tag>
+		<no-collide-with-tag>e2</no-collide-with-tag>
+		<no-collide-with-tag>e4</no-collide-with-tag>
+        <no-collide-with-tag>jb</no-collide-with-tag>
+	     
+
+		</per-triangle-shape>
+	
+
+	<bone-default>
+		<margin-multiplier>0.01</margin-multiplier>
+	</bone-default>
+	
+	<bone name="tong1 1"/>
+
+  <bone-default>
+		<mass>0.21</mass>
+		<inertia x="0.2" y="0.2" z="0.2" />
+		<centerOfMassTransform>
+			<basis x="0" y="0" z="0" w="1" />
+			<origin x="0" y="0" z="0" />
+		</centerOfMassTransform>
+		<linearDamping>0.3</linearDamping>
+		<angularDamping>0.3</angularDamping>
+		<gravity-factor>0.1</gravity-factor>
+		<friction>0</friction>
+		<restitution>0</restitution>
+	</bone-default>
+	
+		
+	<bone name="tong1 2"/>
+
+	<bone-default>
+	<linearDamping>0.4</linearDamping>
+	<angularDamping>0.4</angularDamping>
+	<margin-multiplier>0.4</margin-multiplier>
+	</bone-default>
+	
+	<bone name="tong1 3"/>
+
+    <bone-default>
+	<linearDamping>0.5</linearDamping>
+	<angularDamping>0.5</angularDamping>
+	<margin-multiplier>0.6</margin-multiplier>
+	</bone-default>
+	
+	<bone name="tong1 4"/>
+    
+	<bone-default>
+	<linearDamping>0.6</linearDamping>
+	<angularDamping>0.6</angularDamping>
+	<margin-multiplier>0.7</margin-multiplier>
+	</bone-default>
+	
+	<bone name="tong1 5"/>
+
+
+	
+	<generic-constraint-default>
+		<frameInB>
+			<basis x="0" y="0" z="0" w="1" />
+			<origin x="0" y="0" z="0" />
+		</frameInB>
+		<useLinearReferenceFrameA>false</useLinearReferenceFrameA>
+		<linearLowerLimit x="0" y="0" z="0" />
+		<linearUpperLimit x="0" y="0" z="0" />
+		<angularLowerLimit x="-0.12" y="-0.1" z="-0.1" />
+		<angularUpperLimit x="0.12" y="0.1" z="0.1" />
+		<linearStiffness x="0" y="0" z="0" />
+		<angularStiffness x="30000" y="30000" z="30000" />
+		<linearDamping x="0" y="0" z="0" />
+		<angularDamping x="1" y="1" z="1" />
+		<linearEquilibrium x="0" y="0" z="0" />
+		<angularEquilibrium x="0" y="0" z="0" />
+	</generic-constraint-default>
+	
+	<constraint-group>
+		<generic-constraint bodyA="tong1 2" bodyB="tong1 1"/>
+		<generic-constraint bodyA="tong1 3" bodyB="tong1 2"/>
+		<generic-constraint bodyA="tong1 4" bodyB="tong1 3"/>
+		<generic-constraint bodyA="tong1 5" bodyB="tong1 4"/>
+
+	</constraint-group>
+	
+
+	
+	
+	<per-triangle-shape name="Tongue001">
+		<margin>1</margin>
+		<priority>0</priority>
+		<prenetration>1</prenetration>
+		<shared>public</shared>
+		<tag>tongue</tag>
+		<!-- <no-collide-with-tag>body</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>body1</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>body9</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>body2</no-collide-with-tag> -->
+        <!-- <no-collide-with-tag>body3</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>body4</no-collide-with-tag>		 -->
+		<!-- <no-collide-with-tag>body5</no-collide-with-tag> -->
+        <!-- <no-collide-with-tag>body6</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>body7</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>body8</no-collide-with-tag> -->
+        <!-- <no-collide-with-tag>Rbreast</no-collide-with-tag>		 -->
+		<!-- <no-collide-with-tag>Belly</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>shou</no-collide-with-tag>	 -->
+        <!-- <no-collide-with-tag>nanshou</no-collide-with-tag> -->
+        <!-- <no-collide-with-tag>nanjiao</no-collide-with-tag> -->
+        <!-- <no-collide-with-tag>ground</no-collide-with-tag>		 -->
+        <!-- <no-collide-with-tag>Genitals</no-collide-with-tag>	 -->
+		<!-- <no-collide-with-tag>MaleBody</no-collide-with-tag> -->
+        <!-- <no-collide-with-tag>jb</no-collide-with-tag> -->
+		<!-- <can-collide-with-tag>e1</can-collide-with-tag> -->
+		<!-- <can-collide-with-tag>e2</can-collide-with-tag> -->
+		<!-- <can-collide-with-tag>e4</can-collide-with-tag> -->
+		<!-- <can-collide-with-tag>e5</can-collide-with-tag> -->
+		<!-- <can-collide-with-tag>ground</can-collide-with-tag> -->
+		<!-- <no-collide-with-tag>Clothes1</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>dress</no-collide-with-tag> -->
+		<!-- <no-collide-with-tag>body</no-collide-with-tag> -->
+		<!-- <no-collide-with-bone>NPC L Forearm [LLar]</no-collide-with-bone> -->
+		<!-- <no-collide-with-bone>NPC R Forearm [RLar]</no-collide-with-bone> -->
+		<!-- <no-collide-with-bone>NPC L ForearmTwist1 [LLt1]</no-collide-with-bone> -->
+		<!-- <no-collide-with-bone>NPC R ForearmTwist1 [RLt1]</no-collide-with-bone> -->
+		<!-- <no-collide-with-bone>NPC L ForearmTwist2 [LLt2]</no-collide-with-bone> -->
+		<!-- <no-collide-with-bone>NPC R ForearmTwist2 [RLt2]</no-collide-with-bone> -->
+		<!-- <no-collide-with-bone>NPC L Hand [LHnd]</no-collide-with-bone> -->
+		<!-- <no-collide-with-bone>NPC R Hand [RHnd]</no-collide-with-bone> -->
+		
+		<weight-threshold bone="NPC Head [Head]">1</weight-threshold>
+		
+	   	
+		<weight-threshold bone="tong1 2">1</weight-threshold>
+        <weight-threshold bone="tong1 3">0.4</weight-threshold>
+		<weight-threshold bone="tong1 4">0.4</weight-threshold>
+        <weight-threshold bone="tong1 1">0.4</weight-threshold>	
+       
+		
+		</per-triangle-shape>
+		
+		
+</system>
