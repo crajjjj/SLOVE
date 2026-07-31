@@ -931,7 +931,23 @@ EndFunction
 ;marker OR SLOVE_Expressions' climax-face marker. Either being set means a voice
 ;line should play without driving the mouth.
 bool Function FaceOwnsMouth(Actor a)
-	return StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_SLS", 0) == 1 || StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_Expr", 0) == 1
+	;a marker face (SLS ahegao / our climax face / an equipped tongue) claimed the mouth
+	;via the Expressions tick - block this line so a moan can't flap the jaw over it.
+	if StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_SLS", 0) == 1 || StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_Expr", 0) == 1
+		return true
+	endif
+	;live oral-giver check (race-free): a mouth actively licking must never have its jaw
+	;driven by a moan clip. The _Expr marker above is set only once per Expressions tick,
+	;so a line firing in that gap would otherwise lipsync and zero the mouth at clip-end.
+	;Deciding it here at play time closes that window.
+	return IsOralGiver(a)
+EndFunction
+
+;True while actor a's own mouth is busy performing oral. Classic SexLab 1.63 has no live
+;interaction flags (tongues are P+-only), so the authored CUN oral label is the whole
+;signal here - unlike the P+ Director, which also reads the live aOral giver flags.
+bool Function IsOralGiver(Actor a)
+	return GetOralLabel(a) == "CUN"
 EndFunction
 
 bool function IsMale(actor char)

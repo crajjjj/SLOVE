@@ -931,7 +931,35 @@ EndFunction
 ;marker OR SLOVE_Expressions' climax-face marker. Either being set means a voice
 ;line should play without driving the mouth.
 bool Function FaceOwnsMouth(Actor a)
-	return StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_SLS", 0) == 1 || StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_Expr", 0) == 1
+	;a marker face (SLS ahegao / our climax face / an equipped tongue) claimed the mouth
+	;via the Expressions tick - block this line so a moan can't flap the jaw over it.
+	if StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_SLS", 0) == 1 || StorageUtil.GetIntValue(a, "SLOVE_FaceOwnsMouth_Expr", 0) == 1
+		return true
+	endif
+	;live oral-giver check (race-free): a mouth actively licking must never have its jaw
+	;driven by a moan clip. The _Expr marker above is set only once per Expressions tick,
+	;so a line firing in the gap between the tongue equip and that tick would otherwise
+	;lipsync and zero the mouth at clip-end - closing it over the equipped tongue until
+	;the next tick. Deciding it here at play time closes that window (and also covers
+	;tongue-less cunnilingus).
+	return IsOralGiver(a)
+EndFunction
+
+;True while actor a's own mouth is busy performing oral: the CUN oral label (tag- or
+;physics-derived), or - P+ only - the live aOral / aLickingShaft giver flags. Used to
+;keep a moan line from lipsyncing a licking mouth. Cheap enough for the per-line path.
+bool Function IsOralGiver(Actor a)
+	if GetOralLabel(a) == "CUN"
+		return true
+	endif
+	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
+		return false
+	endif
+	bool[] f = CurrentThread.GetCurrentInteractionFlags(a)
+	if f.Length < 28
+		return false
+	endif
+	return f[12] || f[13] ;aOral (licking a crotch) / aLickingShaft
 EndFunction
 
 bool function IsMale(actor char)
