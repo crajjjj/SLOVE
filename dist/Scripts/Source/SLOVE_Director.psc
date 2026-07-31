@@ -993,13 +993,18 @@ string[] Function CopyStringArray(string[] src)
 	return dst
 EndFunction
 
-;Widen SexLab P+'s legacy-detector cunnilingus thresholds in its live in-memory
-;settings so the aOral flag (-> the CUN oral label in ApplyPhysicsLabels) fires on
-;looser clit<->mouth alignments. sslSystemConfig is a SexLab framework script, so this
-;stays inside the Director per the framework-firewall rule. P+ only - the classic
-;variant has no NiType/physics detector and never calls this.
+;DORMANT (never shipped). Intended to widen SexLab P+'s legacy-detector cunnilingus
+;thresholds in its live in-memory settings so the aOral flag (-> the CUN oral label in
+;ApplyPhysicsLabels) fires on looser clit<->mouth alignments. Disabled below because
+;fDistanceMouth / fAngleCunnilingus are NOT exposed sslSystemConfig setting keys -
+;SetSettingFlt no-ops on an unknown key, so the widening never actually took. The vars
+;and config reads (director.tunecunnilingus / cunnilingusdistance / cunnilingusangle) are
+;kept in place for a future path that can reach the legacy detector directly; the body
+;stays commented rather than deleted so that path has a starting point. sslSystemConfig
+;is a SexLab framework script, so this stays inside the Director per the framework-firewall
+;rule. P+ only - the classic variant has no NiType/physics detector and never calls this.
 Function ApplyCunnilingusDetectionTuning()
-;Settings not exposed
+;DISABLED - see the note above (fDistanceMouth/fAngleCunnilingus are not exposed keys).
 	; if tunecunnilingus != 1
 	; 	return
 	; endif

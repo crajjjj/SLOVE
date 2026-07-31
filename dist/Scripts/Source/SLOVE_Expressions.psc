@@ -1470,8 +1470,11 @@ Function InitializeAddNPCTongue()
 	;mid-scene EquipItem in AddTongue actually renders it on the player (a freshly
 	;auto-added item does not reliably attach to the player's facegen). NPCs are
 	;never pre-added - an inventory add redresses them, so they auto-add on equip.
-	;The Director strips it back off at scene end (RemoveTongueItems).
-	if IsPlayer && FHUTongueTypeArmor && actorref.GetItemCount(FHUTongueTypeArmor) == 0
+	;The Director strips it back off at scene end (RemoveTongueItems). Gated on
+	;enabletongue - GetTongueType always rolls a variant for the player, so without
+	;this the player gets a (never-equipped) tongue armor added every scene even when
+	;the feature is off (the show path at HentairimUpdateStageData is EnableTongue-gated).
+	if enabletongue == 1 && IsPlayer && FHUTongueTypeArmor && actorref.GetItemCount(FHUTongueTypeArmor) == 0
 		actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
 	endif
 endfunction
