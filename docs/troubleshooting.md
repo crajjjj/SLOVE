@@ -1,6 +1,6 @@
 # Troubleshooting & Logs
 
-Two log files and four console commands answer almost everything.
+Two log files and five console commands answer almost everything.
 
 ## Where the logs are
 
@@ -29,12 +29,17 @@ and turn on the live console play-by-play with `printdebug = 1` in the relevant 
     The console commands below are provided by [ConsoleUtil Extended](https://www.nexusmods.com/skyrimspecialedition/mods/133569), an **optional** dependency. SLO VE itself runs fine without it — CUE is only needed to run these diagnostics.
 
 ```
+SLOVE_Test DumpAnim                        ; dump the current scene: tags, labels, slot, likely voice/SFX
 SLOVE_Test DumpState                       ; config flags, the player's slot, esp loaded?
 SLOVE_Test AuditVoicePack F1             ; which categories a slot resolves / is MISSING
 SLOVE_Test SampleCategory F1 Orgasm    ; play one clip now (handle=0 means nothing resolved)
 SLOVE_Config Reload                        ; re-read SLOVE.toml
 au reload                     ; re-read the AudioUtil TOMLs and rescan folders
 ```
+
+Every `SLOVE_Test` / `SLOVE_Config` command also has a short alias (`slovetest anim`, `slovetest dump`, `slovetest audit F1`, `slovetest sample F1 Orgasm`, `sloveconfig reload`); lipsync has its own `slovelip enable 0` / `slovelip gain 0.8`.
+
+`DumpAnim` (alias `slovetest anim`) is the fastest way to see *why a given animation sounds the way it does*. For the player's live scene it prints the active SexLab scene tags, the SFX tag, and — per actor, the player marked `*` — their sex, role, resolved AudioUtil slot, all five labels (`stim`/`penis`/`oral`/`pen`/`end`) and the voice branch those labels select. Every line goes to **both the console and `SLOVE.0.log`**, so you can run it mid-scene and read it back afterwards. The voice line is the *label-derived* branch (the live engine also applies gag/orgasm/timing overrides), so pair it with `SampleCategory` to confirm a folder actually resolves.
 
 `AuditVoicePack` picks the female or male category list from the slot id's first letter (`F…` → female, otherwise male). With AudioUtil **0.9.4+** it also attributes every resolving category to the slot that actually supplies it — `<- backfill from F0` lines plus an `(n in-pack, m backfilled)` summary — so a pack that only *appears* healthy because everything backfills from the stock moans is visible at a glance.
 
