@@ -1364,3 +1364,148 @@ EndFunction
 Bool Function PCInSex()
 	return PCInSex
 EndFunction
+
+;================= CONSOLE DIAGNOSTIC: current-anim dump (classic) =====================
+;Classic parity of the P+ dump. Same output/helpers - only the scene-id and SFX lookup
+;differ (classic keys tags off the sslBaseAnimation CurrentAnimation, not a scene-id
+;string). Each line goes to BOTH the console AND the SLOVE user log (SLOVE.0.log) via
+;DumpLine. Reached from SLOVE_Test.DumpAnim (`slovetest anim`) - a user-invoked command,
+;NOT the load path (console printing on the thaw CTDs the load).
+Function DumpCurrentAnim()
+	if !PlayerInScene || CurrentThread == none
+		DumpLine("SLO VE: no active scene (player not in a tracked SexLab scene).")
+		return
+	endif
+	DumpLine("=== SLO VE anim dump (classic) ===")
+	DumpLine("scene " + GetActiveSceneId() + "  stage " + CurrentStageNum + "/" + GetStagesCount() + "  intense=" + SceneisIntense() + "  time=" + (GetTimeTotal() as int) + "s")
+	DumpLine("tags: " + DebugPresentTags())
+	DumpLine("SFX tag: " + DebugSfxLabel(SLOVE_Hentairim_Tags.GetSFX(CurrentAnimation, CurrentStageNum)))
+	Actor[] pos = GetPositions()
+	int i = 0
+	while i < pos.length
+		Actor a = pos[i]
+		if a
+			string mark = " "
+			if a == playerref
+				mark = "*"
+			endif
+			DumpLine(mark + "[" + i + "] " + a.GetDisplayName() + "  sex=" + DebugSexLabel(a) + "  role=" + DebugRoleLabel(a) + "  slot=" + AudioUtil.GetSlotForActor(a))
+			DumpLine("     labels: stim=" + GetStimulationlabel(a) + " penis=" + GetPenisActionLabel(a) + " oral=" + GetOralLabel(a) + " pen=" + GetPenetrationLabel(a) + " end=" + GetEndingLabel(a))
+			DumpLine("     voice: " + DebugVoiceHint(a))
+		endif
+		i += 1
+	endwhile
+	DumpLine("(voice = label-derived branch; runtime also applies gag/orgasm/hype/timing overrides. Use 'slovetest sample <slot> <cat>' to test a folder.)")
+EndFunction
+
+;one dump line -> console (immediate, in-game) AND the SLOVE user log (persisted in
+;SLOVE.0.log). Only ever called from the user-invoked dump, never the load path.
+Function DumpLine(string s)
+	MiscUtil.PrintConsole(s)
+	SLOVE_Log.WriteLog(s, 0)
+EndFunction
+
+string Function DebugSexLabel(actor char)
+	int g = GetGender(char)
+	if g == 0
+		return "M"
+	elseif g == 1
+		return "F"
+	endif
+	return "creature"
+EndFunction
+
+string Function DebugRoleLabel(actor char)
+	if IsSubmissive(char)
+		return "victim/receiving"
+	endif
+	return "-"
+EndFunction
+
+;SFX code -> friendly name (mirrors SLOVE_SFX's tag->constant map). "" = no explicit
+;SFX tag, so SLOVE_SFX falls back to label-based slush/clap/kissing selection.
+string Function DebugSfxLabel(string code)
+	if code == "SS"
+		return "SS (LightSlushing)"
+	elseif code == "MS"
+		return "MS (MediumSlushing)"
+	elseif code == "FS"
+		return "FS (HeavySlushing)"
+	elseif code == "RS"
+		return "RS (RapidSlushing)"
+	elseif code == "SC"
+		return "SC (SlowClap)"
+	elseif code == "MC"
+		return "MC (MediumClap)"
+	elseif code == "FC"
+		return "FC (FastClap)"
+	elseif code == "NA"
+		return "NA (explicitly silent)"
+	endif
+	return "(none - SLOVE_SFX falls back to label-based slush/clap/kissing)"
+EndFunction
+
+;one "tag " chip per present scene tag (lowercase - SLSB registries store tags lowercased)
+string Function TagChip(string t)
+	if HasSceneTag(t)
+		return t + " "
+	endif
+	return ""
+EndFunction
+
+string Function DebugPresentTags()
+	string r = ""
+	r = r + TagChip("aggressive") + TagChip("loving") + TagChip("dirty") + TagChip("lesbian") + TagChip("ff") + TagChip("mf") + TagChip("mm")
+	r = r + TagChip("cunnilingus") + TagChip("cun") + TagChip("licking") + TagChip("lick") + TagChip("69") + TagChip("kissing") + TagChip("kiss")
+	r = r + TagChip("blowjob") + TagChip("oral") + TagChip("vaginal") + TagChip("anal") + TagChip("cowgirl") + TagChip("doggy") + TagChip("doggystyle")
+	r = r + TagChip("standing") + TagChip("kneeling") + TagChip("handjob") + TagChip("footjob") + TagChip("titfuck") + TagChip("boobjob") + TagChip("masturbation")
+	r = r + TagChip("faint") + TagChip("sleep") + TagChip("necro") + TagChip("unconscious") + TagChip("creature") + TagChip("forced") + TagChip("rough")
+	if r == ""
+		return "(none matched the known list)"
+	endif
+	return r
+EndFunction
+
+;Label-derived voice branch for one actor. Label codes are the shared tag scheme, so this
+;is identical to the P+ copy. Approximate: the classic voice loop also has gag/orgasm/timing
+;branches this cannot see from labels alone. [] shows the representative category where known.
+string Function DebugVoiceHint(actor char)
+	string oral = GetOralLabel(char)
+	string pen = GetPenetrationLabel(char)
+	string penis = GetPenisActionLabel(char)
+	string stim = GetStimulationlabel(char)
+	string ending = GetEndingLabel(char)
+	bool intense = SceneisIntense()
+	if oral == "KIS"
+		return "kissing -> PlayKissing"
+	elseif oral == "SBJ" || oral == "FBJ"
+		if intense
+			return "giving blowjob (intense) -> PlayBlowjob [BlowjobActionIntense]"
+		endif
+		return "giving blowjob -> PlayBlowjob [BlowjobActionSoft]"
+	elseif oral == "CUN"
+		return "cunnilingus -> PlayCunnilingus"
+	elseif pen == "SDP" || pen == "FDP"
+		return "double penetration -> PlayGettingFuckedDouble"
+	elseif pen == "SCG" || pen == "FCG" || pen == "SAC" || pen == "FAC"
+		return "cowgirl -> PlayCowgirl"
+	elseif pen == "SVP" || pen == "FVP" || pen == "SAP" || pen == "FAP"
+		if intense
+			return "getting penetrated (intense) -> PlayGettingFucked [NearOrgasmNoises/IntenseAnal]"
+		endif
+		return "getting penetrated -> PlayGettingFucked [PenetrativeGrunts]"
+	elseif penis == "SMF" || penis == "FMF"
+		return "getting blowjob (male) -> PlayMaleComments/Moaning"
+	elseif penis == "SDV" || penis == "FDV" || penis == "SDA" || penis == "FDA"
+		return "penetrating other -> PlayFuckingOthers"
+	elseif penis == "STF" || penis == "FTF" || penis == "SHJ" || penis == "FHJ" || penis == "SFJ" || penis == "FFJ"
+		return "getting stroked (hj/tf/fj) -> PlayGettingStimulated/StimulatingOthers"
+	elseif stim == "SST" || stim == "FST" || stim == "BST"
+		return "getting stimulated -> PlayGettingStimulated"
+	elseif ending == "ENO" || ending == "ENI"
+		return "ending -> PlayEnding"
+	elseif oral == "LDI" && pen == "LDI" && penis == "LDI" && stim == "LDI"
+		return "lead-in (no action tags yet) -> PlayLeadIn"
+	endif
+	return "(no primary action matched these labels)"
+EndFunction

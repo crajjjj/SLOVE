@@ -10,6 +10,10 @@ alias: slovetest
 script: SLOVE_Test
 help: SLO VE console diagnostics
 subs:
+  - name: DumpAnim
+    alias: anim
+    func: DumpAnim
+    help: Dump the player's current scene - tags, per-actor labels, resolved slot, likely voice/SFX
   - name: DumpState
     alias: dump
     func: DumpState

@@ -77,6 +77,23 @@ Function SampleCategory(String slot, String category) Global
 	MiscUtil.PrintConsole("SLOVE sample " + slot + "/" + category + " handle=" + h)
 EndFunction
 
+;Dump the player's CURRENT SexLab scene - tags, per-actor labels, resolved AudioUtil
+;slot, likely voice branch and SFX tag. Delegates to the Director (alias 0 of the
+;SLOVE main quest), which owns the live scene state. Re-runnable any time during a scene.
+Function DumpAnim() Global
+	Quest mq = Game.GetFormFromFile(0x804, "SLOVE.esp") as Quest
+	SLOVE_Director dir = none
+	if mq
+		dir = mq.GetAlias(0) as SLOVE_Director
+	endif
+	if dir == none
+		MiscUtil.PrintConsole("SLO VE: Director not found (SLOVE.esp not loaded?).")
+		SLOVE_Log.WriteLog("SLO VE: Director not found (SLOVE.esp not loaded?).", 1)
+		return
+	endif
+	dir.DumpCurrentAnim()
+EndFunction
+
 ;Print config + resolution basics for quick sanity checks.
 Function DumpState() Global
 	MiscUtil.PrintConsole("SLOVE config available=" + SLOVE_Config.Available())
