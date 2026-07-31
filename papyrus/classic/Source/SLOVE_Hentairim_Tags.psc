@@ -107,14 +107,13 @@ string Function PenetrationLabel(sslBaseAnimation anim , int stage , Int ActorPo
 		ActorPosition = "E"
 	endif
 
-	if HasASLTag(anim, stage+ ActorPosition + "SVP")
-		return "SVP"
-	elseif HasASLTag(anim, stage+ActorPosition + "SAP")
-		return "SAP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FVP")
-		return "FVP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FAP")
-		return "FAP"
+	;precedence matches the voice dispatcher's branch order (see the P+ copy): double-pen,
+	;then cowgirl, then straight vaginal/anal. A DP stage IS vaginal+anal, so component-first
+	;would mask DP; same for cowgirl vs straight. Single-tag stages are unaffected.
+	if HasASLTag(anim, stage+ActorPosition + "SDP")
+		return "SDP"
+	elseif HasASLTag(anim, stage+ActorPosition + "FDP")
+		return "FDP"
 	elseif HasASLTag(anim, stage+ActorPosition + "SCG")
 		return "SCG"
 	elseif HasASLTag(anim, stage+ActorPosition + "FCG")
@@ -123,10 +122,14 @@ string Function PenetrationLabel(sslBaseAnimation anim , int stage , Int ActorPo
 		return "SAC"
 	elseif HasASLTag(anim, stage+ActorPosition + "FAC")
 		return "FAC"
-	elseif HasASLTag(anim, stage+ActorPosition + "SDP")
-		return "SDP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FDP")
-		return "FDP"
+	elseif HasASLTag(anim, stage+ActorPosition + "SVP")
+		return "SVP"
+	elseif HasASLTag(anim, stage+ActorPosition + "SAP")
+		return "SAP"
+	elseif HasASLTag(anim, stage+ActorPosition + "FVP")
+		return "FVP"
+	elseif HasASLTag(anim, stage+ActorPosition + "FAP")
+		return "FAP"
 	endif
 	return ASLPenetrationFallback(anim, stage, ActorPos)
 endfunction
@@ -192,14 +195,17 @@ String Function OralLabel(sslBaseAnimation anim , int stage , Int ActorPos) Glob
 		ActorPosition = "E"
 	endif
 
-	if HasASLTag(anim, stage+ ActorPosition + "KIS")
-		return "KIS"
-	elseif HasASLTag(anim, stage+ ActorPosition + "CUN")
+	;precedence: the genital-oral actions win over KIS (see the P+ copy) - many scenes
+	;tag a stage with BOTH kissing and the real oral action, and KIS first masked
+	;cunnilingus/blowjob. Kissing is the fallback oral action.
+	if HasASLTag(anim, stage+ ActorPosition + "CUN")
 		return "CUN"
 	elseif HasASLTag(anim, stage+ ActorPosition + "FBJ")
 		return "FBJ"
 	elseif HasASLTag(anim, stage+ ActorPosition + "SBJ")
-		returN "SBJ"
+		return "SBJ"
+	elseif HasASLTag(anim, stage+ ActorPosition + "KIS")
+		return "KIS"
 	endif
 	return ASLOralFallback(anim, stage, ActorPos)
 

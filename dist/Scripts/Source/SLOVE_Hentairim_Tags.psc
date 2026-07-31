@@ -99,14 +99,15 @@ string Function PenetrationLabel(string anim , int stage , Int ActorPos) Global
 		ActorPosition = "E"
 	endif
 
-	if HasASLTag(anim, stage+ ActorPosition + "SVP")
-		return "SVP"
-	elseif HasASLTag(anim, stage+ActorPosition + "SAP")
-		return "SAP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FVP")
-		return "FVP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FAP")
-		return "FAP"
+	;precedence matches the voice dispatcher's branch order (SLOVE_Voice.OnUpdate):
+	;double-pen, then cowgirl, then straight vaginal/anal. A DP stage semantically IS
+	;vaginal+anal, so if the ASL DB co-tags SDP with SVP/SAP, checking the component
+	;first would mask DP (dropping the PlayGettingFuckedDouble branch); same for cowgirl
+	;vs straight. Single-tag stages are unaffected.
+	if HasASLTag(anim, stage+ActorPosition + "SDP")
+		return "SDP"
+	elseif HasASLTag(anim, stage+ActorPosition + "FDP")
+		return "FDP"
 	elseif HasASLTag(anim, stage+ActorPosition + "SCG")
 		return "SCG"
 	elseif HasASLTag(anim, stage+ActorPosition + "FCG")
@@ -115,10 +116,14 @@ string Function PenetrationLabel(string anim , int stage , Int ActorPos) Global
 		return "SAC"
 	elseif HasASLTag(anim, stage+ActorPosition + "FAC")
 		return "FAC"
-	elseif HasASLTag(anim, stage+ActorPosition + "SDP")
-		return "SDP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FDP")
-		return "FDP"
+	elseif HasASLTag(anim, stage+ActorPosition + "SVP")
+		return "SVP"
+	elseif HasASLTag(anim, stage+ActorPosition + "SAP")
+		return "SAP"
+	elseif HasASLTag(anim, stage+ActorPosition + "FVP")
+		return "FVP"
+	elseif HasASLTag(anim, stage+ActorPosition + "FAP")
+		return "FAP"
 	else
 		return "LDI" ;Default lead in if no stimulating actions
 	endif
@@ -186,16 +191,19 @@ String Function OralLabel(string anim , int stage , Int ActorPos) Global
 		ActorPosition = "E"
 	endif
 
-	if HasASLTag(anim, stage+ ActorPosition + "KIS")
-		return "KIS"
-	elseif HasASLTag(anim, stage+ ActorPosition + "CUN")
+	;precedence: the genital-oral actions win over KIS. Many scenes tag a stage with
+	;BOTH kissing and the real oral action; checking KIS first masked cunnilingus/blowjob
+	;(dropping its voice AND the licking tongue). Kissing is the fallback oral action.
+	if HasASLTag(anim, stage+ ActorPosition + "CUN")
 		return "CUN"
 	elseif HasASLTag(anim, stage+ ActorPosition + "FBJ")
 		return "FBJ"
 	elseif HasASLTag(anim, stage+ ActorPosition + "SBJ")
-		returN "SBJ"
+		return "SBJ"
+	elseif HasASLTag(anim, stage+ ActorPosition + "KIS")
+		return "KIS"
 	else
-		reTURN "LDI"
+		return "LDI"
 	endif
 
 endfunction
