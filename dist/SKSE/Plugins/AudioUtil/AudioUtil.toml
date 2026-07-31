@@ -30,7 +30,7 @@ default_male_slot = "M1"
 # reserved player slots: the PC always speaks this slot and no NPC ever resolves
 # to it. Set pc_male_slot = "M1" too when playing a male PC.
 pc_female_slot = "F1"
-pc_male_slot = ""
+pc_male_slot = "M1"
 
 [ppa]
 enable = true                 # Accurate Penetration bridge: drives thrust-synced SFX + contact one-shots
