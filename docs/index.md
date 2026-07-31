@@ -34,6 +34,7 @@ Everything is configured in plain **TOML** files that reload live from the conso
 - [SLOVE_voices.toml Reference](config/voices.md) — every slot and routing table
 - [AudioUtil.toml Reference](config/audioutil.md) — the engine globals SLO VE sets: lipsync, gag, PPA
 - [Willpower / Resistance](resistance.md) — how the optional break system works and how to tune it
+- [Tuning Cunnilingus Detection (P+)](cunnilingus-detection.md) — the two `SexLab.ini` settings that decide when `CUN` fires
 - [Troubleshooting & Logs](troubleshooting.md) — the two log files, the console diagnostics, and "why is nobody talking"
 - [For Mod Authors](authors/integration.md) — mod events, StorageUtil keys, and pack-authoring conventions
 

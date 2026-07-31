@@ -750,6 +750,52 @@ Function DrainMMEMilkForSquirt(int lactatetime, int lactatelevel)
 	endif
 EndFunction
 
+;Console test hook ('slovetest milk [1]'): force a nipple squirt on the player,
+;bypassing the scene orgasm/penetration triggers, so [milk] levels and chances can be
+;tuned without playing out a scene. Still honours the real gates (milk.enable,
+;OninusLactis present, bare-chest) and prints which one blocked it. abIntense picks
+;milk.levelintense over milk.levelnonintense. Console-invoked only - never on the load
+;path, so the MiscUtil.PrintConsole calls are safe here.
+Function TestMilk(Bool abIntense)
+	if playerref == none
+		playerref = Game.GetPlayer()
+	endif
+	if milkenable != 1
+		MiscUtil.PrintConsole("SLOVE milk: disabled - set milk.enable = 1 (and install Oninus Lactis NG), then 'SLOVE_Config Reload'.")
+		return
+	endif
+	if LactisQuest == none
+		MiscUtil.PrintConsole("SLOVE milk: OninusLactis.esp not loaded / quest 0xD61 missing - install Oninus Lactis NG.")
+		return
+	endif
+	if milkrequirebarechest == 1 && playerref.GetWornForm(0x4) != none
+		MiscUtil.PrintConsole("SLOVE milk: blocked by the bare-chest gate (body slot occupied). Unequip the chest piece or set milk.requirebarechest = 0.")
+		return
+	endif
+	;MME fullness gate - mirror Lactate's check so the test reports the same skip a live
+	;scene would take (else "forcing squirt" prints while Lactate silently no-ops). Only
+	;bites when MME actually manages the player (getMilkMaximum > 0).
+	if HasMME()
+		float milkMax = MME_Storage.getMilkMaximum(playerref)
+		if milkMax > 0.0
+			int fullness = Math.Ceiling(MME_Storage.getMilkCurrent(playerref) / milkMax * 100)
+			if fullness <= milkmmeminfullness
+				MiscUtil.PrintConsole("SLOVE milk: MME fullness " + fullness + "% at/below milk.mmeminfullness (" + milkmmeminfullness + "%) - a live scene would SKIP this squirt. Fill up or lower milk.mmeminfullness.")
+				return
+			endif
+			MiscUtil.PrintConsole("SLOVE milk: MME fullness " + fullness + "% (above " + milkmmeminfullness + "%) - the squirt will drain the reserve.")
+		else
+			MiscUtil.PrintConsole("SLOVE milk: MME present but not managing the player - squirting normally, no drain.")
+		endif
+	endif
+	int lvl = milklevelnonintense
+	if abIntense
+		lvl = milklevelintense
+	endif
+	MiscUtil.PrintConsole("SLOVE milk: forcing squirt (intense=" + abIntense + " level=" + lvl + ")")
+	Lactate(abIntense)
+EndFunction
+
 float function GetDirectorLastLabelTime()
 	return LastLabelUpdateTime
 endfunction

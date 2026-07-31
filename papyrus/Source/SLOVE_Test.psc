@@ -105,6 +105,23 @@ Function DumpAnim() Global
 	dir.DumpCurrentAnim()
 EndFunction
 
+;Force a nipple squirt on the player to tune [milk] settings without playing out a
+;scene. Delegates to the Director (alias 0), which owns the milk config + squirt path
+;and reports why it was blocked. aiIntense != 0 = milk.levelintense, else levelnonintense.
+Function Milk(Int aiIntense) Global
+	Quest mq = Game.GetFormFromFile(0x804, "SLOVE.esp") as Quest
+	SLOVE_Director dir = none
+	if mq
+		dir = mq.GetAlias(0) as SLOVE_Director
+	endif
+	if dir == none
+		MiscUtil.PrintConsole("SLO VE: Director not found (SLOVE.esp not loaded?).")
+		SLOVE_Log.WriteLog("SLO VE: Director not found (SLOVE.esp not loaded?).", 1)
+		return
+	endif
+	dir.TestMilk(aiIntense != 0)
+EndFunction
+
 ;Print config + resolution basics for quick sanity checks.
 Function DumpState() Global
 	MiscUtil.PrintConsole("SLOVE config available=" + SLOVE_Config.Available())

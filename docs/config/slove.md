@@ -185,3 +185,13 @@ Optional nipple squirts during scenes via **Oninus Lactis NG** (player only, dri
 | `levelnonintense` | `1` | …soft. |
 | `requirebarechest` | `1` | Skip while body slot 32 is covered. |
 | `mmeminfullness` | `20` | **Milk Mod Economy only:** skip at or below this % fullness. With MME installed, squirts require milk in the reserve and drain it (20–50 % of current, scaled by level and duration). |
+
+!!! tip "Test squirts without waiting for a scene"
+    `slovetest milk` (or `SLOVE_Test Milk`) forces one squirt on the player so you can
+    tune `levelnonintense` / `levelintense` on the spot — add `1` for the intense level
+    (`slovetest milk 1`). It honours every real gate and reports which one would block a
+    live scene: `enable` off, Oninus Lactis missing, the bare-chest gate, or (with MME
+    managing the player) `mmeminfullness`. Needs ConsoleUtil Extended; the squirt
+    self-stops after `mintime`–`maxtime` seconds. Note the squirt **level** comes only
+    from `levelintense` / `levelnonintense` — MME fullness gates and drains, it never
+    scales the level.

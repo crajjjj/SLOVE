@@ -1,6 +1,6 @@
 # Troubleshooting & Logs
 
-Two log files and five console commands answer almost everything.
+Two log files and a handful of console commands answer almost everything.
 
 ## Where the logs are
 
@@ -33,11 +33,12 @@ SLOVE_Test DumpAnim                        ; dump the current scene: tags, label
 SLOVE_Test DumpState                       ; config flags, the player's slot, esp loaded?
 SLOVE_Test AuditVoicePack F1             ; which categories a slot resolves / is MISSING
 SLOVE_Test SampleCategory F1 Orgasm    ; play one clip now (handle=0 means nothing resolved)
+SLOVE_Test Milk                            ; force one [milk] nipple squirt on the player (add 1 for intense)
 SLOVE_Config Reload                        ; re-read SLOVE.toml
 au reload                     ; re-read the AudioUtil TOMLs and rescan folders
 ```
 
-Every `SLOVE_Test` / `SLOVE_Config` command also has a short alias (`slovetest anim`, `slovetest dump`, `slovetest audit F1`, `slovetest sample F1 Orgasm`, `sloveconfig reload`); lipsync has its own `slovelip enable 0` / `slovelip gain 0.8`.
+Every `SLOVE_Test` / `SLOVE_Config` command also has a short alias (`slovetest anim`, `slovetest dump`, `slovetest audit F1`, `slovetest sample F1 Orgasm`, `slovetest milk`, `sloveconfig reload`); lipsync has its own `slovelip enable 0` / `slovelip gain 0.8`.
 
 `DumpAnim` (alias `slovetest anim`) is the fastest way to see *why a given animation sounds the way it does*. For the player's live scene it prints the active SexLab scene tags, the SFX tag, and — per actor, the player marked `*` — their sex, role, resolved AudioUtil slot, all five labels (`stim`/`penis`/`oral`/`pen`/`end`) and the voice branch those labels select. Every line goes to **both the console and `SLOVE.0.log`**, so you can run it mid-scene and read it back afterwards. The voice line is the *label-derived* branch (the live engine also applies gag/orgasm/timing overrides), so pair it with `SampleCategory` to confirm a folder actually resolves.
 

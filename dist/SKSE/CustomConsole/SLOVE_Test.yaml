@@ -40,3 +40,12 @@ subs:
         type: String
         required: true
         help: Category name, e.g. Orgasm
+  - name: Milk
+    alias: milk
+    func: Milk
+    help: Force a nipple squirt on the player to tune [milk] (needs Oninus Lactis NG + milk.enable=1)
+    args:
+      - name: intense
+        type: int
+        default: 0
+        help: 1 = intense (milk.levelintense), 0 = non-intense (default)

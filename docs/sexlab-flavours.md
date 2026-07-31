@@ -10,8 +10,9 @@ presets, the expression JSONs, the bundled audio — is identical either way.
 | Extra requirements | none | **SLSO** and **SLATE + a tag database** |
 | Stage/position labels | SexLab Scene Builder | SLATE animation tags — **same fidelity** |
 | Per-actor orgasm | native | via SLSO |
-| Measured thrust intensity | yes | no — intensity comes from the authored tag |
+| Measured thrust intensity | yes | no — from the authored tag, overlaid by SLSO enjoyment |
 | Adaptive velocity / SOSBend search | yes | no |
+| Live cunnilingus detection | yes — clit↔mouth collision → `CUN` | no — only from the authored tag |
 | PPA gape + insertion SFX | yes | yes |
 
 !!! tip "Not sure which you have?"
@@ -38,6 +39,13 @@ that the scene had an orgasm, not who had it.
 [SLSO](https://www.loverslab.com/files/file/5240-sexlab-separate-orgasm/)
 republishes the per-actor event that P+ sends natively, with identical arguments,
 so with it installed orgasm routing is at full parity.
+
+SLSO also supplies the per-actor **enjoyment** meter that classic SexLab lacks.
+That is what feeds the intensity overlay described under
+[What actually differs on classic](#what-actually-differs-on-classic): with no
+measured thrust to lean on, classic tips a stage into "intense" when enjoyment
+crosses `voice.intenseenjoyment`. Without SLSO, enjoyment never rises, so the
+voice stays on the authored-tag baseline and the orgasm-hype lines never trigger.
 
 !!! warning "Let SLSO overwrite SexLab"
     SLSO ships a replacement `sslActorAlias` script. That override is what emits
@@ -82,12 +90,22 @@ SexLab 1.63  →  SLSO  →  SLATE + tag database  →  AudioUtil  →  voice pa
 Only one subsystem is genuinely unavailable: **node-collision physics**. Classic
 has no per-node contact detection, so:
 
-- **Intensity is authored, not measured.** The fast/slow prefix on a label
-  (`FVP` vs `SVP`) comes from the tag database rather than live thrust speed, so
-  it does not follow an AnimSpeed override.
+- **Intensity is authored + enjoyment-driven, not measured.** The fast/slow
+  prefix on a label (`FVP` vs `SVP`) comes from the tag database rather than live
+  thrust speed, so it does not follow an AnimSpeed override. To make up for the
+  missing thrust signal, classic **overlays SLSO enjoyment** onto that baseline:
+  once the PC's enjoyment crosses `voice.intenseenjoyment` (default 75, mirroring
+  SLSO's `sl_hot_voice_strength`; `0` = off) the voice reads intense even on a
+  soft-tagged stage, and relaxes again as enjoyment falls after orgasm. P+ has no
+  such overlay — its measured F/S prefix already carries live intensity.
 - **Thrust-synced velocity SFX and the adaptive SOSBend search are off.**
   `sfx.usevelocity`, `sfx.useadaptivevelocity` and `director.usephysicslabels`
   are ignored on this build.
+- **Live cunnilingus detection is off.** P+ classifies `CUN` from live
+  clit↔mouth collision; classic can only reach `CUN` from an animation's authored
+  tag, so an untagged (or generically `Oral`-tagged) cunnilingus scene won't
+  register as one. Tuning the detector thresholds ([Tuning Cunnilingus
+  Detection](cunnilingus-detection.md)) is therefore a **P+-only** lever.
 
 **Everything else still works**, including the parts people assume are physics:
 stage-aware voices, faces, body SFX, the willpower/resistance system, and — via
