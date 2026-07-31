@@ -446,6 +446,22 @@ Bool Function FullExpressionPass()
 		endif
 	endif
 
+	;A visible tongue needs the mouth held open. We used to get that for free from the
+	;licker's moan lipsync, but an oral giver's lines are now lipsync-blocked (the Director's
+	;FaceOwnsMouth/IsOralGiver fix), and some tongue branches leave the jaw shut - the MFEE
+	;tongue path when tonguephonemebigaah is unconfigured (0), or a cun/blowjob mislabel that
+	;falls through the tongue-out branch - so the tongue would poke through a closed mouth.
+	;Floor BigAah (the jaw opener GetMeasuredMouthOpen keys on, so this also keeps the jaw
+	;gate from retracting the tongue) to the tongue-out preset's own open value whenever a
+	;tongue is out and lipsync isn't actively driving the mouth. No-op when the tongue-out
+	;branch already set it, and (classic) inert while tongues stay gated off. Shape channels
+	;(e.g. MFEE's 'oh') left untouched.
+	if (EquippedTongue() || MFEEAddTongue) && !(AudioUtil.IsLipSyncActive(actorref) && !LipSyncBlockedForFace)
+		if TongueOutOverrideF.Length > 1 && result[1] < TongueOutOverrideF[1]
+			result[1] = TongueOutOverrideF[1]
+		endif
+	endif
+
 	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
 	BreathIntense = Isintense()
 	BreathingAllowed = !(mouthblowjob || MFEEAddTongue || MFEEAddAhegao || EquippedTongue() || IsKissing() || IsCunnilingus())

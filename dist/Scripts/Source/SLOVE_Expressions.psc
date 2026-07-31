@@ -447,6 +447,21 @@ Bool Function FullExpressionPass()
 		endif
 	endif
 
+	;A visible tongue needs the mouth held open. We used to get that for free from the
+	;licker's moan lipsync, but an oral giver's lines are now lipsync-blocked (the Director's
+	;FaceOwnsMouth/IsOralGiver fix), and some tongue branches leave the jaw shut - the MFEE
+	;tongue path when tonguephonemebigaah is unconfigured (0), or a cun/blowjob mislabel that
+	;falls through the tongue-out branch - so the tongue would poke through a closed mouth.
+	;Floor BigAah (the jaw opener GetMeasuredMouthOpen keys on, so this also keeps the jaw
+	;gate from retracting the tongue) to the tongue-out preset's own open value whenever a
+	;tongue is out and lipsync isn't actively driving the mouth. No-op when the tongue-out
+	;branch already set it. The tongue-shape channels (e.g. MFEE's 'oh') are left untouched.
+	if (EquippedTongue() || MFEEAddTongue) && !(AudioUtil.IsLipSyncActive(actorref) && !LipSyncBlockedForFace)
+		if TongueOutOverrideF.Length > 1 && result[1] < TongueOutOverrideF[1]
+			result[1] = TongueOutOverrideF[1]
+		endif
+	endif
+
 	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
 	BreathIntense = Isintense()
 	BreathingAllowed = !(mouthblowjob || MFEEAddTongue || MFEEAddAhegao || EquippedTongue() || IsKissing() || IsCunnilingus())
@@ -1085,8 +1100,32 @@ Bool Function IsOralTongueActive()
 	if f.Length < 28
 		return false
 	endif
-	return f[12] || f[13]
+	if !(f[12] || f[13]) ;aOral (mouth on a crotch) / aLickingShaft
+		return false
+	endif
+	;aOral/aLickingShaft fire on a PENIS too, so an MF scene tagged BOTH "cunnilingus" and
+	;"blowjob" (observed: scene 70xybo0o) gave the blowjob-giver a tongue over a dick. Suppress
+	;the lick tongue ONLY when the oral partner is POSITIVELY male (a penis in the mouth). A
+	;female OR an unresolved partner keeps the tongue: FF cunnilingus is the common case and
+	;must never lose its tongue to a failed partner lookup (GetPartnerByTypeRev returns none
+	;more often in no-penis geometry). The CUN-label path above already covers label-detected
+	;cunnilingus. Net effect vs the old code: same tongue as before, minus a confirmed dick.
+	Actor oralReceiver = OralReceiver()
+	if oralReceiver && SexLab.GetGender(oralReceiver) % 2 == 0 ;positively male -> penis in mouth
+		return false
+	endif
+	return true
 endfunction
+
+;The crotch THIS actor's mouth is on (oral giver -> receiver). P+ only; its SEX separates
+;cunnilingus (female) from a blowjob (a penis in the mouth, male), which a scene-level lick
+;tag cannot when an MF scene carries both "cunnilingus" and "blowjob" tags. None if unresolved.
+Actor Function OralReceiver()
+	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
+		return none
+	endif
+	return CurrentThread.GetPartnerByTypeRev(actorref, 3)
+EndFunction
 
 Function unequipmask(actor char)
 	Armor Mask = wearingmask(char)
@@ -1703,12 +1742,21 @@ endfunction
 ;blowjob, which blocks the licking tongue. SBJ/FBJ are the only oral "blowjob"
 ;labels, but SexLab tags F/F cunnilingus with them too (there is no cunnilingus-
 ;specific oral label in this pipeline; the CUN label rides the intermittent P+
-;NiType detector). In a lick/lesbian/ff-tagged scene there is no penis to
-;occlude the mouth, so an SBJ/FBJ label there is cunnilingus and the tongue SHOULD
-;show. Gates the tongue add/remove only - IsSuckingoffOther still drives the
-;breathing/mask logic unchanged.
+;NiType detector). Distinguish PER-ACTOR by the oral partner's sex: a male crotch is
+;a penis in the mouth (block the tongue), a female crotch is cunnilingus (tongue OK).
+;This replaces the old !SceneTagLickScene heuristic, which misfired on an MF scene
+;tagged BOTH "cunnilingus" and "blowjob" (the scene tag can't tell the two acts apart).
+;Falls back to that heuristic only when the partner can't be resolved. Gates the tongue
+;add/remove only - IsSuckingoffOther still drives the breathing/mask logic unchanged.
 Bool Function MouthOccupiedByPenis()
-	return IsSuckingoffOther() && !SceneTagLickScene
+	if !IsSuckingoffOther()
+		return false
+	endif
+	Actor rcv = OralReceiver()
+	if rcv
+		return SexLab.GetGender(rcv) % 2 == 0 ;male crotch = penis in mouth
+	endif
+	return !SceneTagLickScene
 endfunction
 
 
