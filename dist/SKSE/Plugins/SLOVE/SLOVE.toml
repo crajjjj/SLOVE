@@ -123,6 +123,7 @@ ahegaostoragekeys = "TongueOn"
 chancetostickouttongueduringintense = 30
 chancetostickouttongueduringattacking = 30
 tonguemouthopenthreshold = 0.4 # jaw gate: min measured mouth-open for tongue
+tongueretractgraceseconds = 2.0 # grace before retracting when the tongue's trigger briefly drops (oral proximity flickers as the head moves); raise to hold the tongue through longer gaps, 0 = retract instantly
 printdebug = 0
 
 [sfx]

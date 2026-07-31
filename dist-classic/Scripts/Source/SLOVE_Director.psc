@@ -215,7 +215,7 @@ Function PerformInitialization()
 EndFunction
 
 Function RegisterForTheEventsWeNeed()
-	miscutil.printconsole("SLO VE Director Registered For Events")
+	SLOVE_Log.WriteLog("Director : Registered For Events", 0)
 
 	RegisterForModEvent("AnimationStart", "DirectorSceneStart")
 	;presex: fires at the top of sslThreadModel.StartThread(), BEFORE the actors
@@ -908,7 +908,7 @@ endfunction
 
 function printdebug(string contents = "")
 	if enableprintdebug == 1
-		miscutil.PrintConsole ("SLO VE Director : "+ contents)
+		SLOVE_Log.WriteLog("SLO VE Director : "+ contents, 0)
 	endif
 endfunction
 

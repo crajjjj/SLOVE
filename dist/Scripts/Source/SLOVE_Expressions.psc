@@ -168,6 +168,7 @@ bool BreathingAllowed = false
 int enablebreathing = 1
 float breathingupdateinseconds = 0.55
 float tonguemouthopenthreshold = 0.4
+float tongueretractgraceseconds = 2.0
 
 ;per-pass PPA snapshot (see FullExpressionPass) - the penetration checks read
 ;these instead of calling the bridge natives on every check
@@ -703,6 +704,7 @@ EndFunction
 
 int TongueClosedTicks = 0
 bool TongueGateBlocked = false
+float TongueConditionLastTrue = 0.0 ;real time a tongue condition last held (retract-grace anchor)
 
 Function UpdateTongueJawGate()
 	if TongueGateBlocked
@@ -810,6 +812,7 @@ Function InitializeConfigandForms()
 	enablebreathing = SLOVE_Config.GetInt("expressions.enablebreathing", 1)
 	breathingupdateinseconds = SLOVE_Config.GetFloat("expressions.breathingupdateinseconds", 0.55)
 	tonguemouthopenthreshold = SLOVE_Config.GetFloat("expressions.tonguemouthopenthreshold", 0.4)
+	tongueretractgraceseconds = SLOVE_Config.GetFloat("expressions.tongueretractgraceseconds", 2.0)
 	pcnonintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.pcnonintenseexpressionupdateinseconds", 3.0)
 	pcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.pcintenseexpressionupdateinseconds", 3.0)
 	npcnonintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcnonintenseexpressionupdateinseconds", 3.0)
@@ -908,24 +911,44 @@ Function AddTongue()
 	else
 		if FHUTongueTypeArmor
 			printdebug("AddTongue: Equipping FHUTongueTypeArmor=" + FHUTongueTypeArmor)
-			;show = plain EquipItem. The armor is already in the inventory:
-			;the Director pre-adds every variant in the AnimationStarting
-			;presex window (before SexLab strips), and equipment traffic on
-			;an already-carried item does not wake the NPC outfit AI - only
-			;inventory ADDs do. The AddItem below is a fallback for scenes
-			;adopted without the presex hook (mid-scene reload, missed event)
-			if actorref.GetItemCount(FHUTongueTypeArmor) == 0
-				actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+			;show = plain EquipItem, which auto-adds the armor when the actor
+			;does not already carry it and equips it in the SAME step. The item
+			;never sits UNEQUIPPED in inventory, so the NPC outfit AI has no loose
+			;wearable to redress over (the AhegaoTongues model). This replaces the
+			;old presex bulk pre-add - ten loose armors dumped into the strip
+			;window was the redress trigger. Requires the tongue armors to be
+			;Playable: EquipItem is a silent no-op on the PLAYER for NonPlayable
+			;items (that was the whole reason the old path used EquipItemEx).
+			actorref.EquipItem(FHUTongueTypeArmor, true, true) ;abPreventRemoval, abSilent
+			if IsPlayer && Game.GetCameraState() == 3
+				;free camera (SexLab scenes): EquipItem alone does NOT render the tongue
+				;on the PLAYER (the freecam subject) - force a node rebuild (SLS's fix).
+				;QueueNiNodeUpdate zeroes the MFG phonemes (closes the mouth), so snapshot
+				;the two mouth channels SLO VE owns (0 aah / 1 BigAah) and restore them
+				;right after - the deferred rebuild then picks up the restored open mouth
+				;(AhegaoTongues restorePlayerFace pattern), so the tongue doesn't clip.
+				int aahSnap = MfgConsoleFunc.GetPhoneme(actorref, 0)
+				int bigAahSnap = MfgConsoleFunc.GetPhoneme(actorref, 1)
+				actorref.QueueNiNodeUpdate()
+				if aahSnap >= 0
+					MfgConsoleFunc.SetPhoneme(actorref, 0, aahSnap)
+				endif
+				if bigAahSnap >= 0
+					MfgConsoleFunc.SetPhoneme(actorref, 1, bigAahSnap)
+				endif
 			endif
-			;the tongues are flagged NonPlayable - plain EquipItem is a
-			;silent no-op on the PLAYER for non-playable items; EquipItemEx
-			;bypasses the playable filter and is used for everyone (uniform
-			;path, preventUnequip on, no equip sound)
-			actorref.EquipItemEx(FHUTongueTypeArmor, 0, true, false)
 			FHUTongueShown = true
 		else
 			printdebug("AddTongue: FHUTongueTypeArmor not defined (tongue disabled or not rolled), skipping equip.")
 		endif
+	endif
+	if MFEEAddTongue || FHUTongueShown
+		;the tongue now owns the open mouth - block this actor's voice lipsync RIGHT
+		;NOW (not a full pass later), so a moan can't flap the jaw shut under the
+		;tongue. That flap otherwise both clips the tongue AND trips the jaw gate
+		;into removing it -> the equip/unequip churn. FullExpressionPass keeps this
+		;asserted (tonguearmorworn) and releases it when the tongue is gone.
+		ApplyFaceMouthOwnership(true)
 	endif
 EndFunction
 
@@ -941,11 +964,11 @@ Function RemoveTongue()
 	else
 		if FHUTongueShown
 			;hide = plain UnequipItem: equipment traffic on a carried item does
-			;not wake the NPC outfit AI (only inventory ADDs do, and those all
-			;happen in the presex window). CleanupTongueItem stays as the
-			;scene-end backstop
+			;not wake the NPC outfit AI (only inventory ADDs do). The item stays
+			;in inventory until scene end (RemoveTongueItems), so a later AddTongue
+			;re-equips with no fresh add. CleanupTongueItem is the scene-end backstop
 			if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
-				actorref.UnequipItemEx(FHUTongueTypeArmor, 0, false) ;Ex mirrors the NonPlayable-safe equip, uniform for everyone
+				actorref.UnequipItem(FHUTongueTypeArmor, false, true) ;armors are Playable now - plain unequip works on the player too
 			endif
 			FHUTongueShown = false
 		endif
@@ -959,7 +982,7 @@ endfunction
 Function CleanupTongueItem()
 	FHUTongueShown = false
 	if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
-		actorref.UnequipItemEx(FHUTongueTypeArmor, 0, false) ;Ex mirrors the NonPlayable-safe equip, uniform for everyone
+		actorref.UnequipItem(FHUTongueTypeArmor, false, true) ;armors are Playable now - plain unequip works on the player too
 	endif
 endfunction
 
@@ -1442,6 +1465,15 @@ Function InitializeAddNPCTongue()
 
 	FHUTongueTypeArmor =  GetTongueType()
 	CacheFHUTongues()
+	;PLAYER-ONLY pre-add of the ROLLED tongue. Giving the player their chosen tongue
+	;at init (scene start) - not at equip time - lets its 3D initialize, so the
+	;mid-scene EquipItem in AddTongue actually renders it on the player (a freshly
+	;auto-added item does not reliably attach to the player's facegen). NPCs are
+	;never pre-added - an inventory add redresses them, so they auto-add on equip.
+	;The Director strips it back off at scene end (RemoveTongueItems).
+	if IsPlayer && FHUTongueTypeArmor && actorref.GetItemCount(FHUTongueTypeArmor) == 0
+		actorref.AddItem(FHUTongueTypeArmor, abSilent = true)
+	endif
 endfunction
 
 armor FHUTongueTypeArmor
@@ -1577,6 +1609,14 @@ Function HentairimUpdateStageData()
 		bool intenseTongue = (IsIntense() || isbroken()) && IsGettingPenetrated()
 		bool attackingTongue = (IsCowgirl() || IsGivingAnalPenetration() || IsGivingVaginalPenetration()) && !IsVictim
 
+		;record when a tongue condition last held. The oral condition rides on live
+		;physics distance (mouth-to-target proximity), which drops for a frame as the
+		;head moves during animation and then snaps back - so don't retract the instant
+		;it goes false; a retract must wait out tongueretractgraceseconds of NO condition.
+		if oralTongue || intenseTongue || attackingTongue
+			TongueConditionLastTrue = Utility.GetCurrentRealTime()
+		endif
+
 		;full tongue-decision dump: exactly why a tongue does/doesn't appear this
 		;stage - the three conditions with their sub-parts, the roll vs thresholds,
 		;and the current equipped/shown state. Gated so the string (several external
@@ -1589,8 +1629,8 @@ Function HentairimUpdateStageData()
 			;deterministic retract: unequip as soon as NO tongue condition holds
 			;anymore (the stage/labels moved on) - no keep/strip roll, a tongue
 			;that randomly outlives its trigger reads as weird
-			if !(oralTongue || intenseTongue || attackingTongue)
-				printdebug("Retracting tongue - no condition holds (oral/intense/attacking all false)")
+			if !(oralTongue || intenseTongue || attackingTongue) && (Utility.GetCurrentRealTime() - TongueConditionLastTrue) >= tongueretractgraceseconds
+				printdebug("Retracting tongue - no condition held for the grace window (" + tongueretractgraceseconds + "s)")
 				RemoveTongue()
 			EndIf
 		else
@@ -1747,7 +1787,7 @@ endfunction
 
 Function PrintDebug(string Contents = "")
 	if enableprintdebug == 1
-		miscutil.printconsole(actorref.getdisplayname() + " HentaiRim Expressions " + Contents)
+		SLOVE_Log.WriteLog(actorref.getdisplayname() + " HentaiRim Expressions " + Contents, 0)
 	endif
 endfunction
 

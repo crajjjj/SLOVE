@@ -215,7 +215,7 @@ Function PerformInitialization()
 EndFunction
 
 Function RegisterForTheEventsWeNeed()
-	miscutil.printconsole("SLO VE Director Registered For Events")
+	SLOVE_Log.WriteLog("Director : Registered For Events", 0)
 
 	RegisterForModEvent("AnimationStart", "DirectorSceneStart")
 	;presex: fires in sslThreadModel BEFORE the actors are stripped - the one
@@ -353,38 +353,13 @@ Event DirectorSceneStarting(string eventName, string argString, float argNum, fo
 	PreloadTongueArmors(startingThread.GetPositions())
 EndEvent
 
-;Pre-add all ten FHU tongue-armor variants to the player (and NPCs if enabled) BEFORE
-;SexLab strips: if an add wakes the NPC outfit AI (redress), the strip that follows
-;re-normalizes it. Mid-scene show/hide in SLOVE_Expressions is then plain
-;EquipItem/UnequipItem - equipment traffic on an already-carried item never wakes the
-;outfit AI. Variants are NonPlayable, weightless, invisible in menus, removed at scene
-;end (RemoveTongueItems). Framework-free (takes Actor[]) so the blocking hook
-;(SLOVE_ThreadHook, P+) and the async DirectorSceneStarting fallback share one path.
+;NO-OP. The player's ONE rolled tongue is now pre-added by SLOVE_Expressions
+;(InitializeAddNPCTongue), where the roll is known - so only the selected variant
+;is given, not all ten. NPCs are never pre-added (an inventory add redresses them);
+;they auto-add on equip. Kept - signature preserved - so the SLOVE_ThreadHook caller
+;and any suspended save stack still resolve it. Scene-end cleanup still runs via
+;RemoveTongueItems (which strips whatever the player is carrying).
 Function PreloadTongueArmors(Actor[] positions)
-	if SLOVE_Config.GetInt("expressions.enabletongue", 0) != 1
-		return
-	endif
-	int npcTongue = JsonUtil.GetIntValue("SLOVE/NPCTongue.json", "enablenpctongue", 0)
-	int added = 0
-	int i = 0
-	while i < positions.Length
-		Actor pos = positions[i]
-		if pos && (pos == PlayerRef || npcTongue == 1)
-			int t = 0
-			while t < 10
-				;SLOVE tongue armors (bundled HALO HDT) are sequential in SLOVE.esp:
-				;SLOVE_Tongue{t+1}Armor = 0x000813 + t
-				Form tongueItem = Game.GetFormFromFile(0x000813 + t, "SLOVE.esp")
-				if tongueItem && pos.GetItemCount(tongueItem) == 0
-					pos.AddItem(tongueItem, abSilent = true)
-					added += 1
-				endif
-				t += 1
-			endwhile
-		endif
-		i += 1
-	endwhile
-	printdebug("PreloadTongueArmors: npcTongue=" + npcTongue + " positions=" + positions.Length + " items_added=" + added)
 EndFunction
 
 ;Director reacts when a sexlab scene start
@@ -933,7 +908,7 @@ endfunction
 
 function printdebug(string contents = "")
 	if enableprintdebug == 1
-		miscutil.PrintConsole ("SLO VE Director : "+ contents)
+		SLOVE_Log.WriteLog("SLO VE Director : "+ contents, 0)
 	endif
 endfunction
 
@@ -1024,16 +999,17 @@ EndFunction
 ;stays inside the Director per the framework-firewall rule. P+ only - the classic
 ;variant has no NiType/physics detector and never calls this.
 Function ApplyCunnilingusDetectionTuning()
-	if tunecunnilingus != 1
-		return
-	endif
-	;cunnilingus only exists under the legacy detector; warn (once path via error log) if it is off
-	if !sslSystemConfig.GetSettingBool("bUseLegacyNiType")
-		WritetoErrorlogs("Director", "bUseLegacyNiType = 0 in SexLab.ini - the modern detector has no cunnilingus class, so CUN will never fire. Set bUseLegacyNiType = 1 to enable it.")
-	endif
-	sslSystemConfig.SetSettingFlt("fDistanceMouth", cunnilingusdistance)
-	sslSystemConfig.SetSettingFlt("fAngleCunnilingus", cunnilingusangle)
-	printdebug("Cunnilingus detection widened: fDistanceMouth=" + cunnilingusdistance + " fAngleCunnilingus=" + cunnilingusangle)
+;Settings not exposed
+	; if tunecunnilingus != 1
+	; 	return
+	; endif
+	; ;cunnilingus only exists under the legacy detector; warn (once path via error log) if it is off
+	; if !sslSystemConfig.GetSettingBool("bUseLegacyNiType")
+	; 	WritetoErrorlogs("Director", "bUseLegacyNiType = 0 in SexLab.ini - the modern detector has no cunnilingus class, so CUN will never fire. Set bUseLegacyNiType = 1 to enable it.")
+	; endif
+	; sslSystemConfig.SetSettingFlt("fDistanceMouth", cunnilingusdistance)
+	; sslSystemConfig.SetSettingFlt("fAngleCunnilingus", cunnilingusangle)
+	; printdebug("Cunnilingus detection widened: fDistanceMouth=" + cunnilingusdistance + " fAngleCunnilingus=" + cunnilingusangle)
 EndFunction
 
 Bool Function ApplyPhysicsLabels()

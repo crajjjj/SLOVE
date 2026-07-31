@@ -1727,7 +1727,7 @@ endfunction
 
 Function PrintDebug(string Contents = "")
 	if enableprintdebug == 1
-		miscutil.printconsole(actorref.getdisplayname() + " HentaiRim Expressions " + Contents)
+		SLOVE_Log.WriteLog(actorref.getdisplayname() + " HentaiRim Expressions " + Contents, 0)
 	endif
 endfunction
 

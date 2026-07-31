@@ -372,6 +372,6 @@ EndFunction
 
 Function printdebug(string contents = "")
 	if enableprintdebug == 1
-		MiscUtil.PrintConsole(Actorref.GetDisplayName() + " SLOVE Resistance " + contents)
+		SLOVE_Log.WriteLog(Actorref.GetDisplayName() + " SLOVE Resistance " + contents, 0)
 	endif
 EndFunction

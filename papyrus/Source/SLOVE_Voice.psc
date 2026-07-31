@@ -2885,7 +2885,7 @@ endfunction
 
 Function PrintDebug(string Contents = "")
 	if EnablePrintDebug == 1
-		miscutil.printconsole("SLO VE Voice : " + Contents)
+		SLOVE_Log.WriteLog("SLO VE Voice : " + Contents, 0)
 	endif
 endfunction
 

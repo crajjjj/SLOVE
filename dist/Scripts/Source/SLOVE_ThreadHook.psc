@@ -22,20 +22,5 @@ Actor PlayerRef
 ; animation is chosen and before the strip. Auto-registration is handled by the base
 ; SexLabThreadHook.OnInit (bAutoegisterOnInit defaults true), so no OnInit override.
 Function OnAnimationStarting(SexLabThread akThread)
-	if PlayerRef == none
-		PlayerRef = Game.GetPlayer()
-	endif
-	;blocking hook - bail on every non-player thread immediately (keep it tight)
-	if akThread == none || !akThread.HasActor(PlayerRef)
-		return
-	endif
-	if MasterScript == none
-		Quest mq = Game.GetFormFromFile(0x804, "SLOVE.esp") as Quest
-		if mq
-			MasterScript = mq.GetAlias(0) as SLOVE_Director
-		endif
-	endif
-	if MasterScript
-		MasterScript.PreloadTongueArmors(akThread.GetPositions())
-	endif
+
 EndFunction

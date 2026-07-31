@@ -1020,7 +1020,7 @@ endFunction
 
 Function PrintDebug(string Contents = "")
 	if enableprintdebug == 1 && !isplayer
-		miscutil.printconsole(actorname + " - SLO VE SFX " + Contents)
+		SLOVE_Log.WriteLog(actorname + " - SLO VE SFX " + Contents, 0)
 	endif
 endfunction
 
