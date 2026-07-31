@@ -327,7 +327,7 @@ Bool Function FullExpressionPass()
 		endif
 	endif
 
-	if IsSuckingoffOther() && removetongueonblowjob == 1
+	if MouthOccupiedByPenis() && removetongueonblowjob == 1
 		RemoveTongue()
 		printdebug("Removing Tongue during  blowjob")
 	elseif IsBroken() && HasMFEE && EnabledMFEEAhegao == 1
@@ -887,10 +887,10 @@ Function AddTongue()
 	;the debug string (scanning once) and then scanned again in the gate below
 	Armor wornMask = WearingMask(actorref)
 	if enableprintdebug == 1
-		printdebug("AddTongue: Starting. MFEEAddAhegao=" + MFEEAddAhegao + " WearingMask=" + (wornMask != none) + " IsSuckingoffOther=" + IsSuckingoffOther() + " EnableTongue=" + EnableTongue + " HasDeviousGag=" + HasDeviousGag(actorref) + " IsUnconcious=" + IsUnconcious() + " EquippedTongue=" + EquippedTongue())
+		printdebug("AddTongue: Starting. MFEEAddAhegao=" + MFEEAddAhegao + " WearingMask=" + (wornMask != none) + " IsSuckingoffOther=" + IsSuckingoffOther() + " MouthOccupiedByPenis=" + MouthOccupiedByPenis() + " EnableTongue=" + EnableTongue + " HasDeviousGag=" + HasDeviousGag(actorref) + " IsUnconcious=" + IsUnconcious() + " EquippedTongue=" + EquippedTongue())
 	endif
 
-	if MFEEAddAhegao || wornMask != none || IsSuckingoffOther() || EnableTongue != 1 || HasDeviousGag(actorref) || IsUnconcious() || EquippedTongue()
+	if MFEEAddAhegao || wornMask != none || MouthOccupiedByPenis() || EnableTongue != 1 || HasDeviousGag(actorref) || IsUnconcious() || EquippedTongue()
 		printdebug("AddTongue: Conditions blocked tongue, exiting early.")
 		return
 	endif
@@ -1546,7 +1546,7 @@ Bool IsHugePP
 ;of 3 HasSceneTag externals per expression pass
 bool SceneTagFaint = false
 bool SceneTagDoggy = false
-bool SceneTagLickScene = false ;scene classified as one where a licking tongue fits (lesbian/cunnilingus/69/licking) - GATES the live oral physics flag
+bool SceneTagLickScene = false ;scene classified as one where a licking tongue fits (lesbian/ff/cunnilingus/licking; NOT 69 - it can involve a penis) - GATES the live oral physics flag
 string CurrentSceneID = ""
 string currentStageID = ""
 Int currentStage = -1
@@ -1587,7 +1587,11 @@ Function HentairimUpdateStageData()
 			SceneTagDoggy = CurrentThread.HasSceneTag("Doggy") || CurrentThread.HasSceneTag("Doggystyle") || CurrentThread.HasSceneTag("Doggy Style")
 			;lowercase literals: the SLSB-converted registries store tags lowercased
 			;(billyy,sex,lesbian,...) and HasSceneTag may compare exactly
-			SceneTagLickScene = CurrentThread.HasSceneTag("lesbian") || CurrentThread.HasSceneTag("ff") || CurrentThread.HasSceneTag("cunnilingus") || CurrentThread.HasSceneTag("cun") || CurrentThread.HasSceneTag("69") || CurrentThread.HasSceneTag("licking") || CurrentThread.HasSceneTag("lick")
+			;NOTE: "69" is deliberately NOT here - a 69 can be M/F, where one partner IS
+			;fellating a penis, so classifying the whole scene as no-penis "lick" would let
+			;a tongue show during that blowjob half. Leave 69 to the per-actor oral label
+			;(CUN vs SBJ/FBJ) instead. lesbian/ff are safe (two females = genuinely no penis).
+			SceneTagLickScene = CurrentThread.HasSceneTag("lesbian") || CurrentThread.HasSceneTag("ff") || CurrentThread.HasSceneTag("cunnilingus") || CurrentThread.HasSceneTag("cun") || CurrentThread.HasSceneTag("licking") || CurrentThread.HasSceneTag("lick")
 			printdebug("SceneTagLickScene=" + SceneTagLickScene + " for scene " + CurrentSceneID)
 		endif
 
@@ -1693,6 +1697,18 @@ endfunction
 
 Bool Function IsSuckingoffOther()
 	return OralLabel == "SBJ" ||  OralLabel == "FBJ"
+endfunction
+
+;True only when the actor's mouth is actually occupied by a penis - i.e. a real
+;blowjob, which blocks the licking tongue. SBJ/FBJ are the only oral "blowjob"
+;labels, but SexLab tags F/F cunnilingus with them too (there is no cunnilingus-
+;specific oral label in this pipeline; the CUN label rides the intermittent P+
+;NiType detector). In a lick/lesbian/ff-tagged scene there is no penis to
+;occlude the mouth, so an SBJ/FBJ label there is cunnilingus and the tongue SHOULD
+;show. Gates the tongue add/remove only - IsSuckingoffOther still drives the
+;breathing/mask logic unchanged.
+Bool Function MouthOccupiedByPenis()
+	return IsSuckingoffOther() && !SceneTagLickScene
 endfunction
 
 
