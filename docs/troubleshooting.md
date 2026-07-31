@@ -49,7 +49,7 @@ Every `SLOVE_Test` / `SLOVE_Config` command also has a short alias (`slovetest a
 2. **Is AudioUtil installed and loading?** If `SKSE\AudioUtil.log` doesn't exist, the DLL never loaded — check `skse64.log` for why (usually a game-version or Address Library mismatch). SLO VE fails *open*: without the DLL every setting falls back to its default and nothing plays.
 3. **Are you launching through SKSE?**
 4. **Did the quest start?** SLO VE's quest is start-game-enabled and ships `Seq\SLOVE.seq`. On an existing save give it a few seconds after load. If the SEQ file is missing from your install, the quest won't auto-start.
-5. **Is full Hentairim p+ also installed?** They are mutually exclusive and will fight over the same faces and voices. Disable one.
+5. **Is full Hentairim p+ *driving* at the same time?** SLO VE is a standalone port of Hentairim's voice/face system, so letting both drive at once makes them fight over the same actors. You don't have to uninstall Hentairim, though — keep it for its animation **tag database** with its IVDT / expression / SFX / resistance modules switched **off**, and let SLO VE take over. See [Using with Hentairim & PPA](hentairim-and-ppa.md).
 6. **Is the scene actually a player scene?** The voice engine is player-scene driven; NPC-only scenes elsewhere in the world aren't adopted.
 
 ## Doubled voices, or the mouth twitching between two expressions
