@@ -14,7 +14,18 @@ Scriptname SLOVE_Test Hidden
 ;A names would be checked, and a clean B pack deliberately drops those to fallback,
 ;so an all-backfill A result would hide a perfectly healthy B pack.
 Function AuditVoicePack(String slot) Global
-	bool isFemale = StringUtil.Substring(slot, 0, 1) == "F" || StringUtil.Substring(slot, 0, 1) == "f"
+	;Guard the classic gotcha: the audit is keyed on the slot id's sex prefix, so a
+	;voice-PACK folder name (e.g. "Aika") silently fell through to the male branch and
+	;reported a meaningless "0/15" - the #1 support confusion. Reject anything that
+	;isn't a recognised voice slot id and point the user at the right argument.
+	String first = StringUtil.Substring(slot, 0, 1)
+	bool isFemale = first == "F" || first == "f"
+	bool isMaleOrCreature = first == "M" || first == "m" || first == "C" || first == "c"
+	if !isFemale && !isMaleOrCreature
+		MiscUtil.PrintConsole("SLOVE audit: '" + slot + "' is not a voice slot id. Pass the SLOT ID (e.g. F1, M1, C1) - NOT the voice-pack folder name. See docs\\packs\\slots.md for the slot scheme.")
+		SLOVE_Log.WriteLog("SLOVE audit: '" + slot + "' is not a voice slot id (pass F1/M1/C1, not the pack name).", 1)
+		return
+	endif
 	;Variation B is gated on the scene's lead female, so only female slots carry a
 	;B taxonomy. The pass runs only when the slot actually declares variation = "B".
 	bool isVarB = isFemale && AudioUtil.GetSlotVariation(slot) == "B"

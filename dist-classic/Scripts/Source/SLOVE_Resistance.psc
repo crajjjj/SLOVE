@@ -33,12 +33,17 @@ int npcrecoverperhour
 int pcbrokenpoints
 int npcbrokenpoints
 int soshugeppsize
+int pcnotifyinterval
+int scenestartnotification
 int enableprintdebug
 
 bool IsHugePP
 bool IsVictim
 float AccumulatedResistanceDamage = 0.0
 int LastEnjoyment = 0
+; highest interval band the PC has been notified about this scene (100 = none yet);
+; seeded from the starting willpower so we never announce a band she began below
+int LastNotifiedBand = 100
 
 string RaceBaseFile = "SLOVE/ResistanceRaceBase.json"
 string RacePCModFile = "SLOVE/ResistanceRacePCModifier.json"
@@ -107,6 +112,8 @@ Function PerformInitialization()
 
 	CalculateStartupResistance()
 
+	SeedNotifyBand()
+
 	RegisterForSingleUpdate(0.1)
 EndFunction
 
@@ -123,6 +130,8 @@ Function InitializeConfig()
 	pcbrokenpoints     = SLOVE_Config.GetInt("resistance.pcbrokenpoints", 60)
 	npcbrokenpoints    = SLOVE_Config.GetInt("resistance.npcbrokenpoints", 40)
 	soshugeppsize      = SLOVE_Config.GetInt("director.soshugeppsize", 6)
+	pcnotifyinterval   = SLOVE_Config.GetInt("resistance.pcnotifyinterval", 25)
+	scenestartnotification = SLOVE_Config.GetInt("resistance.scenestartnotification", 1)
 	enableprintdebug   = SLOVE_Config.GetInt("director.printdebug", 0)
 EndFunction
 
@@ -177,11 +186,13 @@ Function AddResistanceDamage(float value)
 
 	AccumulatedResistanceDamage += Damage
 	if AccumulatedResistanceDamage >= 0.01
+		int before = GetResistance()
 		SetResistance(GetResistance() - Math.Floor(AccumulatedResistanceDamage * 100))
 		AccumulatedResistanceDamage = 0.0
 		if GetResistance() < 0
 			SetResistance(0)
 		endif
+		MaybeNotifyResistance(before, GetResistance())
 	endif
 
 	if GetResistance() <= 0 && !IsBroken()
@@ -190,6 +201,37 @@ Function AddResistanceDamage(float value)
 		else
 			SetBrokenPoints(npcbrokenpoints)
 		endif
+	endif
+EndFunction
+
+; ---- willpower-threshold notifications (PC only) ----
+; seed the "already announced" band from the willpower the scene actually starts
+; draining from (after lazy recovery), rounded UP to the next interval multiple,
+; so crossing a band she began below never fires a stale message
+Function SeedNotifyBand()
+	if !IsPlayer || pcnotifyinterval <= 0
+		LastNotifiedBand = 100
+		return
+	endif
+	int cur = GetResistance()
+	if cur > 100
+		cur = 100
+	elseif cur < 0
+		cur = 0
+	endif
+	LastNotifiedBand = Math.Ceiling((cur as float) / (pcnotifyinterval as float)) * pcnotifyinterval
+EndFunction
+
+; announce each downward crossing of an interval band (e.g. 75/50/25 for 25),
+; once per band per scene; band 0 and the break itself are left to SetBrokenPoints
+Function MaybeNotifyResistance(int before, int after)
+	if !IsPlayer || pcnotifyinterval <= 0 || after >= before
+		return
+	endif
+	int threshold = Math.Ceiling((after as float) / (pcnotifyinterval as float)) * pcnotifyinterval
+	if threshold > 0 && threshold < 100 && threshold < LastNotifiedBand
+		LastNotifiedBand = threshold
+		Debug.Notification("Your resolve weakens... (" + threshold + "%)")
 	endif
 EndFunction
 
@@ -290,9 +332,12 @@ Function CalculateStartupResistance()
 		if IsBroken()
 			; still broken -> pinned at 0 willpower
 			StorageUtil.SetIntValue(Actorref, "SLOVE_Resistance", 0)
+			if IsPlayer && scenestartnotification == 1
+				Debug.Notification("You are still broken (" + GetBrokenPoints() + " hours to recover)")
+			endif
 		else
 			SetResistance(100)
-			if IsPlayer
+			if IsPlayer && scenestartnotification == 1
 				Debug.Notification("You have recovered your composure")
 			endif
 		endif

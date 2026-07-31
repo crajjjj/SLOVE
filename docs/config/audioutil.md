@@ -37,7 +37,7 @@ pc_male_slot = ""
 | `sound_flags` | `0x1A` | `BuildSoundDataFromFile` flags. Only touch if audio is silent or not 3D-positioned; sweep values with `AudioUtil.DebugPlayFile`. |
 | `sound_priority` | `128` | Engine sound priority. |
 | `voice_3d` | `true` | `true` = voices are 3D-positioned at the speaker and attenuate with distance. `false` = flat/2D at full volume, so every speaker is equally audible. **Lipsync is unaffected either way; SFX always play 3D at the actor.** |
-| `voice_no_interrupt` | `true` | `true` = skip a new line while that speaker's channel is still playing, so a line finishes. Per speaker — different speakers still overlap. `false` = cut the old line off. |
+| `voice_no_interrupt` | `true` | `true` = skip a new line while that speaker's channel is still playing, so a line finishes. Per speaker — different speakers still overlap. `false` = cut the old line off. Orgasm cries run on their **own** per-speaker lane, so an ordinary moan never drops the climax cry (and vice-versa) during multi-orgasm scenes. |
 | `default_female_slot` | `"F0"` | Unrouted female NPCs speak the stock SexLab moans. |
 | `default_male_slot` | `"M1"` | Unrouted males (and creatures with no race hint) speak M1. |
 | `pc_female_slot` | `"F1"` | **Reserved for the player.** The PC always resolves here and no NPC ever does. |

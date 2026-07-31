@@ -129,6 +129,7 @@ int EnablePrintDebug
 int useblowjobsoundforkissing
 float	pcvolume
 float	partnervolume
+float	orgasmvolume
 
 Function InitializeConfigValues()
 
@@ -164,6 +165,9 @@ Function InitializeConfigValues()
 	useblowjobsoundforkissing = SLOVE_Config.GetInt("voice.useblowjobsoundforkissing",0)
 	pcvolume = SLOVE_Config.GetInt("voice.pcvolume",0) as float /100
 	partnervolume = SLOVE_Config.GetInt("voice.partnervolume",0) as float /100
+	;orgasm cries ride their own volume bus (group pc_orgasm). Default = pcvolume, so
+	;there is no behavior change unless the user sets voice.orgasmvolume in SLOVE.toml.
+	orgasmvolume = SLOVE_Config.GetInt("voice.orgasmvolume", SLOVE_Config.GetInt("voice.pcvolume",0)) as float /100
 	EnablePrintDebug =  SLOVE_Config.GetInt("voice.printdebug",1)
 
 endfunction
@@ -176,6 +180,7 @@ Function PerformInitialization()
 	;was interrupted between its duck and its delayed unduck
 	AudioUtil.UnduckGroup("pc_low")
 	AudioUtil.UnduckGroup("pc_high")
+	AudioUtil.UnduckGroup("pc_orgasm")
 	AudioUtil.UnduckGroup("partner_low")
 	AudioUtil.UnduckGroup("partner_high")
 	CurrentThread = Sexlab.GetActorController(actorWithSceneTrackerSpell)
@@ -206,6 +211,7 @@ Function PerformInitialization()
 	AudioUtil.SetGroupVolume("partner_high", partnervolume)
 	AudioUtil.SetGroupVolume("pc_low", pcvolume)
 	AudioUtil.SetGroupVolume("pc_high", pcvolume)
+	AudioUtil.SetGroupVolume("pc_orgasm", orgasmvolume)
 
 
 	CurrentSceneid = CurrentThread.Animation as string
@@ -823,6 +829,7 @@ Function RemoveTracker()
 	;grace: let the in-flight climax cry finish before cutting the *_high groups
 	Utility.Wait(2.0)
 	AudioUtil.StopGroup("pc_high")
+	AudioUtil.StopGroup("pc_orgasm")
 	AudioUtil.StopGroup("partner_high")
 	;brief extra silence window for any last straggler, then restore + remove
 	Utility.Wait(2.0)
@@ -936,13 +943,22 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 	if audioActor != playerCharacter
 		voiceChannel = "slove_np" + audioActor.GetFormID()
 	endif
+	;Orgasm cries (soundPriority 3) get their OWN exclusivity lane, separate from the
+	;moan/comment channel above. The shared channel plus AudioUtil's priority-blind guard
+	;let a mundane priority-1 moan occupy the channel and drop the climax cry (and
+	;voice_no_interrupt only flipped which line lost) - the multi-orgasm cutout. With a
+	;dedicated lane the cry and the moans never contend; back-to-back cries still replace
+	;on their own lane (desired - no two overlapping orgasms).
+	if soundPriority >= 3
+		voiceChannel = voiceChannel + "_orgasm"
+	endif
 	If TrackerRemoved ;scene is over - don't start queued voice lines
 		Printdebug("Voice line skipped (scene ended / tracker removed) : " + debugtext)
 		Return
 	EndIf
 	; male or other playing sound
 	if actorMakingSound != mainFemaleActor && (currentlyPlayingSoundCountMale == 0 || soundpriority > 1) ;others playing sound.
-		Printdebug("Non PC Playing voice : " + debugtext)
+		Printdebug("Non PC Playing voice : " + debugtext + " (folder " + soundToPlay + ")")
 		currentlyPlayingSoundCountMale = currentlyPlayingSoundCountMale + 1
 
 		;lower down voice of female moan when male says something
@@ -962,7 +978,7 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 
 		;female playing sound
 	elseif actorMakingSound == mainFemaleActor && (currentlyPlayingSoundCount == 0 || soundpriority > 1)	 ;Female play sound
-		Printdebug("PC Playing voice : " + debugtext)
+		Printdebug("PC Playing voice : " + debugtext + " (folder " + soundToPlay + ")")
 		ChangePCExpressions(debugtext)
 
 		currentlyPlayingSoundCount = currentlyPlayingSoundCount + 1
@@ -984,11 +1000,14 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 		if IsUnconcious()
 			AudioUtil.DuckGroup("pc_low")
 			AudioUtil.DuckGroup("pc_high")
+			AudioUtil.DuckGroup("pc_orgasm")
 		endif
 
 		if !TrackerRemoved ;re-check: the scene may have ended during the pre-delay wait
 			String pcGroup = "pc_low"
-			if soundPriority > 1
+			if soundPriority >= 3
+				pcGroup = "pc_orgasm"     ;climax cries ride their own volume bus (voice.orgasmvolume)
+			elseif soundPriority > 1
 				pcGroup = "pc_high"
 			endif
 			MasterScript.PlaySound(soundToPlay, audioActor, waitForCompletion, pcGroup, voiceChannel)
@@ -1001,6 +1020,7 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 			if !IsUnconcious() && !TrackerRemoved
 				AudioUtil.UnduckGroup("pc_low")
 				AudioUtil.UnduckGroup("pc_high")
+				AudioUtil.UnduckGroup("pc_orgasm")
 			endif
 		endif
 	else
@@ -1019,11 +1039,11 @@ Bool Function IsEarlyToCum()
 EndFunction
 
 Bool Function ShouldPlayMaleOrgasmHype()
-	;SLO VE: linear-scene/stage-timer arms folded away - enjoyment decides
-	if !teasedClosetoorgasm
-		return false
-	endif
-	return mainMaleEnjoyment >= MaleOrgasmHypeEnjoyment
+	;SLO VE: high SLSO enjoyment OR an authored HentaiRim intense tag on the climax (final)
+	;stage - the tag fallback covers setups where SLSO never feeds enjoyment. teasedClosetoorgasm
+	;is an INTERNAL latch set inside the male hype path; gating entry on it deadlocked the
+	;whole branch (same bug as femaleCloseToOrgasm), so it must NOT appear here.
+	return mainMaleEnjoyment >= MaleOrgasmHypeEnjoyment || (ASLCurrentlyintense && IsfinalStage())
 EndFunction
 
 ;make romantic comment
@@ -2687,11 +2707,16 @@ endfunction
 
 Bool function femaleCloseToOrgasm()
 
-	;SLO VE: linear-scene arms folded away; victim gate kept (was VictimPCCanOrgasm()=true && Femaleisvictim())
-	if !CommentedClosetoOrgasm || Femaleisvictim()
+	;SLO VE: entry gate = high SLSO enjoyment OR an authored HentaiRim intense tag on the
+	;climax (final) stage - the tag fallback covers setups where SLSO never feeds the
+	;thread enjoyment meter (enjoyment stays 0). CommentedClosetoOrgasm is an INTERNAL
+	;latch set INSIDE the hype path; gating entry on it deadlocked the whole branch (it
+	;can only be set true after this already returned true), so it must NOT appear here.
+	;Victim gate kept (was VictimPCCanOrgasm()=true && Femaleisvictim()).
+	if Femaleisvictim()
 		return false
 	endif
-	return mainFemaleEnjoyment >= FemaleOrgasmHypeEnjoyment
+	return mainFemaleEnjoyment >= FemaleOrgasmHypeEnjoyment || (ASLCurrentlyintense && IsfinalStage())
 
 endfunction
 

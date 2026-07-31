@@ -51,6 +51,8 @@ npcrecoverperhour = 5
 pcbrokenpoints = 60            # hours-to-recover set when the PC breaks
 npcbrokenpoints = 40           # hours-to-recover set when an NPC breaks
 victiminsertiontrauma = 5      # extra willpower hit when a submissive is forcibly entered (0 = off)
+pcnotifyinterval = 25          # PC-only: "resolve weakens" notification each time willpower DRAINS down through this % band (e.g. 75/50/25). Draining only - recovery is handled by scenestartnotification. 0 = off
+scenestartnotification = 1     # PC-only: at scene start, announce break status - "recovered your composure" when a break clears, or "still broken (N hours to recover)" while it persists. 0 = off
 
 [voice]
 # chances are percent (0-100)
@@ -81,6 +83,7 @@ hypebeforeorgasm = 0           # DEPRECATED & ignored - froze SLSO's orgasm at 1
 useblowjobsoundforkissing = 1
 pcvolume = 100                 # 0-100
 partnervolume = 100
+orgasmvolume = 100             # 0-100; PC climax/orgasm cries ONLY (own volume bus, independent of pcvolume)
 # Variation A/B is a per-pack property: set variation = "B" on the pack's
 # [[slot]] in its AudioUtil config (see SLOVE_zpack_*.toml).
 enableddgagvoice = 1           # gagged voice when Devious Devices gag worn

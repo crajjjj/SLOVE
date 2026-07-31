@@ -184,10 +184,34 @@ In a male-only scene the female voice engine keeps running, but its categories h
 
 The Papyrus layer (`SLOVE_VoiceCategories.MaleOnlyRemap`) does the same mapping ahead of time; the TOML table is the runtime safety net behind it, and the one you can edit.
 
+## Variation-B packs
+
+Everything above describes the **Variation-A** layout: the collapsed, camelCase-derived folder names the engine requests by default (`ForeplaySoft`, `NearOrgasmExclamations`, `Orgasm`, …). A pack opts into the **Variation-B** taxonomy by setting `variation = "B"` on its `[[slot]]` in the pack's own AudioUtil overlay (`SLOVE_zpack_<name>.toml`); an A pack simply omits that line. A B pack ships a **larger, more finely-partitioned** set of space-separated folders instead, and the engine automatically swaps to the B folder name when the speaking actor's slot is Variation B **and** the pack actually ships that folder (otherwise the line falls through to the A name / fallback chain).
+
+> **Gotcha:** the console `voice` line prints the internal *label*, which is not always the folder. The clearest example is `FemaleOrgasm` — that is an internal label used to drive the orgasm face; the folder it plays from is `Orgasm` (A) or a `Male Orgasmed …` / `Ending …` folder (B). The debug line now also prints the resolved folder in parentheses (`… (folder Orgasm)`) so you can see the real folder.
+
+The 56 B folder names below are the exact on-disk folder names (the authoritative source is `SLOVE_VoiceCategories.AllFemaleVariationBCategories()`). A clean B pack drops any A names it doesn't use to the fallback chain, so audit a B slot with the slot id (below) — the B pass is automatic.
+
+| Group | B folders |
+|---|---|
+| Ambient / filler | `Breathing`, `Breathing Intense`, `Panting`, `Panting Heavy`, `KneeJerk`, `KneeJerk Intense`, `Kissing` |
+| Foreplay | `Foreplay BoobJob Comments`, `Foreplay Femdom Comments`, `Foreplay FootJob Comments`, `Foreplay Handjob Comments`, `Foreplay Tease Orgasm` |
+| Oral / blowjob | `Blowjob Action`, `Blowjob Comments`, `Blowjob Comments Intense`, `Blowjob Forced`, `Blowjob Forced Comments` |
+| Penetration — comments & grunts | `Stimulated Comments`, `Stimulated Victim Comments`, `Insertion Over The Top`, `Penetrated Comments`, `Penetrated Comments Intense`, `Penetrated Comments Over The Top`, `Penetrated Comments Victim`, `Penetrated Comments Femdom`, `Penetrated Comments Femdom Intense`, `Penetrated Anal Comments Intense`, `Penetrated Double Comments`, `Penetrated Broken Comments`, `Penetrated Broken Comments Intense`, `Penetrated Grunt`, `Penetrated Grunt Intense`, `Penetrated Grunt Over The Top`, `Penetrated Grunt Victim`, `Penetrated Grunt Victim Intense`, `Penetrated Tell Male to Pull Out` |
+| Her orgasm approaching | `Orgasm Soon Comments`, `Orgasm Soon Comments Intense`, `Broken Begging` |
+| His orgasm approaching | `Male Orgasm Soon Ask For Anal Cum`, `Male Orgasm Soon Ask For Oral Cum`, `Male Orgasm Soon Ask For Vaginal Cum`, `Male Orgasm Soon Ask For Vaginal Cum Intense`, `Male Orgasm Soon Femdom` |
+| He came inside | `Male Orgasmed Inside`, `Male Orgasmed Inside Femdom`, `Male Orgasmed Inside Intense`, `Male Orgasmed Inside Mouth`, `Male Orgasmed Inside Victim` |
+| Scene endings | `Ending Broken`, `Ending Orgasmed Inside Ass`, `Ending Orgasmed Inside Mouth`, `Ending Orgasmed Inside Pussy`, `Ending Victim Comments` |
+| After orgasm | `After Orgasm Comments`, `After Orgasm Comments Intense` |
+
+The `_TEMPLATE Voicepack` (Variation-B by default) in the *SLOVE Packs* set ships this full folder tree empty, ready to fill.
+
 ## Auditing a pack
 
 ```
 SLOVE_Test AuditVoicePack F1
 ```
 
-Prints every category that does **not** resolve, then a summary like `SLOVE audit F1: 71/71 categories resolve`. It picks the female or male list from the slot id's first letter (`F…` → female, anything else → male), and it checks resolution **after** aliases, fallbacks and the slot's `fallback` chain — so `71/71` on a small pack means the backfill is working, not that the pack has 71 folders.
+Pass the **slot id** (`F1`, `M1`, `C1` …) — **not** the voice-pack folder name. Auditing a pack name (e.g. `Aika`) is the #1 confusion: the audit keys the female/male list off the slot id's first letter (`F…` → female, `M…`/`C…` → male/creature), so a pack name silently checked the 15 male names against a female pack and always reported `0/15`. That argument is now rejected with a hint instead.
+
+It prints every category that does **not** resolve, then a summary like `SLOVE audit F1: 71/71 categories resolve`. A Variation-B slot gets a **second** pass over the B folders above. Resolution is checked **after** aliases, fallbacks and the slot's `fallback` chain — so `71/71` on a small pack means the backfill is working, not that the pack has 71 folders (the `in-pack` vs `backfilled` counts in the summary tell them apart).

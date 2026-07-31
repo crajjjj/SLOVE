@@ -57,8 +57,8 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 | `moanonly` | `0` | `1` = moans only, no spoken lines. Males then moan via `malemoaning` (SexLab stock male moans through the `M0`–`M0D` fallback) instead of dirty-talk. |
 | `enablehugeppscenario` | `1` | Special line set when the partner is huge (needs SOS/TNG, threshold `director.soshugeppsize`). |
 | `enablevictimscenario` | `1` | Special line set when she is the submissive/victim of the scene. |
-| `femaleorgasmhypeenjoyment` | `75` | Enjoyment threshold above which orgasm hype lines start. |
-| `maleorgasmhypeenjoyment` | `75` | Same, for the male. |
+| `femaleorgasmhypeenjoyment` | `75` | Enjoyment threshold above which orgasm-hype / near-orgasm lines (`NearOrgasm*`, B `Orgasm Soon Comments`) start. As a fallback for setups where SLSO never feeds the enjoyment meter (it reads `0`), these lines **also** start from an authored HentaiRim intense tag on the climax (final) stage — so the near-orgasm pool is reachable even at enjoyment `0`. Run `slovetest anim` mid-scene to see the live `enjoy=` value per actor. |
+| `maleorgasmhypeenjoyment` | `75` | Same, for the male (same intense-tag climax fallback). |
 | `intenseenjoyment` | `75` | **Classic/SLSO build only.** PC enjoyment at/above which voices switch to the intense (hot) set — mirrors SLSO's own `sl_hot_voice_strength`, so high enjoyment sounds intense even on a soft-tagged stage. `0` = off (authored tags only). On **P+** intensity comes from measured thrust, so this is ignored. |
 | ~~`hypebeforeorgasm`~~ | `0` | **Deprecated — ignored.** Held climax back for an extra hype pass, but it disabled the SexLab orgasm with no release path, freezing **SLSO**'s meter at 100%. Now always ignored; leave at `0`. |
 | ~~`voicevariation`~~ | — | **Removed.** Variation A/B is now a per-pack property — set `variation = "B"` on the pack's `[[slot]]` in its AudioUtil config (see `SLOVE_zpack_*.toml`). |
@@ -83,7 +83,8 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `pcvolume` | `100` | `0–100`, applied to the `pc_low`/`pc_high` audio groups. |
+| `pcvolume` | `100` | `0–100`, applied to the `pc_low`/`pc_high` audio groups (moans + comments). |
+| `orgasmvolume` | `100` | `0–100`, applied to the dedicated `pc_orgasm` group — the PC's climax/orgasm cries only. Independent of `pcvolume`, so you can raise or lower orgasm cries without touching ordinary moans/comments. (If the key is removed entirely it falls back to `pcvolume`.) |
 | `partnervolume` | `100` | `0–100`, applied to the `partner_low`/`partner_high` groups. |
 | `printdebug` | `0` | Print each voice decision (category, slot, handle) to the console. |
 
@@ -164,6 +165,8 @@ The optional willpower/break system. Full explanation of the mechanic: [Willpowe
 | `pcbrokenpoints` | `60` | Game-hours-to-recover set when the PC breaks. |
 | `npcbrokenpoints` | `40` | …NPC. |
 | `victiminsertiontrauma` | `5` | Extra willpower hit when a submissive is forcibly entered. `0` = off. |
+| `pcnotifyinterval` | `25` | **PC only.** *"Your resolve weakens…"* notification each time the player's willpower **drains** down through this percent band (e.g. `75`/`50`/`25`), once per band per scene. Draining only — recovery is announced by `scenestartnotification`. `0` = off. |
+| `scenestartnotification` | `1` | **PC only.** At scene start, announce break status: *"You have recovered your composure"* when a break has cleared, or *"You are still broken (N hours to recover)"* while it persists. `0` = off. |
 
 ## `[milk]`
 

@@ -1686,7 +1686,7 @@ Function DumpCurrentAnim()
 			if a == playerref
 				mark = "*"
 			endif
-			DumpLine(mark + "[" + i + "] " + a.GetDisplayName() + "  sex=" + DebugSexLabel(a) + "  role=" + DebugRoleLabel(a) + "  slot=" + AudioUtil.GetSlotForActor(a))
+			DumpLine(mark + "[" + i + "] " + a.GetDisplayName() + "  sex=" + DebugSexLabel(a) + "  role=" + DebugRoleLabel(a) + "  slot=" + AudioUtil.GetSlotForActor(a) + "  enjoy=" + GetEnjoyment(a))
 			DumpLine("     labels: stim=" + GetStimulationlabel(a) + " penis=" + GetPenisActionLabel(a) + " oral=" + GetOralLabel(a) + " pen=" + GetPenetrationLabel(a) + " end=" + GetEndingLabel(a))
 			DumpLine("     voice: " + DebugVoiceHint(a))
 		endif

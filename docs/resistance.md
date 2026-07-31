@@ -48,6 +48,17 @@ drain = (rise in enjoyment)
 
 While broken, willpower is **frozen at 0** — it can't creep back up mid-break. Recovery is computed lazily on scene entry from the actor's last-sex timestamp, and the timestamp is re-stamped at scene start so a **mid-scene reload doesn't re-recover or wipe the drain**.
 
+## Threshold notifications
+
+For the **player only**, `pcnotifyinterval` (`25`) prints *"Your resolve weakens… (50%)"* each time her willpower **drains down** through a multiple of that percent — so at the default `25` she is warned at `75`, `50`, and `25`. Each band fires at most once per scene, and the seed is taken from the willpower the scene actually starts draining from, so a band she began below is never re-announced. This is **draining only** — there is no live "recovering" notification, because willpower only regenerates between scenes (in one lazy jump at the next scene's start). Set it to `0` to silence the drain warnings.
+
+**Recovery** is announced separately by `scenestartnotification` (`1`), also player-only and fired at scene start:
+
+- *"You are still broken (N hours to recover)"* — a break is active; `N` is the remaining broken points.
+- *"You have recovered your composure"* — the break has just cleared and willpower is back to `100`.
+
+The **break** message itself (*"Your will breaks…"*, when willpower first hits `0` mid-scene) is always shown. Set `scenestartnotification = 0` to silence the two scene-start status lines.
+
 ## What breaking changes
 
 | Effect | Gate |
