@@ -100,7 +100,7 @@ Facial expression engine. All face writes go through Mfg Fix NG.
 | `npcnonintenseexpressionupdateinseconds` | `2.1` | *(float)* NPC face refresh, soft. |
 | `npcintenseexpressionupdateinseconds` | `1.6` | *(float)* NPC face refresh, intense. |
 | `enabletongue` | `1` | sr_fillherup tongue armors. |
-| `tonguetype` | `7` | HALO HDT tongue model `1–10`; `0` = random per actor. |
+| `tonguetype` | `1` | HALO HDT tongue model `1–10`; `0` = random per actor. |
 | `removetongueonblowjob` | `1` | Unequip the tongue during oral stages. |
 | `cunusetongue` | `1` | Use the tongue during cunnilingus stages. |
 | `enableahegao` | `1` | Huge partners trigger the ahegao face while penetrating (needs MFEE for the extended version). |

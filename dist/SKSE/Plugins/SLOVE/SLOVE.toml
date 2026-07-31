@@ -97,7 +97,7 @@ enabletongue = 1              # P+ ONLY. The contact tongue (shown during cunnil
                               # needs SexLab P+'s oral-contact detection; the classic variant
                               # has none, so it never shows a contact tongue regardless of this
                               # setting (ahegao and its tongue-out are unaffected).
-tonguetype = 7                 # HALO HDT tongue model 1-10; 0 = random
+tonguetype = 1                 # HALO HDT tongue model 1-10; 0 = random
 removetongueonblowjob = 1
 cunusetongue = 1
 enableahegao = 1               # huge partners trigger ahegao while penetrating
