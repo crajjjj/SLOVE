@@ -222,6 +222,8 @@ EndFunction
 
 ; Route a human ambient line through the Director's PlaySound (partner group + own
 ; channel, FaceOwnsMouth handled). The actor's own slot resolves male vs female audio.
+; Distance falloff for far NPC scenes is handled by AudioUtil ([general]
+; voice_attenuation), not here.
 Function PlayAmbient(Actor a, bool intense)
 	string cat = "PenetrativeGrunts"
 	if intense

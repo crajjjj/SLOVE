@@ -25,6 +25,18 @@ voice_3d = true
 # skip a new voice line while the speaker's channel is still playing one, so a
 # line finishes first (per speaker; different speakers still overlap).
 voice_no_interrupt = true
+# Distance attenuation for follow-positioned sounds (voice + SFX). Loose-file
+# playback has no sound-descriptor rolloff curve, so voice_3d positions a sound but
+# barely makes it quieter with distance - fine when everything plays next to the
+# player, but a scene far away (SLO VE NPC-only scenes) would blast at full volume.
+# When on, each sound's volume is scaled once at play time by the player->speaker
+# distance: full within attenuation_near, quadratic falloff to attenuation_floor at
+# attenuation_far (game units, ~70/m). Near sounds (your own scene) are unaffected
+# (~full). Purely a volume scale on top of voice_3d's positioning.
+voice_attenuation = true      # false = old behavior (no distance volume falloff)
+attenuation_near = 512.0      # full volume within this distance
+attenuation_far = 2560.0      # volume reaches the floor at/beyond this distance
+attenuation_floor = 0.08      # minimum volume factor for far sounds (0.0 = silent)
 default_female_slot = "F0"    # unrouted female NPCs speak the stock moans
 default_male_slot = "M1"
 # reserved player slots: the PC always speaks this slot and no NPC ever resolves
