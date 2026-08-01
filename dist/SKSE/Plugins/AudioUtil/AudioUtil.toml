@@ -76,5 +76,26 @@ keywords = [
   'ZaZAnimationPack.esm|8A4D',           # zbfWornGag
   'ZaZAnimationPack.esm|8A35',           # zbfEffectOpenMouth
   'Toys.esm|8C2',                        # ToysEffectMouthOpen
-  'SL Survival.esp|0B74B5',              # _SLS_TongueKeyword (tongue/deepthroat)
+]
+
+[tongue]
+# Worn-tongue lipsync suppression. A visible tongue armor holds the mouth open;
+# the lipsync jaw-flap clips it (the mouth-opens-and-closes-during-cunnilingus
+# artifact). When a speaking actor wears any marker below, AudioUtil keeps lipsync
+# off that actor's mouth - both new lines and, within the 500 ms re-check, an
+# in-flight one. Detection only (no voice rerouting - no [tongue] gag_slot analogue).
+#
+# SLO VE's own script side already blocks lipsync while its tongue is out (via
+# ApplyFaceMouthOwnership/blockLipSync); this keyword makes the DLL authoritative
+# and closes the jaw-gate equip/unequip churn window on the armor path. The MFEE
+# MORPH tongue is NOT an armor and carries no keyword - SLO VE's script side
+# remains the only thing covering that path, so it must stay.
+#
+# SLOVE_TongueKeyword (SLOVE.esp|081F) is carried by all ten tongue armors
+# (SLOVE_Tongue1Armor..10Armor), so one line covers the whole family and any
+# future variant given the keyword. enable is base-only; keywords is additive.
+enable = true
+keywords = [
+  'SLOVE.esp|081F',          # SLOVE_TongueKeyword (on all SLOVE_Tongue*Armor)
+  'SL Survival.esp|0B74B5',  # _SLS_TongueKeyword (SLS tongue/deepthroat device)
 ]
