@@ -58,9 +58,6 @@ int enablemalenpcexpression
 int usephysicslabels
 float physicsfastvelocity
 float physicsslowfactor
-int tunecunnilingus
-float cunnilingusdistance
-float cunnilingusangle
 int enableprintdebug
 Bool WarnedConfigMissing = false
 
@@ -282,17 +279,6 @@ Function InitializeDirectorConfigs()
 	elseif physicsslowfactor < 0.1
 		physicsslowfactor = 0.1
 	endif
-
-	;SexLab P+ cunnilingus detection widening. The legacy NiType detector reports
-	;cunnilingus (clitoris<->mouth proximity) as an aOral interaction, which
-	;ApplyPhysicsLabels reads as f[12] -> the CUN oral label. The default clit<->mouth
-	;distance (5.4) and head-angle tolerance (130) are tight; widen them so CUN fires
-	;more reliably. Written to SexLab's live in-memory settings via sslSystemConfig -
-	;non-destructive (never touches SexLab.ini on disk), re-applied on every config load.
-	tunecunnilingus = SLOVE_Config.GetInt("director.tunecunnilingus", 1)
-	cunnilingusdistance = SLOVE_Config.GetFloat("director.cunnilingusdistance", 8.0)
-	cunnilingusangle = SLOVE_Config.GetFloat("director.cunnilingusangle", 150.0)
-	ApplyCunnilingusDetectionTuning()
 
 	;NPC-only scene support. Default ON with conservative limits (near-player + capped).
 	enablenpcscenes = SLOVE_Config.GetInt("director.enablenpcscenes", 1)
@@ -1234,30 +1220,6 @@ string[] Function CopyStringArray(string[] src)
 		i += 1
 	endwhile
 	return dst
-EndFunction
-
-;DORMANT (never shipped). Intended to widen SexLab P+'s legacy-detector cunnilingus
-;thresholds in its live in-memory settings so the aOral flag (-> the CUN oral label in
-;ApplyPhysicsLabels) fires on looser clit<->mouth alignments. Disabled below because
-;fDistanceMouth / fAngleCunnilingus are NOT exposed sslSystemConfig setting keys -
-;SetSettingFlt no-ops on an unknown key, so the widening never actually took. The vars
-;and config reads (director.tunecunnilingus / cunnilingusdistance / cunnilingusangle) are
-;kept in place for a future path that can reach the legacy detector directly; the body
-;stays commented rather than deleted so that path has a starting point. sslSystemConfig
-;is a SexLab framework script, so this stays inside the Director per the framework-firewall
-;rule. P+ only - the classic variant has no NiType/physics detector and never calls this.
-Function ApplyCunnilingusDetectionTuning()
-;DISABLED - see the note above (fDistanceMouth/fAngleCunnilingus are not exposed keys).
-	; if tunecunnilingus != 1
-	; 	return
-	; endif
-	; ;cunnilingus only exists under the legacy detector; warn (once path via error log) if it is off
-	; if !sslSystemConfig.GetSettingBool("bUseLegacyNiType")
-	; 	WritetoErrorlogs("Director", "bUseLegacyNiType = 0 in SexLab.ini - the modern detector has no cunnilingus class, so CUN will never fire. Set bUseLegacyNiType = 1 to enable it.")
-	; endif
-	; sslSystemConfig.SetSettingFlt("fDistanceMouth", cunnilingusdistance)
-	; sslSystemConfig.SetSettingFlt("fAngleCunnilingus", cunnilingusangle)
-	; printdebug("Cunnilingus detection widened: fDistanceMouth=" + cunnilingusdistance + " fAngleCunnilingus=" + cunnilingusangle)
 EndFunction
 
 Bool Function ApplyPhysicsLabels()
