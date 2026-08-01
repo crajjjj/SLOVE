@@ -13,14 +13,6 @@ enablefemalenpcexpression = 1
 usephysicslabels = 1           # velocity-driven intense/soft (needs SLPP interactions)
 physicsfastvelocity = 25.0     # abs velocity at/above which a stage reads as Fast
 physicsslowfactor = 0.65       # hysteresis: drop back to Slow below fast*factor
-# Cunnilingus detection (SexLab P+ legacy NiType detector). Widens SexLab's live
-# in-memory clit<->mouth thresholds so the CUN oral label fires more reliably.
-# Non-destructive: written via sslSystemConfig, never touches SexLab.ini on disk;
-# re-applied on every config load. Needs SexLab.ini [Legacy_NiType] bUseLegacyNiType = 1
-# (the default) and a body with a Clitoral1 node (3BA/BHUNP). P+ only (no effect on classic).
-tunecunnilingus = 1            # 1 = apply the widened thresholds below; 0 = leave SexLab's values alone
-cunnilingusdistance = 8.0      # SexLab fDistanceMouth: max clit<->mouth distance (default 5.4)
-cunnilingusangle = 150.0       # SexLab fAngleCunnilingus: head-vs-vagina angle tolerance (default 130.0)
 soshugeppsize = 6              # SOS size / TNG size counted as "huge"
 # NPC-only scenes (no player). When ON, SexLab scenes the player is NOT in - two NPCs
 # nearby, a brothel, an orgy mod - also get SLO VE ambient voice (moans / breathing /
@@ -81,7 +73,7 @@ chancetocommentwhenclosetoorgasm = 45
 chancetocommentwhenmaleclosetoorgasm = 40
 femaleorgasmhypeenjoyment = 75 # enjoyment threshold for orgasm hype lines
 maleorgasmhypeenjoyment = 75
-intenseenjoyment = 75          # CLASSIC/SLSO build only: PC enjoyment at/above which voices go intense (mirrors SLSO sl_hot_voice_strength); 0 = off. P+ uses measured thrust instead.
+intenseenjoyment = 75          # PC enjoyment at/above which voices go intense (mirrors SLSO sl_hot_voice_strength), overlaid on the authored intense-stage tag; 0 = off. Both P+ and classic. Needs SLSO feeding enjoyment; without it the value stays 0 and only the stage tag drives intensity.
 enablemalevoice = 1            # MASTER male switch: 0 disables ALL male audio (both dirty-talk and moaning)
 chanceformaletocomment = 30
 voiceallactors = 1             # secondary partners speak (male rotation + female NPCs); 0 = PC + lead male only
@@ -94,9 +86,15 @@ malemoanmaxinterval = 12
 moanonly = 0                   # 1 = moans only, no spoken lines (males then moan via malemoaning above)
 hypebeforeorgasm = 0           # DEPRECATED & ignored - froze SLSO's orgasm at 100%. Leave at 0.
 useblowjobsoundforkissing = 1
-pcvolume = 100                 # 0-100
-partnervolume = 100
+pcvolume = 100                 # 0-100; the PLAYER's own voice
+partnervolume = 100            # 0-100; partners in the PLAYER's scene
 orgasmvolume = 100             # 0-100; PC climax/orgasm cries ONLY (own volume bus, independent of pcvolume)
+# 0-100; NPC-only scenes (no player) get their OWN voice bus, so you can make nearby
+# NPC scenes quieter than your own without touching partnervolume. Covers their
+# moans/breathing/reactions AND their orgasm cries. Default = partnervolume (so it
+# matches the old behavior until you change it). Distance falloff (AudioUtil
+# voice_attenuation) still applies on top.
+npcscenevolume = 100
 # Variation A/B is a per-pack property: set variation = "B" on the pack's
 # [[slot]] in its AudioUtil config (see SLOVE_zpack_*.toml).
 enableddgagvoice = 1           # gagged voice when Devious Devices gag worn

@@ -261,6 +261,8 @@ pc_low = 1.0
 pc_orgasm = 1.0
 partner_high = 1.0
 partner_low = 1.0
+npc_low = 1.0                  # NPC-only scenes: ambient voice (SLOVE.toml voice.npcscenevolume)
+npc_high = 1.0                 # NPC-only scenes: orgasm cries
 sfx = 1.0
 oneshot = 1.0
 

@@ -17,6 +17,7 @@ Actor anchor
 Actor[] sceneMales
 Actor[] sceneFemales
 Actor[] sceneCreatures
+int threadId
 
 ; ---- config ([voice]/[director] in SLOVE.toml) ----
 int enablevoice
@@ -30,6 +31,7 @@ float malemoanmaxinterval
 float creaturebreathmininterval
 float creaturebreathmaxinterval
 int intenseenjoyment
+float npcvolume
 int enableprintdebug
 
 float lastMaleMoanTime
@@ -66,7 +68,16 @@ Function PerformInitialization()
 		RemoveSelf()
 		return
 	endif
+	threadId = CurrentThread.GetThreadID()
+	; climax cries: SexLab fires this per orgasming actor for EVERY scene; we keep only
+	; our own thread's (the PC engine + each other NpcScene do the same)
+	RegisterForModEvent("SexLabOrgasmSeparate", "NpcSceneOrgasm")
 	InitializeConfig()
+	; NPC scenes ride their OWN volume bus (npc_low/npc_high) so voice.npcscenevolume
+	; tunes them apart from your own scene's partners. Each NpcScene sets it, so it
+	; applies even without a PC scene ever having run (unlike partner_low).
+	AudioUtil.SetGroupVolume("npc_low", npcvolume)
+	AudioUtil.SetGroupVolume("npc_high", npcvolume)
 	BucketActors()
 	SuppressSexLabVoice()
 	; seed cooldowns so first ambient comes early
@@ -92,6 +103,9 @@ Function InitializeConfig()
 	creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 5) as float
 	creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 12) as float
 	intenseenjoyment        = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment", 75)
+	; dedicated NPC-scene voice volume (own audio bus), default = partnervolume so it
+	; matches the old behavior until set. 0-100 -> 0-1 for SetGroupVolume.
+	npcvolume               = SLOVE_Config.GetInt("voice.npcscenevolume", SLOVE_Config.GetInt("voice.partnervolume", 100)) as float / 100
 	enableprintdebug        = SLOVE_Config.GetInt("director.printdebug", 0)
 EndFunction
 
@@ -139,6 +153,24 @@ Function SuppressSexLabVoice()
 		i += 1
 	endwhile
 EndFunction
+
+; A scene actor climaxed -> play their orgasm cry (their own pack, partner climax bus,
+; their own channel so it cuts any in-flight moan). Filtered to THIS scene's thread.
+; Males gated by enablemalevoice, mirroring the ambient path; the category resolves
+; per-actor (female / male / creature), so an actor with no orgasm content just no-ops.
+Event NpcSceneOrgasm(Form actorRef, Int thread)
+	if enablevoice != 1 || thread != threadId
+		return
+	endif
+	Actor a = actorRef as Actor
+	if !a
+		return
+	endif
+	if SexLab.GetGender(a) == 0 && enablemalevoice != 1
+		return
+	endif
+	MasterScript.PlaySound("Orgasm", a, False, "npc_high", "slove_np" + a.GetFormID())
+EndEvent
 
 Event OnUpdate()
 	; scene ended -> self-remove (the per-actor module spells self-terminate too)
@@ -223,7 +255,7 @@ Function PlayCreatureBreathing(bool intense)
 		maxPause = maxPause / 2.0
 	endif
 	creatureBreathCooldown = Utility.RandomFloat(minPause, maxPause)
-	MasterScript.PlaySound("Breathing", c, False, "partner_low", "slove_np" + c.GetFormID())
+	MasterScript.PlaySound("Breathing", c, False, "npc_low", "slove_np" + c.GetFormID())
 EndFunction
 
 ; Route a human ambient line through the Director's PlaySound (partner group + own
@@ -235,7 +267,7 @@ Function PlayAmbient(Actor a, bool intense)
 	if intense
 		cat = "NearOrgasmNoises"
 	endif
-	MasterScript.PlaySound(cat, a, False, "partner_low", "slove_np" + a.GetFormID())
+	MasterScript.PlaySound(cat, a, False, "npc_low", "slove_np" + a.GetFormID())
 EndFunction
 
 Function RemoveSelf()
