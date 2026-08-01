@@ -38,7 +38,9 @@ Function PerformInitialization()
 
 	PrintDebug("Perform Initialization")
 	playerref = game.getplayer()
-	CurrentThread = Sexlab.GetActorController(playerref)
+	;resolve OUR OWN controller from the actor, not the player's - this effect runs on
+	;NPC scene actors too (NPC-only scenes). Identical for a PC-scene actor.
+	CurrentThread = Sexlab.GetActorController(actorref)
 	actorlist = currentthread.Positions
 	Gender = sexlab.GetGender(actorref)
 	IsPlayer = actorref == playerref
@@ -105,6 +107,9 @@ Event SFXOrgasm(Form actorhavingorgasm, Int thread)
 
 	if FuckingPartner == Playerref || actorlist[0] == Playerref
 		AudioUtil.PlaySFX(EjacSound, Playerref, 1.0, "sfx", "sfx_ejac_" + position)
+	elseif !IsPlayer
+		;NPC-on-NPC climax (NPC-only scene): play the ejaculation SFX on the receiver
+		AudioUtil.PlaySFX(EjacSound, actorlist[0], 1.0, "sfx", "sfx_ejac_" + position)
 	endif
 
 EndEvent
@@ -114,8 +119,11 @@ EndEvent
 Event OnUpdate()
 
 	HentairimUpdateStageData()
-	;Ends if player is no longer in scene but magic stuck for some reason
-	if Masterscript.AnimationisEnding()
+	;Ends if the actor is no longer in scene but the magic stuck. AnimationisEnding is the
+	;PC scene's teardown flag - honor it only for a PC-scene actor, else a concurrent PC
+	;scene ending would wrongly end this NPC-scene SFX. NPC scenes end on their own
+	;controller going away.
+	if !Sexlab.GetActorController(actorref) || (OnPCThread() && Masterscript.AnimationisEnding())
 		PrintDebug("Ending Animation. remove SLO VE SFX")
 		RemoveSFX()
 		;RemoveSFX dispels this spell, so the effect is already unbound - falling
@@ -848,8 +856,18 @@ bool isintense
 string PrevPenisActionLabel
 Function HentairimUpdateStageData()
 
-	bool stagechanged = DirectorLastLabelTime != MasterScript.GetDirectorLastLabelTime() || UpdateNow
-	bool physicschanged = DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime()
+	bool stagechanged
+	bool physicschanged
+	if OnPCThread()
+		stagechanged = DirectorLastLabelTime != MasterScript.GetDirectorLastLabelTime() || UpdateNow
+		physicschanged = DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime()
+	else
+		;NPC-only scene: the Director's label-time stamp tracks the player's thread, not
+		;ours. Gate on UpdateNow (our own thread's StageStart) or a direct animation/stage
+		;change. No physics overlay for NPC scenes (coarse ambient SFX).
+		stagechanged = UpdateNow || CurrentSceneID != (CurrentThread.Animation as string) || currentstage != CurrentThread.Stage
+		physicschanged = false
+	endif
 	if stagechanged || physicschanged
 		printdebug("Animation, Stage or Physics Labels Different. Updating Stage Data")
 
@@ -910,18 +928,68 @@ string Labelsconcat
 
 float DirectorLastLabelTime
 float DirectorLastPhysicsLabelTime
+;true when this effect's actor is in the PLAYER's tracked scene - keep the Director's
+;labels. False for an NPC-only scene (self-compute base labels off our own thread).
+bool Function OnPCThread()
+	return CurrentThread && CurrentThread.Positions.Find(playerref) >= 0
+endfunction
+
 Function UpdateLabels(actor char)
 	printdebug("Updating Labels")
 	PrevPenisActionLabel = PenisActionLabel
-	Stimulationlabel = MasterScript.GetStimulationlabel(char)
-	PenisActionLabel = MasterScript.GetPenisActionLabel(char)
-	OralLabel = MasterScript.GetOralLabel(char)
-	EndingLabel = MasterScript.GetEndingLabel(char)
-	PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	if OnPCThread()
+		Stimulationlabel = MasterScript.GetStimulationlabel(char)
+		PenisActionLabel = MasterScript.GetPenisActionLabel(char)
+		OralLabel = MasterScript.GetOralLabel(char)
+		EndingLabel = MasterScript.GetEndingLabel(char)
+		PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	else
+		ComputeOwnThreadLabels(char)
+	endif
 
 	Labelsconcat = "1" +Stimulationlabel + "1" + PenisActionLabel + "1" + OralLabel + "1" + PenetrationLabel + "1" + EndingLabel
 	PrintDebug("Stimulationlabel :" + Stimulationlabel + ", PenisActionLabel :" + PenisActionLabel + ", OralLabel :" + OralLabel + ", PenetrationLabel :" + PenetrationLabel + ", EndingLabel :" + EndingLabel)
 
+endfunction
+
+;Base tag labels for an NPC-only scene from our OWN thread (no physics overlay - coarse
+;but correct). Classic keys tags off the sslBaseAnimation + stage int.
+Function ComputeOwnThreadLabels(actor char)
+	Stimulationlabel = ""
+	PenisActionLabel = ""
+	OralLabel = ""
+	EndingLabel = ""
+	PenetrationLabel = ""
+	if !CurrentThread
+		return
+	endif
+	actor[] al = CurrentThread.Positions
+	int idx = al.Find(char)
+	if idx < 0
+		return
+	endif
+	sslBaseAnimation anim = CurrentThread.Animation
+	int stagenum = CurrentThread.Stage
+	string[] stim = SLOVE_Hentairim_Tags.GetStimulationlabelarr(anim, stagenum, al)
+	string[] pa = SLOVE_Hentairim_Tags.GetPenisActionlabelarr(anim, stagenum, al)
+	string[] orl = SLOVE_Hentairim_Tags.GetOrallabelarr(anim, stagenum, al)
+	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(anim, stagenum, al)
+	string[] endlbl = SLOVE_Hentairim_Tags.GetEndingLabelarr(anim, stagenum, al)
+	if idx < stim.length
+		Stimulationlabel = stim[idx]
+	endif
+	if idx < pa.length
+		PenisActionLabel = pa[idx]
+	endif
+	if idx < orl.length
+		OralLabel = orl[idx]
+	endif
+	if idx < pen.length
+		PenetrationLabel = pen[idx]
+	endif
+	if idx < endlbl.length
+		EndingLabel = endlbl[idx]
+	endif
 endfunction
 ;-----------------------BASE HENTAIRIM Update Functions END-----------------------------
 

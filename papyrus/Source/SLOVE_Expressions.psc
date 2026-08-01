@@ -275,8 +275,11 @@ EndEvent
 ;shortly by the caller; true when the pass ran (or the scene ended)
 Bool Function FullExpressionPass()
 
-	;Ends if actor is no longer in scene but magic stuck for some reason
-	if MasterScript.AnimationisEnding() || !Sexlab.GetThreadByActor(actorref)
+	;Ends if actor is no longer in scene but magic stuck for some reason. AnimationisEnding
+	;is the PC scene's teardown flag - honor it only for a PC-scene actor, else a concurrent
+	;PC scene ending would wrongly end this NPC-scene effect. NPC scenes end on their own
+	;thread going away.
+	if !Sexlab.GetThreadByActor(actorref) || (OnPCThread() && MasterScript.AnimationisEnding())
 		SceneEnded = true
 		RemoveExpressions()
 		return true
@@ -1613,7 +1616,15 @@ Function HentairimUpdateStageData()
 	printdebug("Updating Labels")
 
 	printdebug("DirectorLastLabelTimeCheck: local=" + DirectorLastLabelTime + " master=" + MasterScript.GetDirectorLastLabelTime())
-	if DirectorLastLabelTime != MasterScript.GetDirectorLastLabelTime() || DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime()
+	bool stagechanged
+	if OnPCThread()
+		stagechanged = DirectorLastLabelTime != MasterScript.GetDirectorLastLabelTime() || DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime()
+	else
+		;NPC-only scene: the Director tracks only the PC's thread, so its label-time stamp
+		;never moves for us. Gate on our OWN thread's scene/stage change instead.
+		stagechanged = CurrentSceneID != CurrentThread.GetActiveScene() || currentStageID != CurrentThread.GetActiveStage()
+	endif
+	if stagechanged
 		printdebug("Animation, Stage or Physics Labels Different. Updating Stage Data")
 		TongueGateBlocked = false ;stale gate-deferred rolls don't survive a label change
 		string prevSceneID = CurrentSceneID
@@ -1707,20 +1718,76 @@ string PenetrationLabel
 string Labelsconcat
 ;sexLabThreadController.ActorAlias(actorInQuestion).GetFullEnjoyment()
 
+;true when this effect's actor is in the PLAYER's tracked scene - keep the Director's
+;rich physics-overlaid labels. False for an NPC-only scene, where the Director tracks
+;a different (or no) thread, so we self-compute base labels off our own thread.
+bool Function OnPCThread()
+	return CurrentThread && CurrentThread.HasPlayer()
+endfunction
+
 Function UpdateLabels(actor char)
 	printdebug("--------------------Hentairim Updating Labels START-----------------")
 
-	Stimulationlabel = MasterScript.GetStimulationlabel(char)
-	PenisActionLabel  = MasterScript.GetPenisActionLabel(char)
-	OralLabel  = MasterScript.GetOralLabel(char)
-	EndingLabel  = MasterScript.GetEndingLabel(char)
-	PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	if OnPCThread()
+		;PC scene: rich Director labels (physics overlay + climax annotations) - unchanged
+		Stimulationlabel = MasterScript.GetStimulationlabel(char)
+		PenisActionLabel  = MasterScript.GetPenisActionLabel(char)
+		OralLabel  = MasterScript.GetOralLabel(char)
+		EndingLabel  = MasterScript.GetEndingLabel(char)
+		PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	else
+		;NPC-only scene: self-compute BASE tag labels from our own thread (no physics
+		;overlay - coarse but correct; the Director's arrays don't cover our thread)
+		ComputeOwnThreadLabels(char)
+	endif
 
 	Labelsconcat = "1" +Stimulationlabel + "1" + PenisActionLabel + "1" + OralLabel + "1" + PenetrationLabel + "1" + EndingLabel
 	PrintDebug("Stimulationlabel :" + Stimulationlabel + ", PenisActionLabel :" +  PenisActionLabel  + ", OralLabel :" +  OralLabel  + ", PenetrationLabel :" +  PenetrationLabel  + ", EndingLabel :" +  EndingLabel)
 
 	printdebug("--------------------Hentairim Updating Labels END-----------------")
 endfunction
+
+;Base tag labels for an NPC-only scene, computed from our OWN thread (the Director's
+;label arrays only cover the player's thread). Uses the same stateless tag helpers the
+;Director calls in UpdateLabelsArr - just no physics overlay / climax annotation (coarse
+;is fine for ambient NPC scenes). A missing/short array leaves the label "".
+Function ComputeOwnThreadLabels(actor char)
+	Stimulationlabel = ""
+	PenisActionLabel = ""
+	OralLabel = ""
+	EndingLabel = ""
+	PenetrationLabel = ""
+	if !CurrentThread
+		return
+	endif
+	int idx = CurrentThread.GetPositionIdx(char)
+	if idx < 0
+		return
+	endif
+	string sceneid = CurrentThread.GetActiveScene()
+	int stagenum = GetLegacyStageNum(sceneid, CurrentThread.GetActiveStage())
+	actor[] al = CurrentThread.GetPositions()
+	string[] stim = SLOVE_Hentairim_Tags.GetStimulationlabelarr(sceneid, stagenum, al)
+	string[] pa = SLOVE_Hentairim_Tags.GetPenisActionLabelarr(sceneid, stagenum, al)
+	string[] orl = SLOVE_Hentairim_Tags.GetOralLabelarr(sceneid, stagenum, al)
+	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(sceneid, stagenum, al)
+	string[] endlbl = SLOVE_Hentairim_Tags.GetEndingLabelarr(sceneid, stagenum, al)
+	if idx < stim.length
+		Stimulationlabel = stim[idx]
+	endif
+	if idx < pa.length
+		PenisActionLabel = pa[idx]
+	endif
+	if idx < orl.length
+		OralLabel = orl[idx]
+	endif
+	if idx < pen.length
+		PenetrationLabel = pen[idx]
+	endif
+	if idx < endlbl.length
+		EndingLabel = endlbl[idx]
+	endif
+EndFunction
 ;-----------------------BASE HENTAIRIM Update Functions END-----------------------------
 
 

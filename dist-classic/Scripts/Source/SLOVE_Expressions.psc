@@ -274,8 +274,11 @@ EndEvent
 ;shortly by the caller; true when the pass ran (or the scene ended)
 Bool Function FullExpressionPass()
 
-	;Ends if actor is no longer in scene but magic stuck for some reason
-	if MasterScript.AnimationisEnding() || !Sexlab.GetActorController(actorref)
+	;Ends if actor is no longer in scene but magic stuck for some reason. AnimationisEnding
+	;is the PC scene's teardown flag - honor it only for a PC-scene actor, else a concurrent
+	;PC scene ending would wrongly end this NPC-scene effect. NPC scenes end on their own
+	;controller going away.
+	if !Sexlab.GetActorController(actorref) || (OnPCThread() && MasterScript.AnimationisEnding())
 		SceneEnded = true
 		RemoveExpressions()
 		return true
@@ -1542,7 +1545,15 @@ Function HentairimUpdateStageData()
 	printdebug("Updating Labels")
 
 	printdebug("DirectorLastLabelTimeCheck: local=" + DirectorLastLabelTime + " master=" + MasterScript.GetDirectorLastLabelTime())
-	if DirectorLastLabelTime != MasterScript.GetDirectorLastLabelTime() || DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime()
+	bool stagechanged
+	if OnPCThread()
+		stagechanged = DirectorLastLabelTime != MasterScript.GetDirectorLastLabelTime() || DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime()
+	else
+		;NPC-only scene: the Director tracks only the PC's thread, so its label-time stamp
+		;never moves for us. Gate on our OWN thread's animation/stage change instead.
+		stagechanged = CurrentSceneID != (CurrentThread.Animation as string) || currentstage != CurrentThread.Stage
+	endif
+	if stagechanged
 		printdebug("Animation, Stage or Physics Labels Different. Updating Stage Data")
 		TongueGateBlocked = false ;stale gate-deferred rolls don't survive a label change
 		string prevSceneID = CurrentSceneID
@@ -1620,19 +1631,70 @@ string PenetrationLabel
 string Labelsconcat
 ;sexLabThreadController.ActorAlias(actorInQuestion).GetFullEnjoyment()
 
+;true when this effect's actor is in the PLAYER's tracked scene - keep the Director's
+;labels. False for an NPC-only scene, where the Director tracks a different (or no)
+;thread, so we self-compute labels off our own thread.
+bool Function OnPCThread()
+	return CurrentThread && CurrentThread.Positions.Find(playerref) >= 0
+endfunction
+
 Function UpdateLabels(actor char)
 	printdebug("--------------------Hentairim Updating Labels START-----------------")
 
-	Stimulationlabel = MasterScript.GetStimulationlabel(char)
-	PenisActionLabel  = MasterScript.GetPenisActionLabel(char)
-	OralLabel  = MasterScript.GetOralLabel(char)
-	EndingLabel  = MasterScript.GetEndingLabel(char)
-	PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	if OnPCThread()
+		Stimulationlabel = MasterScript.GetStimulationlabel(char)
+		PenisActionLabel  = MasterScript.GetPenisActionLabel(char)
+		OralLabel  = MasterScript.GetOralLabel(char)
+		EndingLabel  = MasterScript.GetEndingLabel(char)
+		PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	else
+		ComputeOwnThreadLabels(char)
+	endif
 
 	Labelsconcat = "1" +Stimulationlabel + "1" + PenisActionLabel + "1" + OralLabel + "1" + PenetrationLabel + "1" + EndingLabel
 	PrintDebug("Stimulationlabel :" + Stimulationlabel + ", PenisActionLabel :" +  PenisActionLabel  + ", OralLabel :" +  OralLabel  + ", PenetrationLabel :" +  PenetrationLabel  + ", EndingLabel :" +  EndingLabel)
 
 	printdebug("--------------------Hentairim Updating Labels END-----------------")
+endfunction
+
+;Base tag labels for an NPC-only scene from our OWN thread (the Director's label arrays
+;only cover the player's thread). Classic keys tags off the sslBaseAnimation + stage int.
+Function ComputeOwnThreadLabels(actor char)
+	Stimulationlabel = ""
+	PenisActionLabel = ""
+	OralLabel = ""
+	EndingLabel = ""
+	PenetrationLabel = ""
+	if !CurrentThread
+		return
+	endif
+	actor[] al = CurrentThread.Positions
+	int idx = al.Find(char)
+	if idx < 0
+		return
+	endif
+	sslBaseAnimation anim = CurrentThread.Animation
+	int stagenum = CurrentThread.Stage
+	string[] stim = SLOVE_Hentairim_Tags.GetStimulationlabelarr(anim, stagenum, al)
+	string[] pa = SLOVE_Hentairim_Tags.GetPenisActionlabelarr(anim, stagenum, al)
+	string[] orl = SLOVE_Hentairim_Tags.GetOrallabelarr(anim, stagenum, al)
+	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(anim, stagenum, al)
+	string[] endlbl = SLOVE_Hentairim_Tags.GetEndingLabelarr(anim, stagenum, al)
+	if idx < stim.length
+		Stimulationlabel = stim[idx]
+	endif
+	if idx < pa.length
+		PenisActionLabel = pa[idx]
+	endif
+	if idx < orl.length
+		OralLabel = orl[idx]
+	endif
+	if idx < pen.length
+		PenetrationLabel = pen[idx]
+	endif
+	if idx < endlbl.length
+		EndingLabel = endlbl[idx]
+	endif
 endfunction
 ;-----------------------BASE HENTAIRIM Update Functions END-----------------------------
 

@@ -64,6 +64,19 @@ float physicsslowfactor
 int enableprintdebug
 Bool WarnedConfigMissing = false
 
+;SLO VE: NPC-only scene support ([director] enablenpcscenes/npcscenedistance/maxnpcscenes).
+;Scenes the player is NOT in are adopted too when near the player and under the cap,
+;getting ambient voice + expressions + SFX + resistance (NOT the PC dirty-talk engine,
+;milk, or on-screen notifications). Each adopted NPC scene is driven by an
+;SLOVE_NpcScene ability on one anchor actor; the per-actor module spells self-terminate
+;with their own thread. NpcSceneAnchors holds the live anchors for the concurrency cap
+;(pruned lazily - no decrement handshake to survive save/load).
+int enablenpcscenes
+float npcscenedistance
+int maxnpcscenes
+Spell NpcSceneSpell
+Actor[] NpcSceneAnchors
+
 ;SLO VE: cached SLOVE.toml [milk] settings (Oninus Lactis NG + optional MME).
 ;Ported from Hentairim IVDTControllerScript (OninusLactislactate family); the
 ;boob-sensitivity/adventure hooks were dropped - SLO VE has no such systems.
@@ -186,6 +199,7 @@ Function PerformInitialization()
 		VoiceSpell = Game.GetFormFromFile(0x802, "SLOVE.esp") as Spell
 		SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as Spell
 		ResistanceSpell = Game.GetFormFromFile(0x808, "SLOVE.esp") as Spell
+		NpcSceneSpell = Game.GetFormFromFile(0x81E, "SLOVE.esp") as Spell ;anchor ability for NPC-only scenes
 	endif
 
 	if !ExpressionsSpell
@@ -270,6 +284,12 @@ Function InitializeDirectorConfigs()
 	elseif physicsslowfactor < 0.1
 		physicsslowfactor = 0.1
 	endif
+
+	;NPC-only scene support. Default ON with conservative limits (near-player + capped).
+	enablenpcscenes = SLOVE_Config.GetInt("director.enablenpcscenes", 1)
+	npcscenedistance = SLOVE_Config.GetFloat("director.npcscenedistance", 2048.0)
+	maxnpcscenes = SLOVE_Config.GetInt("director.maxnpcscenes", 3)
+	printdebug(" enablenpcscenes :" + enablenpcscenes + " npcscenedistance :" + npcscenedistance + " maxnpcscenes :" + maxnpcscenes)
 
 	printdebug(" enablevoice :" + enablevoice)
 	printdebug(" enablesfx :" + enablesfx)
@@ -378,9 +398,21 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 
 	printdebug("Sexlab Scene Detected")
 
+	;Route THIS event by its OWN thread. An NPC-only scene is adopted for its ambient
+	;voice / expressions / SFX / resistance even when the player is busy in a DIFFERENT
+	;scene (e.g. a follower starts a scene nearby) - so concurrent NPC scenes are voiced
+	;too. Only a thread that actually contains the player falls through to the
+	;player-scene engine below.
+	sslThreadController evThread = Sexlab.GetController(argString as Int)
+	if evThread && evThread.Positions.Find(playerref) < 0
+		TryAdoptNpcScene(argString as Int)
+		printdebug("NPC-only scene - handled via NPC-scene path")
+		Return
+	endif
+
 	sslThreadController newThread = Sexlab.GetPlayerController()
 	if !newThread
-		printdebug("Sexlab Scene Does not Involve Player.Ignored")
+		printdebug("Scene does not involve player and no NPC thread resolved - ignored")
 		Return
 	endif
 
@@ -880,6 +912,138 @@ Function ApplySpells()
 		EndWhile
 	EndIf
 EndFunction
+
+;--------------------------- NPC-only scene support START ------------------------
+;Per-actor module spells (SLOVE_Expressions/SFX/Resistance) tell a PC-scene actor from
+;an NPC-scene actor with Positions.Find(playerref) on their OWN thread - no Director call
+;needed - so a PC-scene actor keeps the Director's labels while an NPC-scene actor
+;self-computes labels off its own thread.
+
+;NPC-only scene adoption. Called from DirectorSceneStart for a thread the player is
+;NOT in. Gated by director.enablenpcscenes, a distance-to-player check, and the
+;concurrency cap. Applies the per-actor module spells (they self-terminate with their
+;own thread) and puts the SLOVE_NpcScene ambient-voice ability on one anchor actor.
+Function TryAdoptNpcScene(int tid)
+	if enablenpcscenes != 1
+		return
+	endif
+	sslThreadController t = Sexlab.GetController(tid)
+	if !t
+		return
+	endif
+	Actor[] positions = t.Positions
+	if positions == None || positions.length == 0
+		return
+	endif
+	;player is actually in this thread (concurrent PC scene) -> leave it to the PC path
+	if positions.Find(playerref) >= 0
+		return
+	endif
+	Actor anchor = positions[0]
+	if !anchor
+		return
+	endif
+	if NpcSceneSpell && anchor.HasSpell(NpcSceneSpell)
+		return
+	endif
+	float dist = playerref.GetDistance(anchor)
+	if dist > npcscenedistance
+		printdebug("NPC scene ignored - too far (" + (dist as int) + " > " + (npcscenedistance as int) + ")")
+		return
+	endif
+	if PruneNpcSceneAnchors() >= maxnpcscenes
+		printdebug("NPC scene ignored - at concurrency cap (" + maxnpcscenes + ")")
+		return
+	endif
+
+	printdebug("Adopting NPC scene tid=" + tid + " actors=" + positions.length + " anchor=" + anchor.GetDisplayName())
+	ApplyModuleSpellsToNpcList(positions)
+	if NpcSceneSpell
+		anchor.AddSpell(NpcSceneSpell, abVerbose = False)
+		if NpcSceneAnchors == None
+			NpcSceneAnchors = PapyrusUtil.ActorArray(0)
+		endif
+		NpcSceneAnchors = PapyrusUtil.PushActor(NpcSceneAnchors, anchor)
+	endif
+EndFunction
+
+;Drop anchors whose NPC scene has ended (no controller, or ability lost); returns the
+;count still active. Keeps the concurrency cap honest without a scene-end handshake.
+int Function PruneNpcSceneAnchors()
+	if NpcSceneAnchors == None
+		NpcSceneAnchors = PapyrusUtil.ActorArray(0)
+		return 0
+	endif
+	Actor[] live = PapyrusUtil.ActorArray(0)
+	int i = 0
+	while i < NpcSceneAnchors.length
+		Actor a = NpcSceneAnchors[i]
+		if a && NpcSceneSpell && a.HasSpell(NpcSceneSpell) && Sexlab.GetActorController(a)
+			live = PapyrusUtil.PushActor(live, a)
+		endif
+		i += 1
+	endwhile
+	NpcSceneAnchors = live
+	return live.length
+EndFunction
+
+;Apply the per-actor module spells (SFX / Expressions / Resistance) to an NPC-only
+;scene's actors, honoring the same enable + per-gender NPC gating as ApplySpells
+;(minus the PC voice spell, milk, and PC-only branches). remove-then-add is idempotent.
+;Each spell resolves its own thread from the actor and self-terminates when it ends.
+Function ApplyModuleSpellsToNpcList(Actor[] list)
+	if enablesfx == 1 && SFXSpell
+		int y = 0
+		while y < list.length
+			if list[y]
+				if list[y].HasSpell(SFXSpell)
+					list[y].RemoveSpell(SFXSpell)
+				endif
+				list[y].AddSpell(SFXSpell, abVerbose = False)
+			endif
+			y += 1
+		endwhile
+	endif
+	if enableExpressions == 1 && ExpressionsSpell
+		int z = 0
+		while z < list.length
+			if list[z] && sexlab.GetGender(list[z]) <= 1
+				if list[z].HasSpell(ExpressionsSpell)
+					list[z].RemoveSpell(ExpressionsSpell)
+				endif
+				if sexlab.GetGender(list[z]) == 0 && enablemalenpcexpression == 1
+					list[z].AddSpell(ExpressionsSpell, abVerbose = False)
+				elseif sexlab.GetGender(list[z]) == 1 && enablefemalenpcexpression == 1
+					list[z].AddSpell(ExpressionsSpell, abVerbose = False)
+				endif
+			endif
+			z += 1
+		endwhile
+	endif
+	if enableresistance == 1 && ResistanceSpell
+		int r = 0
+		while r < list.length
+			if list[r]
+				bool apply = false
+				if sexlab.GetGender(list[r]) == 0
+					apply = resenablemalenpc == 1
+				elseif sexlab.GetGender(list[r]) == 1
+					apply = resenablefemalenpc == 1
+				else
+					apply = resenablecreaturenpc == 1
+				endif
+				if list[r].HasSpell(ResistanceSpell)
+					list[r].RemoveSpell(ResistanceSpell)
+				endif
+				if apply
+					list[r].AddSpell(ResistanceSpell, abVerbose = False)
+				endif
+			endif
+			r += 1
+		endwhile
+	endif
+EndFunction
+;--------------------------- NPC-only scene support END ------------------------
 
 ;SLO VE: force SexLab's own voice silent for every scene actor so AudioUtil is the
 ;sole voice source (restores Hentairim's sslVoiceSlots wipe). ForceSilence auto-resets

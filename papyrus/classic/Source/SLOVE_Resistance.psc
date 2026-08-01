@@ -99,11 +99,14 @@ Function PerformInitialization()
 	InitializeConfig()
 
 	IsHugePP = IsHugePPPartner()
-	IsVictim = MasterScript.IsSubmissive(Actorref)
+	; read submissive/enjoyment from OUR OWN controller, not the Director's PC thread -
+	; this effect runs on NPC-only scene actors too. Identical to the Director getters for
+	; a PC-scene actor (same controller), correct for an NPC scene.
+	IsVictim = CurrentThread.IsVictim(Actorref)
 	UpdateLabels(Actorref)
 	; seed the enjoyment baseline so the first tick drains the DELTA, not the
 	; whole current enjoyment (avoids a spike when the spell lands mid-scene)
-	LastEnjoyment = MasterScript.GetEnjoyment(Actorref)
+	LastEnjoyment = CurrentThread.GetEnjoyment(Actorref)
 
 	; seed on first ever entry
 	if StorageUtil.GetIntValue(Actorref, "SLOVE_Resistance", -1) < 0
@@ -136,8 +139,11 @@ Function InitializeConfig()
 EndFunction
 
 Event OnUpdate()
-	; scene died with the magic effect stuck -> self-remove
-	if CurrentThread == None || MasterScript.AnimationisEnding()
+	; scene died with the magic effect stuck -> self-remove. AnimationisEnding is the PC
+	; scene's teardown flag - honor it only for a PC-scene actor, else a concurrent PC
+	; scene ending would wrongly end this NPC-scene resistance. NPC scenes end when their
+	; own controller goes away.
+	if CurrentThread == None || !SexLab.GetActorController(Actorref) || (OnPCThread() && MasterScript.AnimationisEnding())
 		RemoveResistanceSpell()
 		return
 	endif
@@ -146,9 +152,9 @@ Event OnUpdate()
 
 	if GetResistance() > 0 && IsGettingFucked()
 		UpdateLabels(Actorref)
-		int damagetodo = MasterScript.GetEnjoyment(Actorref) - LastEnjoyment
+		int damagetodo = CurrentThread.GetEnjoyment(Actorref) - LastEnjoyment
 		if damagetodo > 0
-			LastEnjoyment = MasterScript.GetEnjoyment(Actorref)
+			LastEnjoyment = CurrentThread.GetEnjoyment(Actorref)
 			AddResistanceDamage(damagetodo as float)
 		endif
 		RegisterForSingleUpdate(3.0)
@@ -351,13 +357,63 @@ Function CalculateStartupResistance()
 	endif
 EndFunction
 
-; ---- stage labels (from the Director) + classification helpers ----
+; ---- stage labels (from the Director for PC scenes; self-computed for NPC) + helpers ----
+;true when our actor is in the PLAYER's tracked scene - keep the Director's labels.
+;False for an NPC-only scene (self-compute base labels off our own controller).
+bool Function OnPCThread()
+	return CurrentThread && CurrentThread.Positions.Find(Playerref) >= 0
+EndFunction
+
 Function UpdateLabels(actor char)
-	StimulationLabel = MasterScript.GetStimulationlabel(char)
-	PenisActionLabel = MasterScript.GetPenisActionLabel(char)
-	OralLabel        = MasterScript.GetOralLabel(char)
-	EndingLabel      = MasterScript.GetEndingLabel(char)
-	PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	if OnPCThread()
+		StimulationLabel = MasterScript.GetStimulationlabel(char)
+		PenisActionLabel = MasterScript.GetPenisActionLabel(char)
+		OralLabel        = MasterScript.GetOralLabel(char)
+		EndingLabel      = MasterScript.GetEndingLabel(char)
+		PenetrationLabel = MasterScript.GetPenetrationLabel(char)
+	else
+		ComputeOwnThreadLabels(char)
+	endif
+EndFunction
+
+;Base tag labels for an NPC-only scene from our OWN controller (no physics overlay - the
+;penetration gate mostly rides the PPA bridge anyway; labels are the fallback).
+Function ComputeOwnThreadLabels(actor char)
+	StimulationLabel = ""
+	PenisActionLabel = ""
+	OralLabel = ""
+	EndingLabel = ""
+	PenetrationLabel = ""
+	if !CurrentThread
+		return
+	endif
+	actor[] al = CurrentThread.Positions
+	int idx = al.Find(char)
+	if idx < 0
+		return
+	endif
+	sslBaseAnimation anim = CurrentThread.Animation
+	int stagenum = CurrentThread.Stage
+	string[] stim = SLOVE_Hentairim_Tags.GetStimulationlabelarr(anim, stagenum, al)
+	string[] pa = SLOVE_Hentairim_Tags.GetPenisActionlabelarr(anim, stagenum, al)
+	string[] orl = SLOVE_Hentairim_Tags.GetOrallabelarr(anim, stagenum, al)
+	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(anim, stagenum, al)
+	string[] endlbl = SLOVE_Hentairim_Tags.GetEndingLabelarr(anim, stagenum, al)
+	if idx < stim.length
+		StimulationLabel = stim[idx]
+	endif
+	if idx < pa.length
+		PenisActionLabel = pa[idx]
+	endif
+	if idx < orl.length
+		OralLabel = orl[idx]
+	endif
+	if idx < pen.length
+		PenetrationLabel = pen[idx]
+	endif
+	if idx < endlbl.length
+		EndingLabel = endlbl[idx]
+	endif
 EndFunction
 
 bool Function IsgettingPenetrated()

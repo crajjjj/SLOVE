@@ -22,6 +22,19 @@ tunecunnilingus = 1            # 1 = apply the widened thresholds below; 0 = lea
 cunnilingusdistance = 8.0      # SexLab fDistanceMouth: max clit<->mouth distance (default 5.4)
 cunnilingusangle = 150.0       # SexLab fAngleCunnilingus: head-vs-vagina angle tolerance (default 130.0)
 soshugeppsize = 6              # SOS size / TNG size counted as "huge"
+# NPC-only scenes (no player). When ON, SexLab scenes the player is NOT in - two NPCs
+# nearby, a brothel, an orgy mod - also get SLO VE ambient voice (moans / breathing /
+# reactions), facial expressions, body SFX and willpower/resistance. The PC dirty-talk
+# voice engine, milk and on-screen notifications stay player-only. Adoption is bounded:
+# only scenes within npcscenedistance of the player, up to maxnpcscenes at once. NPC
+# scenes are voiced even while you are in a scene of your own (a follower starting a
+# scene nearby is voiced too). Set enablenpcscenes = 0 for the pre-0.6.0 behavior
+# (player scenes only). Per-actor behavior reuses the existing
+# voiceallactors / enablemalenpcexpression / enablefemalenpcexpression / resistance NPC
+# toggles - there are no separate NPC-scene sub-switches.
+enablenpcscenes = 1            # 1 = process nearby NPC-only scenes; 0 = player scenes only
+npcscenedistance = 2048.0      # max distance (game units, ~hearing range) from the player to adopt an NPC scene
+maxnpcscenes = 3               # cap on concurrent NPC scenes processed (protects the Papyrus VM in busy areas)
 printdebug = 0
 
 [resistance]

@@ -29,7 +29,23 @@ Master switches and scene detection.
 | `physicsfastvelocity` | `25.0` | *(float)* Absolute velocity at or above which a stage reads as **Fast**. |
 | `physicsslowfactor` | `0.65` | *(float)* Hysteresis: drop back to Slow only below `physicsfastvelocity × this`. Stops rapid flapping between labels. |
 | `soshugeppsize` | `6` | SOS/TNG size counted as "huge" — drives the huge-partner voice scenario, ahegao, and the resistance multiplier. |
+| `enablenpcscenes` | `1` | Process **NPC-only** SexLab scenes (no player) — see [NPC-only scenes](#npc-only-scenes) below. `0` = the pre-0.5.x behavior (player scenes only). |
+| `npcscenedistance` | `2048.0` | *(float)* Max distance (game units, ≈ hearing range) from the player to adopt an NPC scene. |
+| `maxnpcscenes` | `3` | Cap on concurrent NPC scenes processed at once (protects the Papyrus VM in busy areas). |
 | `printdebug` | `0` | Print director decisions to the console. |
+
+### NPC-only scenes
+
+With `enablenpcscenes = 1` (default), SexLab scenes the **player is not in** — two NPCs nearby, a brothel, an orgy mod — also get SLO VE's **ambient voice** (moans / breathing / reactions), **facial expressions**, **body SFX** and **willpower/resistance**. The player-only features stay player-only: the scripted dirty-talk voice engine, `[milk]`, on-screen willpower notifications, and the orgasm volume bus.
+
+Adoption is deliberately bounded so a busy town can't flood the script engine:
+
+- only scenes within **`npcscenedistance`** of the player,
+- up to **`maxnpcscenes`** at once.
+
+NPC scenes are adopted **even while you're in a scene of your own** — a follower or nearby couple starting a scene next to you gets voiced too (each scene is driven independently of yours).
+
+Per-actor behavior reuses the existing toggles — `voice.voiceallactors`, `voice.malemoaning`, `voice.creaturebreathing`, `enablemalenpcexpression` / `enablefemalenpcexpression`, and the `[resistance]` NPC switches — there are no separate NPC-scene sub-switches. Works in both the P+ and classic script sets. NPC facial/SFX detail is coarser than a player scene (no velocity-driven physics overlay), which is plenty for background ambience.
 
 ## `[voice]`
 
