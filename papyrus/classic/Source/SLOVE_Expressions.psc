@@ -329,6 +329,17 @@ Bool Function FullExpressionPass()
 		endif
 	endif
 
+	;a gag locked on mid-scene owns the mouth - retract any tongue already out.
+	;AddTongue is gag-gated so a fresh tongue never appears while gagged, but a gag
+	;equipped AFTER the tongue showed needs this. Doubly so now the tongue shares the
+	;DD gag biped slot (44): a worn tongue and the gag would otherwise fight for the
+	;slot, and the MFEE morph tongue (no slot) is only cleared by this explicit retract.
+	bool gagged = HasDeviousGag(actorref)
+	if gagged && (FHUTongueShown || MFEEAddTongue || EquippedTongue())
+		printdebug("Gag equipped mid-scene - retracting tongue")
+		RemoveTongue()
+	endif
+
 	if IsSuckingoffOther() && removetongueonblowjob == 1
 		RemoveTongue()
 		printdebug("Removing Tongue during  blowjob")
@@ -381,7 +392,7 @@ Bool Function FullExpressionPass()
 		return true
 	endif
 
-	bool mouthblowjob = IsSuckingoffOther() || HasDeviousGag(actorref)
+	bool mouthblowjob = IsSuckingoffOther() || gagged
 	;enableahegao gates only the hugePP arm; a broken actor always gets the broken
 	;face. The hugePP ahegao is measurement-gated: the labels decide penetration,
 	;and MeasuredPenetrationActive() suppresses it when the PPA bridge reports the
