@@ -42,10 +42,10 @@ so with it installed orgasm routing is at full parity.
 
 SLSO also supplies the per-actor **enjoyment** meter that classic SexLab lacks.
 That is what feeds the intensity overlay described under
-[What actually differs on classic](#what-actually-differs-on-classic): with no
-measured thrust to lean on, classic tips a stage into "intense" when enjoyment
-crosses `voice.intenseenjoyment`. Without SLSO, enjoyment never rises, so the
-voice stays on the authored-tag baseline and the orgasm-hype lines never trigger.
+[What actually differs on classic](#what-actually-differs-on-classic): a stage tips
+into "intense" when enjoyment crosses `voice.intenseenjoyment` (P+ and classic
+both run this overlay). Without SLSO, enjoyment never rises, so the voice stays on
+the label/tag baseline and the orgasm-hype lines never trigger.
 
 !!! warning "Let SLSO overwrite SexLab"
     SLSO ships a replacement `sslActorAlias` script. That override is what emits
@@ -96,8 +96,10 @@ has no per-node contact detection, so:
   missing thrust signal, classic **overlays SLSO enjoyment** onto that baseline:
   once the PC's enjoyment crosses `voice.intenseenjoyment` (default 75, mirroring
   SLSO's `sl_hot_voice_strength`; `0` = off) the voice reads intense even on a
-  soft-tagged stage, and relaxes again as enjoyment falls after orgasm. P+ has no
-  such overlay — its measured F/S prefix already carries live intensity.
+  soft-tagged stage, and relaxes again as enjoyment falls after orgasm. **P+ runs
+  the same `voice.intenseenjoyment` overlay** (both variants refresh it every update
+  tick) — the difference is only the baseline it overlays: P+'s F/S label prefix is
+  measured from live thrust, classic's comes from the tag database.
 - **Thrust-synced velocity SFX and the adaptive SOSBend search are off.**
   `sfx.usevelocity`, `sfx.useadaptivevelocity` and `director.usephysicslabels`
   are ignored on this build.

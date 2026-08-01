@@ -80,6 +80,18 @@ The raw SLSB scene-tag scheme these codes derive from (the `<stage><ActorLetter>
 - **Director API consumed by Voice/Expressions** (thin pass-throughs so consumers never touch `SexLabThread`): `GetPositions`, `GetPositionIdx`, `GetEnjoyment`, `GetTimeTotal`, `HasSceneTag`, `IsSubmissive`, `GetActiveSceneId`, `GetStageNum`, `GetStagesCount`, `GetGender`/`IsMale`; label getters `GetStimulationlabel`/`GetPenisActionLabel`/`GetOralLabel`/`GetEndingLabel`/`GetPenetrationLabel`; latches `GetDirectorLastLabelTime`/`GetDirectorLastPhysicsLabelTime`; lifecycle `AnimationisEnding`, `isUpdating`, `SceneisIntense`, `IsHugePP`, `PlaySound`.
 - **Documented acceptable leaks:** `SLOVE_Hentairim_Tags.HasASLTag` calls `SexlabRegistry.IsSceneTag`; `GetLegacyStageNum` uses `SexlabRegistry.GetAllStages`.
 
+### Framework source references (for consulting the real APIs)
+
+When you need to check what a SexLab / SLSO Papyrus function actually does (signature, semantics, edge cases the `papyrus-reference` corpus doesn't bundle), read these local sources — they are the frameworks this mod's two variants target:
+
+| Framework | Source path | Notes |
+|---|---|---|
+| **SexLab P+ 2.17.2** (the P+ branch target — **no SLSO**) | `C:\Playground\Skyrim\mods\SexLabpp\dist\Source\Scripts` | The `SexLabpp` xmake project. `sslActorAlias.GetEnjoyment()` returns `_FullEnjoyment` **natively** (scale −100..100). **But the enjoyment engine is gated on `_Thread.HasPlayer`** (`UpdateBaseEnjoymentCalculations` early-returns unless `InternalEnjoymentEnabled && SeparateOrgasms && !dead && HasPlayer`) — so a **playerless** thread (any `SLOVE_NpcScene`) never accumulates enjoyment and `GetEnjoyment(anNPC)` stays **0**. |
+| **Classic SexLab SE 1.63** (the classic branch target) | `C:\Playground\Skyrim\mods\build\Sexlab\scripts\Source` | Baseline SexLab; `sslActorAlias`/`sslThreadController` etc. **SLSO is a classic-branch-only dependency.** |
+| **SLSO (SexLab Separate Orgasm)** — classic branch only | `C:\Playground\Skyrim\mods\build\SexLab Separate Orgasm\Scripts\Source` | Ships a **replacement `sslActorAlias`** that wins the conflict. Its `GetEnjoyment()` defers to `SLSO_GetEnjoyment()`, which returns **0 for untracked NPCs** unless SLSO's NPC option is enabled. |
+
+**Enjoyment-source rule of thumb:** `CurrentThread.GetEnjoyment(actor)` (via `SLOVE_Director.GetEnjoyment`) IS "SexLab enjoyment" and works fine for **player-present** scenes (which is why the PC-side `voice.intenseenjoyment` overlay works). But **NPC-only scenes read 0 on both branches** for different reasons — P+ gates the engine on `_Thread.HasPlayer`, classic+SLSO tracks the player only. Never drive NPC-scene intensity off enjoyment; gate it on stage/physics **labels**. See [[slove-npc-enjoyment-zero]].
+
 ## AudioUtil Relationship (deep, load-bearing)
 
 SLO VE is a thin Papyrus layer over the **AudioUtil SKSE plugin** (sibling repo `c:/Playground/Skyrim/mods/AudioUtil`). **AudioUtil owns all audio + config-file reading + slot resolution + lipsync + the penetration bridge; SLO VE decides *what category* to play *when* and hands it an actor.**

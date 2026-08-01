@@ -75,7 +75,7 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 | `enablevictimscenario` | `1` | Special line set when she is the submissive/victim of the scene. |
 | `femaleorgasmhypeenjoyment` | `75` | Enjoyment threshold above which orgasm-hype / near-orgasm lines (`NearOrgasm*`, B `Orgasm Soon Comments`) start. As a fallback for setups where SLSO never feeds the enjoyment meter (it reads `0`), these lines **also** start from an authored HentaiRim intense tag on the climax (final) stage — so the near-orgasm pool is reachable even at enjoyment `0`. Run `slovetest anim` mid-scene to see the live `enjoy=` value per actor. |
 | `maleorgasmhypeenjoyment` | `75` | Same, for the male (same intense-tag climax fallback). |
-| `intenseenjoyment` | `75` | **Classic/SLSO build only.** PC enjoyment at/above which voices switch to the intense (hot) set — mirrors SLSO's own `sl_hot_voice_strength`, so high enjoyment sounds intense even on a soft-tagged stage. `0` = off (authored tags only). On **P+** intensity comes from measured thrust, so this is ignored. |
+| `intenseenjoyment` | `75` | PC enjoyment at/above which voices switch to the intense (hot) set — mirrors SLSO's own `sl_hot_voice_strength`, so high enjoyment sounds intense even on a soft-tagged stage. Overlaid on the authored intense-stage tag and refreshed every update tick, so rising enjoyment flips the scene intense **mid-stage**, not only at a stage change. `0` = off (authored tags only). **Both P+ and classic** honor it. Requires SLSO to feed the enjoyment meter — without it the value stays `0` and only the stage tag drives intensity. Run `slovetest anim` mid-scene to see the live `enjoy=` value. |
 | ~~`hypebeforeorgasm`~~ | `0` | **Deprecated — ignored.** Held climax back for an extra hype pass, but it disabled the SexLab orgasm with no release path, freezing **SLSO**'s meter at 100%. Now always ignored; leave at `0`. |
 | ~~`voicevariation`~~ | — | **Removed.** Variation A/B is now a per-pack property — set `variation = "B"` on the pack's `[[slot]]` in its AudioUtil config (see `SLOVE_zpack_*.toml`). |
 | `useblowjobsoundforkissing` | `1` | Reuse blowjob action audio for kissing stages. |
@@ -101,7 +101,8 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 |---|---|---|
 | `pcvolume` | `100` | `0–100`, applied to the `pc_low`/`pc_high` audio groups (moans + comments). |
 | `orgasmvolume` | `100` | `0–100`, applied to the dedicated `pc_orgasm` group — the PC's climax/orgasm cries only. Independent of `pcvolume`, so you can raise or lower orgasm cries without touching ordinary moans/comments. (If the key is removed entirely it falls back to `pcvolume`.) |
-| `partnervolume` | `100` | `0–100`, applied to the `partner_low`/`partner_high` groups. |
+| `partnervolume` | `100` | `0–100`, applied to the `partner_low`/`partner_high` groups — partners **in your own scene**. |
+| `npcscenevolume` | `100` | `0–100`, applied to the dedicated `npc_low`/`npc_high` groups — **NPC-only scenes** (moans/breathing/reactions *and* their orgasm cries). Lets you make nearby NPC scenes quieter than your own without touching `partnervolume`. Falls back to `partnervolume` if the key is removed. AudioUtil's distance `voice_attenuation` still applies on top. |
 | `printdebug` | `0` | Print each voice decision (category, slot, handle) to the console. |
 
 ## `[expressions]`
