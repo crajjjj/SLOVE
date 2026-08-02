@@ -3016,7 +3016,7 @@ endfunction
 float function NextUpdateInterval()
 
 	if ASLcurrentlyIntense
-		return Utility.RandomFloat(0.1, 1.0)
+		return Utility.RandomFloat(0.4, 1.3)   ;intense is faster than calm, but not rapid-fire (was 0.1-1.0)
 	else
 		return Utility.RandomFloat(1.0, 2.0)
 	endif

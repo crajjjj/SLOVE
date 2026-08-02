@@ -1106,7 +1106,10 @@ EndFunction
 ;physics-derived), or - P+ only - the live aOral / aLickingShaft giver flags. Used to
 ;keep a moan line from lipsyncing a licking mouth. Cheap enough for the per-line path.
 bool Function IsOralGiver(Actor a)
-	if GetOralLabel(a) == "CUN"
+	;CUN cunnilingus, SBJ/FBJ soft/forced blowjob - all occupy the mouth (authored label).
+	;Fall through to the live P+ giver flags only when the label doesn't already say so.
+	string oral = GetOralLabel(a)
+	if oral == "CUN" || oral == "SBJ" || oral == "FBJ"
 		return true
 	endif
 	if !CurrentThread || !CurrentThread.IsInteractionRegistered()

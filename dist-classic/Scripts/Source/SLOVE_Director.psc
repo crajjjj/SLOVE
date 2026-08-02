@@ -1108,10 +1108,13 @@ bool Function FaceOwnsMouth(Actor a)
 EndFunction
 
 ;True while actor a's own mouth is busy performing oral. Classic SexLab 1.63 has no live
-;interaction flags (tongues are P+-only), so the authored CUN oral label is the whole
-;signal here - unlike the P+ Director, which also reads the live aOral giver flags.
+;interaction flags (tongues are P+-only), so the authored oral label is the whole signal
+;here - unlike the P+ Director, which also reads the live aOral giver flags. CUN is
+;cunnilingus; SBJ/FBJ are soft/forced blowjob (mouth full of cock) - all occupy the mouth,
+;so a moan clip must not drive the jaw over any of them (IsSuckingoffOther is SBJ||FBJ).
 bool Function IsOralGiver(Actor a)
-	return GetOralLabel(a) == "CUN"
+	string oral = GetOralLabel(a)
+	return oral == "CUN" || oral == "SBJ" || oral == "FBJ"
 EndFunction
 
 bool function IsMale(actor char)
