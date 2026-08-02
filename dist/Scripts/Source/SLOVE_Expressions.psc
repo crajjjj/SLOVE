@@ -497,10 +497,18 @@ Bool Function FullExpressionPass()
 	;	printdebug("TONGUE-MOUTH eq=" + EquippedTongue() + " shown=" + FHUTongueShown + " isPlayer=" + IsPlayer + " cun=" + IsCunnilingus() + " blocked=" + LipSyncBlockedForFace + " lsActive=" + AudioUtil.IsLipSyncActive(actorref) + " | preMouth aah=" + MfgConsoleFunc.GetPhoneme(actorref, 0) + " bigaah=" + MfgConsoleFunc.GetPhoneme(actorref, 1) + " -> apply r0=" + result[0] + " r1=" + result[1] + " | MFEE hasMFEE=" + HasMFEE + " vanilla=" + HasMFEEVanillaRace + " ahegaoVal=" + dbgAhegaoVal + " mfeeTongue=" + MFEEAddTongue + " broken=" + brokenface)
 	;endif
 
-	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
+	;wire OpenMouth's shape straight into result (fractions of its 0-100 values) so the single
+	;smooth apply below carries it - same mouth as BreathePass, without 6 extra SetPhoneme calls.
+	;KEEP IN SYNC with OpenMouth(): 0/1=75, 5/6/7=100, 9=68.
 	if HoldMouthOpenTick
-		OpenMouth(actorref) ;override the mouth with OpenMouth's shape (opens the jaw gate too) - same as BreathePass
+		result[0] = 0.75
+		result[1] = 0.75
+		result[5] = 1.0
+		result[6] = 1.0
+		result[7] = 1.0
+		result[9] = 0.68
 	endif
+	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
 	BreathIntense = Isintense()
 	BreathingAllowed = !(mouthblowjob || MFEEAddTongue || MFEEAddAhegao || EquippedTongue() || IsKissing() || IsCunnilingus())
 
