@@ -1326,8 +1326,29 @@ EndFunction
 
 
 
+Int SLSOReadyCache = 0 ;0 = unknown, 1 = SLSO present, -1 = absent (lazy, cached once)
+
 int function  GetFullEnjoyment()
-	int enjoyment = CurrentThread.GetEnjoyment(actorref) as int
+	;SLSO's minigame pins SexLab's GetEnjoyment() at 0 all scene and keeps the live meter
+	;in the alias's GetFullEnjoyment() (the value SLSO's own voice reads). Prefer that when
+	;SLSO is present; fall back to GetEnjoyment() when SLSO is absent or the meter is 0.
+	int enjoyment = -1
+	if SLSOReadyCache == 0
+		if Game.GetModByName("SLSO.esp") != 255 && Game.GetModByName("SLSO.esp") != -1
+			SLSOReadyCache = 1
+		else
+			SLSOReadyCache = -1
+		endif
+	endif
+	if SLSOReadyCache == 1
+		sslActorAlias al = CurrentThread.ActorAlias(actorref)
+		if al
+			enjoyment = al.GetFullEnjoyment()
+		endif
+	endif
+	if enjoyment <= 0
+		enjoyment = CurrentThread.GetEnjoyment(actorref) as int
+	endif
 	printdebug("Enjoyment : " + enjoyment)
 	return enjoyment
 endfunction

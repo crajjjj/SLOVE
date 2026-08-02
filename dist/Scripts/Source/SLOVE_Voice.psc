@@ -827,8 +827,11 @@ Function RemoveTracker()
 	ASLRemoveCumPool()
 	StorageUtil.Unsetintvalue(MainFemaleActor ,"HandlingMaleOrgasm")
 	StorageUtil.Unsetintvalue(MainFemaleActor ,"Orgasming")
-	;grace: let the in-flight climax cry finish before cutting the *_high groups
-	Utility.Wait(2.0)
+	;grace: let the in-flight climax cry finish before cutting the *_high groups.
+	;A full orgasm line (e.g. a Karryn-style spoken climax) runs several seconds; a
+	;2s grace cut it off midway, so this is 6s. The scene is already over, so the
+	;only cost of the longer window is holding the tracker spell a bit longer.
+	Utility.Wait(6.0)
 	AudioUtil.StopGroup("pc_high")
 	AudioUtil.StopGroup("pc_orgasm")
 	AudioUtil.StopGroup("partner_high")
