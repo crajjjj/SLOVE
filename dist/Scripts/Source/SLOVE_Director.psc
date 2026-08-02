@@ -153,6 +153,7 @@ Function ClearSpellsFromTrackedActors()
 			if ResistanceSpell && actorList[z].HasSpell(ResistanceSpell)
 				actorList[z].RemoveSpell(ResistanceSpell)
 			endif
+			StorageUtil.SetIntValue(actorList[z], "SLOVE_TongueEquipped", 0) ;clear the tongue-equipped flag on game load (a save made mid-scene must not leave it stuck)
 		endif
 		z = z + 1
 	endwhile
@@ -567,6 +568,7 @@ Function RemoveTongueItems()
 	while z < actorList.Length
 		Actor pos = actorList[z]
 		if pos
+			StorageUtil.SetIntValue(pos, "SLOVE_TongueEquipped", 0) ;clear the tongue-equipped flag at scene end
 			int t = 0
 			while t < 10
 				;SLOVE_Tongue{t+1}Armor = 0x000813 + t

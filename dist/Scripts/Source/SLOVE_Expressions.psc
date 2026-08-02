@@ -491,17 +491,15 @@ Bool Function FullExpressionPass()
 		endif
 	endif
 
-	;TEMP DIAGNOSTIC (tongue clip): for a tongue-wearer, log what the mouth reads at
-	;pass START (preMouth) vs the values we are about to apply (r0/r1). If preMouth
-	;keeps reading low after we set r1 high last pass -> an external writer is moving
-	;it. If r0/r1 themselves vary pass-to-pass -> wrong preset branch (eq=False).
-	if EquippedTongue() || MFEEAddTongue
-		int dbgAhegaoVal = -1
-		if HasMFEE || HasMFEEVanillaRace
-			dbgAhegaoVal = MuFacialExpressionExtended.GetExpressionValueByNumber(actorref, 0, 0)
-		endif
-		printdebug("TONGUE-MOUTH eq=" + EquippedTongue() + " shown=" + FHUTongueShown + " isPlayer=" + IsPlayer + " cun=" + IsCunnilingus() + " blocked=" + LipSyncBlockedForFace + " lsActive=" + AudioUtil.IsLipSyncActive(actorref) + " | preMouth aah=" + MfgConsoleFunc.GetPhoneme(actorref, 0) + " bigaah=" + MfgConsoleFunc.GetPhoneme(actorref, 1) + " -> apply r0=" + result[0] + " r1=" + result[1] + " | MFEE hasMFEE=" + HasMFEE + " vanilla=" + HasMFEEVanillaRace + " ahegaoVal=" + dbgAhegaoVal + " mfeeTongue=" + MFEEAddTongue + " broken=" + brokenface)
-	endif
+	;TEMP DIAGNOSTIC (tongue clip) - commented out for release. Re-enable to trace, per
+	;pass for a tongue-wearer, the mouth read at pass start vs the values being applied.
+	;if EquippedTongue() || MFEEAddTongue
+	;	int dbgAhegaoVal = -1
+	;	if HasMFEE || HasMFEEVanillaRace
+	;		dbgAhegaoVal = MuFacialExpressionExtended.GetExpressionValueByNumber(actorref, 0, 0)
+	;	endif
+	;	printdebug("TONGUE-MOUTH eq=" + EquippedTongue() + " shown=" + FHUTongueShown + " isPlayer=" + IsPlayer + " cun=" + IsCunnilingus() + " blocked=" + LipSyncBlockedForFace + " lsActive=" + AudioUtil.IsLipSyncActive(actorref) + " | preMouth aah=" + MfgConsoleFunc.GetPhoneme(actorref, 0) + " bigaah=" + MfgConsoleFunc.GetPhoneme(actorref, 1) + " -> apply r0=" + result[0] + " r1=" + result[1] + " | MFEE hasMFEE=" + HasMFEE + " vanilla=" + HasMFEEVanillaRace + " ahegaoVal=" + dbgAhegaoVal + " mfeeTongue=" + MFEEAddTongue + " broken=" + brokenface)
+	;endif
 
 	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
 	BreathIntense = Isintense()
@@ -926,6 +924,14 @@ Bool Function EquippedTongue()
 	if FHUTongueShown
 		return true
 	endif
+	;a mid-scene script re-init resets FHUTongueShown (and FHUTongueSlotMask) while the
+	;armor is still worn - this per-actor StorageUtil flag survives that, so the re-inited
+	;instance still sees the tongue and AddTongue does NOT equip a SECOND one. Set in
+	;AddTongue; cleared on removal, scene-end (CleanupTongueItem/RemoveTongueItems) and
+	;game load (Director ReconcileSceneOnLoad).
+	if StorageUtil.GetIntValue(actorref, "SLOVE_TongueEquipped", 0) == 1
+		return true
+	endif
 	if FHUTongueSlotMask == 0
 		return false
 	endif
@@ -956,13 +962,9 @@ Function SetSexLabForceOpenMouth(Actor akActor, bool abForce)
 		sslActorAlias slAlias = model.ActorAlias(akActor)
 		if slAlias
 			slAlias.ForceOpenMouth = abForce
-			printdebug("FORCEOPEN set=" + abForce + " OK - alias resolved, readback ForceOpenMouth=" + slAlias.ForceOpenMouth)
 		else
-			SexLab.OpenMouth(akActor)
-			printdebug("FORCEOPEN FAIL - model.ActorAlias returned none")
+			SexLab.OpenMouth(akActor) ;alias not resolvable - fall back to the walk
 		endif
-	else
-		printdebug("FORCEOPEN FAIL - CurrentThread is not an sslThreadModel (none)")
 	endif
 EndFunction
 
@@ -1047,6 +1049,7 @@ Function AddTongue()
 				OpenMouth(actorref)
 			endif
 			FHUTongueShown = true
+			StorageUtil.SetIntValue(actorref, "SLOVE_TongueEquipped", 1)
 		else
 			printdebug("AddTongue: FHUTongueTypeArmor not defined (tongue disabled or not rolled), skipping equip.")
 		endif
@@ -1075,7 +1078,9 @@ Function RemoveTongue()
 		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 0, 0) ;tongue out
 		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 8, 2, 0) ;tongue down
 	else
-		if FHUTongueShown
+		;key off the flag too, not just FHUTongueShown: a mid-scene re-init resets
+		;FHUTongueShown while the armor is still worn, and we must still unequip + clear
+		if FHUTongueShown || StorageUtil.GetIntValue(actorref, "SLOVE_TongueEquipped", 0) == 1
 			;hide = plain UnequipItem: equipment traffic on a carried item does
 			;not wake the NPC outfit AI (only inventory ADDs do). The item stays
 			;in inventory until scene end (RemoveTongueItems), so a later AddTongue
@@ -1084,6 +1089,7 @@ Function RemoveTongue()
 				actorref.UnequipItem(FHUTongueTypeArmor, false, true) ;armors are Playable now - plain unequip works on the player too
 			endif
 			FHUTongueShown = false
+			StorageUtil.SetIntValue(actorref, "SLOVE_TongueEquipped", 0)
 		endif
 	endif
 	SetSexLabForceOpenMouth(actorref, false) ;release the hold set when the tongue was shown
@@ -1095,6 +1101,7 @@ endfunction
 ;traffic is harmless (the actors are redressing anyway)
 Function CleanupTongueItem()
 	FHUTongueShown = false
+	StorageUtil.SetIntValue(actorref, "SLOVE_TongueEquipped", 0)
 	if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
 		actorref.UnequipItem(FHUTongueTypeArmor, false, true) ;armors are Playable now - plain unequip works on the player too
 	endif
