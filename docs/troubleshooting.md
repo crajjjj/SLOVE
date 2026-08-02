@@ -23,6 +23,23 @@ log_level = "debug"     # trace | debug | info | warn | error
 
 and turn on the live console play-by-play with `printdebug = 1` in the relevant [`SLOVE.toml`](config/slove.md) section (`[director]`, `[voice]`, `[expressions]`, `[sfx]`).
 
+## Enabling Papyrus logging
+
+Papyrus logging is off by default (it adds a little overhead, so it ships disabled). Turn it on only while diagnosing a problem, then turn it back off.
+
+Edit `Skyrim.ini` (in the My Games folder above) and add or update this section:
+
+```ini
+[Papyrus]
+bEnableLogging=1
+bEnableTrace=1
+bLoadDebugInformation=1
+```
+
+- **`bEnableLogging`** — writes the `Papyrus.0.log` file at all.
+- **`bEnableTrace`** — includes `Debug.Trace` lines (what BF and most mods log).
+- **`bLoadDebugInformation`** — adds script/line names to errors so they are actually readable.
+
 ## Console diagnostics
 
 !!! note "These commands need ConsoleUtil Extended"
