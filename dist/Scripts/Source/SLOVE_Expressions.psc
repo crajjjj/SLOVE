@@ -482,14 +482,10 @@ Bool Function FullExpressionPass()
 	;gate from retracting the tongue) to the tongue-out preset's own open value whenever a
 	;tongue is out and lipsync isn't actively driving the mouth. No-op when the tongue-out
 	;branch already set it. The tongue-shape channels (e.g. MFEE's 'oh') are left untouched.
-	;cache the hold condition for BreathePass, which re-applies the open mouth on the cheap
-	;sub-tick so a repeating NiNode wipe can't keep the jaw shut between the slow full passes
+	;cache the hold condition. A tongue-wearer's open mouth is applied via OpenMouth AFTER the
+	;smooth apply below, and re-applied each sub-tick in BreathePass - so the full pass and the
+	;sub-tick use the SAME shape (no pulsing between the tongue-out preset and OpenMouth).
 	HoldMouthOpenTick = (EquippedTongue() || MFEEAddTongue) && !(AudioUtil.IsLipSyncActive(actorref) && !LipSyncBlockedForFace)
-	if HoldMouthOpenTick
-		if TongueOutOverrideF.Length > 1 && result[1] < TongueOutOverrideF[1]
-			result[1] = TongueOutOverrideF[1]
-		endif
-	endif
 
 	;TEMP DIAGNOSTIC (tongue clip) - commented out for release. Re-enable to trace, per
 	;pass for a tongue-wearer, the mouth read at pass start vs the values being applied.
@@ -502,6 +498,9 @@ Bool Function FullExpressionPass()
 	;endif
 
 	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
+	if HoldMouthOpenTick
+		OpenMouth(actorref) ;override the mouth with OpenMouth's shape (opens the jaw gate too) - same as BreathePass
+	endif
 	BreathIntense = Isintense()
 	BreathingAllowed = !(mouthblowjob || MFEEAddTongue || MFEEAddAhegao || EquippedTongue() || IsKissing() || IsCunnilingus())
 
@@ -969,18 +968,15 @@ Function SetSexLabForceOpenMouth(Actor akActor, bool abForce)
 EndFunction
 
 function OpenMouth(Actor act) global
-	int[] mods = new int[16]
-	mods[0] = 75
-	mods[1] = 75
-	mods[5] = 100
-	mods[6] = 100
-	mods[7] = 100
-	mods[9] = 68
-	int i = 0
-	While (i < mods.Length)
-		SLOVE_Expressions.SmoothSetPhoneme(act, i, mods[i])
-		i += 1
-	EndWhile
+	;the SexLab open-mouth shape (matches sslBaseExpression.OpenMouth / IsMouthOpen). Only
+	;the 6 non-zero phonemes are set - no per-call array alloc, and the other 10 channels stay
+	;0 (a NiNode wipe already zeroed them). Called every sub-tick per tongue-wearer, so cheap.
+	SLOVE_Expressions.SmoothSetPhoneme(act, 0, 75)
+	SLOVE_Expressions.SmoothSetPhoneme(act, 1, 75)
+	SLOVE_Expressions.SmoothSetPhoneme(act, 5, 100)
+	SLOVE_Expressions.SmoothSetPhoneme(act, 6, 100)
+	SLOVE_Expressions.SmoothSetPhoneme(act, 7, 100)
+	SLOVE_Expressions.SmoothSetPhoneme(act, 9, 68)
 endFunction
 
 Function SmoothSetPhoneme(Actor act, Int id, Int str_dest, float modifier = 1.0) global
@@ -1093,6 +1089,7 @@ Function RemoveTongue()
 		endif
 	endif
 	SetSexLabForceOpenMouth(actorref, false) ;release the hold set when the tongue was shown
+	HoldMouthOpenTick = false ;stop BreathePass re-opening the mouth once the tongue is gone (the flag is only recomputed on the full-pass main path, which has early returns)
 endfunction
 
 ;scene-end teardown for the FHU tongue: unequip our worn variant only. The
@@ -1106,6 +1103,7 @@ Function CleanupTongueItem()
 		actorref.UnequipItem(FHUTongueTypeArmor, false, true) ;armors are Playable now - plain unequip works on the player too
 	endif
 	SetSexLabForceOpenMouth(actorref, false) ;release the hold at scene end
+	HoldMouthOpenTick = false
 endfunction
 
 ;=====================================================================
