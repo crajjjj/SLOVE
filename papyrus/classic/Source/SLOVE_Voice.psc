@@ -826,8 +826,11 @@ Function RemoveTracker()
 	ASLRemoveCumPool()
 	StorageUtil.Unsetintvalue(MainFemaleActor ,"HandlingMaleOrgasm")
 	StorageUtil.Unsetintvalue(MainFemaleActor ,"Orgasming")
-	;grace: let the in-flight climax cry finish before cutting the *_high groups
-	Utility.Wait(2.0)
+	;grace: let the in-flight climax cry finish before cutting the *_high groups.
+	;A full orgasm line (e.g. a Karryn-style spoken climax) runs several seconds; a
+	;2s grace cut it off midway, so this is 6s. The scene is already over, so the
+	;only cost of the longer window is holding the tracker spell a bit longer.
+	Utility.Wait(6.0)
 	AudioUtil.StopGroup("pc_high")
 	AudioUtil.StopGroup("pc_orgasm")
 	AudioUtil.StopGroup("partner_high")
@@ -863,12 +866,33 @@ Function RecordFemaleOrgasm()
 
 EndFunction
 
+Int SLSOReadyCache = 0 ;0 = unknown, 1 = SLSO present, -1 = absent (lazy, cached once)
+
 Int Function GetActorEnjoyment(Actor actorInQuestion)
 	If actorInQuestion == None
 		Return -1
-	Else
-		Return CurrentThread.GetEnjoyment(actorInQuestion)
 	EndIf
+	;SLSO's minigame pins SexLab's GetEnjoyment() at 0 for the whole scene and keeps the
+	;live meter in the alias's GetFullEnjoyment() - the value SLSO's own voice reads
+	;(SLSO_SpellVoiceScript). Read that meter when SLSO is present; fall back to
+	;GetEnjoyment() when SLSO is absent or the meter is still 0 (lead-in / passive setups).
+	If SLSOReadyCache == 0
+		If isDependencyReady("SLSO.esp")
+			SLSOReadyCache = 1
+		Else
+			SLSOReadyCache = -1
+		EndIf
+	EndIf
+	If SLSOReadyCache == 1
+		sslActorAlias al = CurrentThread.ActorAlias(actorInQuestion)
+		If al
+			Int full = al.GetFullEnjoyment()
+			If full > 0
+				Return full
+			EndIf
+		EndIf
+	EndIf
+	Return CurrentThread.GetEnjoyment(actorInQuestion)
 EndFunction
 
 Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 0, Bool waitForCompletion = True , string debugtext = "None" , Bool SkipWait = false , Actor voiceActor = None , Bool forceFemaleVoice = false)
