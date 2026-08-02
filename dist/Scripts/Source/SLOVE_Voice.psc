@@ -149,7 +149,7 @@ Function InitializeConfigValues()
 	ChanceToCommentWhenCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenclosetoorgasm",0) as float /100
 	ChanceToCommentWhenMaleCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenmaleclosetoorgasm",0) as float /100
 	FemaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment",0)
-	intenseenjoyment = SLOVE_Config.GetInt("voice.intenseenjoyment", 75)
+	intenseenjoyment = SLOVE_Config.GetInt("voice.intenseenjoyment", 50)
 	intenseFromBarOnly = SLOVE_Config.GetInt("voice.intense_from_bar_only", 1) == 1
 	MaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.maleorgasmhypeenjoyment",0)
 	EnableDDGagVoice = SLOVE_Config.GetInt("voice.enableddgagvoice",0)

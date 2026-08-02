@@ -94,7 +94,7 @@ has no per-node contact detection, so:
   prefix on a label (`FVP` vs `SVP`) comes from the tag database rather than live
   thrust speed, so it does not follow an AnimSpeed override. To make up for the
   missing thrust signal, classic **overlays SLSO enjoyment** onto that baseline:
-  once the PC's enjoyment crosses `voice.intenseenjoyment` (default 75, mirroring
+  once the PC's enjoyment crosses `voice.intenseenjoyment` (default 50, mirroring
   SLSO's `sl_hot_voice_strength`; `0` = off) the voice reads intense even on a
   soft-tagged stage, and relaxes again as enjoyment falls after orgasm. **P+ runs
   the same `voice.intenseenjoyment` overlay** (both variants refresh it every update

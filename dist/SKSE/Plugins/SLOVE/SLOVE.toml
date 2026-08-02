@@ -73,8 +73,8 @@ chancetocommentwhenclosetoorgasm = 45
 chancetocommentwhenmaleclosetoorgasm = 40
 femaleorgasmhypeenjoyment = 75 # enjoyment threshold for orgasm hype lines
 maleorgasmhypeenjoyment = 75
-intenseenjoyment = 75          # PC enjoyment at/above which voices go intense (mirrors SLSO sl_hot_voice_strength), overlaid on the authored intense-stage tag; 0 = off. Both P+ and classic. Needs SLSO feeding enjoyment; without it the value stays 0 and only the stage tag drives intensity.
-intense_from_bar_only = 0      # 0 = intense when EITHER the enjoyment bar crosses intenseenjoyment OR the animation is authored fast/intense (default). 1 = SLSO-style: the enjoyment bar ALONE decides intense voices (drops the authored fast-tag path), so NearOrgasmNoises plays only at/above intenseenjoyment. Both P+ and classic. (Facial expressions stay tag-driven.)
+intenseenjoyment = 50          # PC enjoyment at/above which voices go intense (mirrors SLSO sl_hot_voice_strength); 0 = off. Both P+ and classic. With intense_from_bar_only=1 (default) this bar ALONE decides intense voices, so keep it reachable within a scene.
+intense_from_bar_only = 1      # 1 = SLSO-style (default): the enjoyment bar ALONE decides intense voices, so NearOrgasmNoises plays only at/above intenseenjoyment and for no other reason. 0 = also go intense on authored fast/intense animation tags (pre-0.6.3 behavior; useful if your enjoyment bar never climbs, e.g. no SLSO meter). Both P+ and classic. Voice only - facial expressions stay tag-driven.
 enablemalevoice = 1            # MASTER male switch: 0 disables ALL male audio (both dirty-talk and moaning)
 chanceformaletocomment = 30
 voiceallactors = 1             # secondary partners speak (male rotation + female NPCs); 0 = PC + lead male only
