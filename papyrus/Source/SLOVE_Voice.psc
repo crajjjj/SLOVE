@@ -73,6 +73,7 @@ bool commentedcumlocation = false
 bool commentedorgasmremark = false
 Bool ASLCurrentlyintense = false
 Bool ASLTagIntense = false     ;authored-tag/label intensity baseline; enjoyment overlays it (see IVDTUpdate)
+Bool intenseFromBarOnly = false ;voice.intense_from_bar_only - drop the authored-tag path, gate intensity on the enjoyment bar alone (SLSO-style)
 int intenseenjoyment           ;PC enjoyment at/above which the voice goes intense (mirrors SLSO sl_hot_voice_strength; 0 = off)
 
 int CameInsideCount = 0
@@ -149,6 +150,7 @@ Function InitializeConfigValues()
 	ChanceToCommentWhenMaleCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenmaleclosetoorgasm",0) as float /100
 	FemaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment",0)
 	intenseenjoyment = SLOVE_Config.GetInt("voice.intenseenjoyment", 75)
+	intenseFromBarOnly = SLOVE_Config.GetInt("voice.intense_from_bar_only", 0) == 1
 	MaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.maleorgasmhypeenjoyment",0)
 	EnableDDGagVoice = SLOVE_Config.GetInt("voice.enableddgagvoice",0)
 	EnableMaleVoice = SLOVE_Config.GetInt("voice.enablemalevoice",0)
@@ -230,7 +232,7 @@ Function PerformInitialization()
 	;P+: overlay SLSO enjoyment onto the label baseline so a high-enjoyment PC reads
 	;intense even on a soft-tagged stage (mirrors classic; the OnUpdate loop refreshes
 	;it every tick so rising enjoyment flips intense mid-stage, not only at stage change)
-	ASLCurrentlyintense = ASLTagIntense || (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment)
+	ASLCurrentlyintense = (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment) || (ASLTagIntense && !intenseFromBarOnly)
 
 	if currentstage <= 2
 		ReactedtoFemaleOrgasmThisSession = false
@@ -686,7 +688,7 @@ Event OnUpdate()
 		;enjoyment flips the scene to intense mid-stage (not only at a stage change).
 		;intenseenjoyment (voice.intenseenjoyment, 0 = off) is the SLSO hot-voice threshold;
 		;ASLTagIntense keeps an authored intense stage intense even when enjoyment dips.
-		ASLCurrentlyintense = ASLTagIntense || (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment)
+		ASLCurrentlyintense = (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment) || (ASLTagIntense && !intenseFromBarOnly)
 
 		if !isShortenedScene() && !isLinearScene()
 			ProcessReadytoAdvanceStage()
@@ -1182,7 +1184,7 @@ Function IVDTUpdate()
 			ASLTagIntense = false
 		endif
 		;P+: overlay SLSO enjoyment onto the label baseline (see PerformInitialization)
-		ASLCurrentlyintense = ASLTagIntense || (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment)
+		ASLCurrentlyintense = (intenseenjoyment > 0 && mainFemaleEnjoyment >= intenseenjoyment) || (ASLTagIntense && !intenseFromBarOnly)
 
 		if currentstage <= 2
 			ReactedtoFemaleOrgasmThisSession = false
