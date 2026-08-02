@@ -146,6 +146,15 @@ EndEvent
 Event ExpressionsOnStageStart(string eventName, string argString, float argNum, form sender)
 	if argString as Int == ThreadID
 		position = currentthread.getpositionidx(actorref)
+		;re-assert SexLab's ForceOpenMouth for a tongue-wearer. The equip-time OpenMouth
+		;in AddTongue can miss the penetrated partner (SexLab FindSlot not resolved yet),
+		;leaving ForceOpenMouth false - SexLab then CLOSES that mouth every ~1s (its
+		;RefreshExpressionEx). Stage start runs with the aliases fully resolved, so
+		;re-setting it here makes it stick. Once per stage, not per pass (per-pass
+		;regressed the primary). P+ only API. Released in RemoveTongue/CleanupTongueItem.
+		if EquippedTongue() || MFEEAddTongue
+			SetSexLabForceOpenMouth(actorref, true)
+		endif
 	endif
 EndEvent
 
@@ -165,6 +174,7 @@ int TicksUntilFull = 0
 int UpdateDeferCount = 0 ;bounded retries while the director is mid-update; force-proceed past the cap so a stuck flag can't freeze the face
 int BreathBase0 = 0
 bool BreathingAllowed = false
+bool HoldMouthOpenTick = false ;tongue out + we own the mouth: BreathePass re-opens it each sub-tick
 int enablebreathing = 1
 float breathingupdateinseconds = 0.55
 float tonguemouthopenthreshold = 0.4
@@ -432,11 +442,13 @@ Bool Function FullExpressionPass()
 		;enableahegao is the master switch for the MFEE mood-ahegao overlay: with it
 		;off, a broken actor still gets the broken-face PRESET (built above), just not
 		;the MFEE expression-0 ahegao painted on top here
-		if enableahegao == 1 && brokenface && HasMFEEVanillaRace && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 100
+		;the ARMOR tongue is the primary tongue: while it is equipped we do NOT paint
+		;the MFEE ahegao (expression 0 carries its own tongue, which would double up).
+		if enableahegao == 1 && brokenface && HasMFEEVanillaRace && !EquippedTongue() && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 100
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,100) ;ahegao 1
-		elseif HasMFEEVanillaRace && (!brokenface || enableahegao != 1) && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 0
-			;the broken face ended mid-scene - retract the painted ahegao (it
-			;otherwise persists until scene-end RevertExpression)
+		elseif HasMFEEVanillaRace && (!brokenface || enableahegao != 1 || EquippedTongue()) && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 0
+			;the broken face ended mid-scene, or the armor tongue took over - retract the
+			;painted ahegao (it otherwise persists until scene-end RevertExpression)
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,0)
 		endif
 	endif
@@ -470,10 +482,25 @@ Bool Function FullExpressionPass()
 	;gate from retracting the tongue) to the tongue-out preset's own open value whenever a
 	;tongue is out and lipsync isn't actively driving the mouth. No-op when the tongue-out
 	;branch already set it. The tongue-shape channels (e.g. MFEE's 'oh') are left untouched.
-	if (EquippedTongue() || MFEEAddTongue) && !(AudioUtil.IsLipSyncActive(actorref) && !LipSyncBlockedForFace)
+	;cache the hold condition for BreathePass, which re-applies the open mouth on the cheap
+	;sub-tick so a repeating NiNode wipe can't keep the jaw shut between the slow full passes
+	HoldMouthOpenTick = (EquippedTongue() || MFEEAddTongue) && !(AudioUtil.IsLipSyncActive(actorref) && !LipSyncBlockedForFace)
+	if HoldMouthOpenTick
 		if TongueOutOverrideF.Length > 1 && result[1] < TongueOutOverrideF[1]
 			result[1] = TongueOutOverrideF[1]
 		endif
+	endif
+
+	;TEMP DIAGNOSTIC (tongue clip): for a tongue-wearer, log what the mouth reads at
+	;pass START (preMouth) vs the values we are about to apply (r0/r1). If preMouth
+	;keeps reading low after we set r1 high last pass -> an external writer is moving
+	;it. If r0/r1 themselves vary pass-to-pass -> wrong preset branch (eq=False).
+	if EquippedTongue() || MFEEAddTongue
+		int dbgAhegaoVal = -1
+		if HasMFEE || HasMFEEVanillaRace
+			dbgAhegaoVal = MuFacialExpressionExtended.GetExpressionValueByNumber(actorref, 0, 0)
+		endif
+		printdebug("TONGUE-MOUTH eq=" + EquippedTongue() + " shown=" + FHUTongueShown + " isPlayer=" + IsPlayer + " cun=" + IsCunnilingus() + " blocked=" + LipSyncBlockedForFace + " lsActive=" + AudioUtil.IsLipSyncActive(actorref) + " | preMouth aah=" + MfgConsoleFunc.GetPhoneme(actorref, 0) + " bigaah=" + MfgConsoleFunc.GetPhoneme(actorref, 1) + " -> apply r0=" + result[0] + " r1=" + result[1] + " | MFEE hasMFEE=" + HasMFEE + " vanilla=" + HasMFEEVanillaRace + " ahegaoVal=" + dbgAhegaoVal + " mfeeTongue=" + MFEEAddTongue + " broken=" + brokenface)
 	endif
 
 	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
@@ -495,6 +522,13 @@ EndFunction
 
 Function BreathePass()
 	;cheap sub-tick: no MasterScript/SexLab/Json calls, just a mouth nudge around the last applied face
+	;while a tongue is out, re-apply the FULL open mouth every sub-tick (~0.55s) instead of
+	;breathing: a repeating NiNode rebuild (e.g. FHU inflation on the penetrated actor) keeps
+	;zeroing the jaw, and the full pass (~2s) is too slow to hold it - this fast re-apply is.
+	if HoldMouthOpenTick
+		OpenMouth(actorref)
+		return
+	endif
 	if !BreathingAllowed
 		return
 	endif
@@ -909,6 +943,50 @@ Bool Function EquippedTongue()
 	return false
 EndFunction
 
+;Set SexLab's ForceOpenMouth on this actor's alias DIRECTLY via its own thread.
+;SexLab.OpenMouth() sets that flag by walking ThreadSlots with FindSlot, which does
+;NOT resolve for some NPCs (observed: the penetrated partner) - so the flag never
+;sticks and SexLab's RefreshExpressionEx closes that actor's mouth every ~1s, clipping
+;the tongue. Going through CurrentThread (the actor's real thread) is reliable. SLO VE
+;already drives BigAah open each pass; the flag just stops SexLab from closing it. The
+;flag auto-clears when SexLab wipes the alias at scene end. P+ only (sslThreadModel).
+Function SetSexLabForceOpenMouth(Actor akActor, bool abForce)
+	sslThreadModel model = CurrentThread as sslThreadModel
+	if model
+		sslActorAlias slAlias = model.ActorAlias(akActor)
+		if slAlias
+			slAlias.ForceOpenMouth = abForce
+			printdebug("FORCEOPEN set=" + abForce + " OK - alias resolved, readback ForceOpenMouth=" + slAlias.ForceOpenMouth)
+		else
+			SexLab.OpenMouth(akActor)
+			printdebug("FORCEOPEN FAIL - model.ActorAlias returned none")
+		endif
+	else
+		printdebug("FORCEOPEN FAIL - CurrentThread is not an sslThreadModel (none)")
+	endif
+EndFunction
+
+function OpenMouth(Actor act) global
+	int[] mods = new int[16]
+	mods[0] = 75
+	mods[1] = 75
+	mods[5] = 100
+	mods[6] = 100
+	mods[7] = 100
+	mods[9] = 68
+	int i = 0
+	While (i < mods.Length)
+		SLOVE_Expressions.SmoothSetPhoneme(act, i, mods[i])
+		i += 1
+	EndWhile
+endFunction
+
+Function SmoothSetPhoneme(Actor act, Int id, Int str_dest, float modifier = 1.0) global
+	str_dest = (str_dest * modifier) as Int
+	id = PapyrusUtil.ClampInt(id, 0, 15)
+	MfgConsoleFuncExt.SetPhoneme(act,id,str_dest, 1)
+EndFunction
+
 Function AddTongue()
 
 	;one mask scan per call: WearingMask walks worn slots with externals, and a
@@ -965,6 +1043,8 @@ Function AddTongue()
 				if bigAahSnap >= 0
 					MfgConsoleFunc.SetPhoneme(actorref, 1, bigAahSnap)
 				endif
+			else 
+				OpenMouth(actorref)
 			endif
 			FHUTongueShown = true
 		else
@@ -978,6 +1058,10 @@ Function AddTongue()
 		;into removing it -> the equip/unequip churn. FullExpressionPass keeps this
 		;asserted (tonguearmorworn) and releases it when the tongue is gone.
 		ApplyFaceMouthOwnership(true)
+		;SexLab's RefreshExpressionEx CLOSES this actor's mouth every ~1s unless its alias
+		;ForceOpenMouth flag is set - set it directly (see SetSexLabForceOpenMouth for why
+		;not SexLab.OpenMouth). Cleared in RemoveTongue. (P+ only.)
+		SetSexLabForceOpenMouth(actorref, true)
 	endif
 EndFunction
 
@@ -1002,6 +1086,7 @@ Function RemoveTongue()
 			FHUTongueShown = false
 		endif
 	endif
+	SetSexLabForceOpenMouth(actorref, false) ;release the hold set when the tongue was shown
 endfunction
 
 ;scene-end teardown for the FHU tongue: unequip our worn variant only. The
@@ -1013,6 +1098,7 @@ Function CleanupTongueItem()
 	if FHUTongueTypeArmor && actorref.IsEquipped(FHUTongueTypeArmor)
 		actorref.UnequipItem(FHUTongueTypeArmor, false, true) ;armors are Playable now - plain unequip works on the player too
 	endif
+	SetSexLabForceOpenMouth(actorref, false) ;release the hold at scene end
 endfunction
 
 ;=====================================================================
