@@ -150,7 +150,7 @@ Function InitializeConfigValues()
 	ChanceToCommentWhenMaleCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenmaleclosetoorgasm",0) as float /100
 	FemaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment",0)
 	intenseenjoyment = SLOVE_Config.GetInt("voice.intenseenjoyment", 75)
-	intenseFromBarOnly = SLOVE_Config.GetInt("voice.intense_from_bar_only", 0) == 1
+	intenseFromBarOnly = SLOVE_Config.GetInt("voice.intense_from_bar_only", 1) == 1
 	MaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.maleorgasmhypeenjoyment",0)
 	EnableDDGagVoice = SLOVE_Config.GetInt("voice.enableddgagvoice",0)
 	EnableMaleVoice = SLOVE_Config.GetInt("voice.enablemalevoice",0)
@@ -1308,9 +1308,13 @@ Function PlayMaleComments()
 		else
 			if ASLCurrentlyintense
 
-				PlaySound("NearOrgasmNoises", mainFemaleActor, soundPriority = 1 , debugtext = "NearOrgasmNoises")
+				;debugtext carries the on-disk B-folder name so a Variation-B pack voices
+				;its own grunt here (PlaySound's per-actor VarB remap); an A / stock slot
+				;ignores it and the camelCase category falls back to F0/F0B stock moans.
+				;Without it these background moans played STOCK even with a VarB pack.
+				PlaySound("NearOrgasmNoises", mainFemaleActor, soundPriority = 1 , debugtext = "Penetrated Grunt Intense")
 			else
-				PlaySound("PenetrativeGrunts", mainFemaleActor,soundPriority = 1 , debugtext = "PenetrativeGrunts")
+				PlaySound("PenetrativeGrunts", mainFemaleActor,soundPriority = 1 , debugtext = "Penetrated Grunt")
 			endif
 		endif
 
@@ -1323,7 +1327,7 @@ Function PlayMaleComments()
 		elseif ASLisBroken()
 			PlaySound("AfterOrgasmExclamations", mainFemaleActor, soundPriority = 1 , debugtext = "AfterOrgasmExclamations")
 		else
-			PlaySound("PenetrativeGrunts", mainFemaleActor,soundPriority = 1 , debugtext = "PenetrativeGrunts")
+			PlaySound("PenetrativeGrunts", mainFemaleActor,soundPriority = 1 , debugtext = "Penetrated Grunt")
 
 		endif
 
@@ -1341,7 +1345,7 @@ Function PlayMaleComments()
 		endif
 		;female background moaning
 
-		PlaySound("NearOrgasmNoises", mainFemaleActor, soundPriority = 1 , debugtext = "NearOrgasmNoises")
+		PlaySound("NearOrgasmNoises", mainFemaleActor, soundPriority = 1 , debugtext = "Penetrated Grunt Intense")
 
 	elseif	CurrentPenetrationLvl() >= 2 && !ASLCurrentlyintense
 		;female background moaning
@@ -1352,7 +1356,7 @@ Function PlayMaleComments()
 		elseif ASLisBroken()
 			PlaySound("AfterOrgasmExclamations", mainFemaleActor, soundPriority = 1 , debugtext = "AfterOrgasmExclamations" )
 		else
-			PlaySound("PenetrativeGrunts", mainFemaleActor,soundPriority = 1 , debugtext = "PenetrativeGrunts")
+			PlaySound("PenetrativeGrunts", mainFemaleActor,soundPriority = 1 , debugtext = "Penetrated Grunt")
 
 		endif
 

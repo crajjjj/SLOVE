@@ -68,16 +68,30 @@ function Build-Classic {
 
     $ppj = Get-Content $basePpj -Raw
 
+    # Every derive-replace below MUST match, or the classic build would silently
+    # compile/output the wrong thing. A missed Output replace once wrote classic
+    # pexes into dist\Scripts, and Pyro's incremental build then preserved the
+    # stale classic SLOVE_Hentairim_Tags.pex there across releases (0.5.0-0.6.2):
+    # its sslBaseAnimation signature made every P+ label call fail, killing the
+    # whole label-driven voice engine downstream. Hence Invoke-StrictReplace + the
+    # Assert-VariantTypes post-build check.
+    function Invoke-StrictReplace([string]$text, [string]$pattern, [string]$replacement) {
+        if ($text -notmatch [regex]::Escape($pattern)) {
+            throw "Could not find '$pattern' in SLOVE.ppj - update build.ps1 to match your ppj"
+        }
+        return $text -replace [regex]::Escape($pattern), $replacement
+    }
+
     # output + packaging
-    $ppj = $ppj -replace [regex]::Escape('Output="dist\Scripts"'), 'Output="dist-classic\Scripts"'
-    $ppj = $ppj -replace 'Zip="true"', 'Zip="false"'
+    $ppj = Invoke-StrictReplace $ppj 'Output="dist\Scripts"' 'Output="dist-classic\Scripts"'
+    $ppj = Invoke-StrictReplace $ppj 'Zip="true"' 'Zip="false"'
 
     # compile the classic sources instead of the P+ ones
-    $ppj = $ppj -replace [regex]::Escape('<Folder>.\papyrus\Source</Folder>'), '<Folder>.\papyrus\classic\Source</Folder>'
+    $ppj = Invoke-StrictReplace $ppj '<Folder>.\papyrus\Source</Folder>' '<Folder>.\papyrus\classic\Source</Folder>'
 
     # resolve classic scripts first, then fall through to papyrus\Source for the
     # four framework-free scripts (Config, Log, Test, VoiceCategories)
-    $ppj = $ppj -replace [regex]::Escape('<Import>.\papyrus\Source</Import>'),
+    $ppj = Invoke-StrictReplace $ppj '<Import>.\papyrus\Source</Import>' `
                          "<Import>.\papyrus\classic\Source</Import>`n        <Import>.\papyrus\Source</Import>"
 
     # SexLab P+ -> SLSO + classic 1.63
@@ -97,6 +111,39 @@ function Build-Classic {
 
     & $pyro -i $classicPpj --game-path $game
     if ($LASTEXITCODE -ne 0) { throw "Pyro failed for the classic script set (exit $LASTEXITCODE)" }
+}
+
+# -------------------------------------------------------- variant type guard ---
+# A compiled .pex embeds every type it references in its string table, so a
+# cross-variant contamination (a classic pex in dist, or a P+ pex in
+# dist-classic) is detectable byte-wise: classic scripts reference
+# sslBaseAnimation (classic SexLab), P+ scripts reference SexLabThread (P+).
+# This caught nothing until it caught everything - a stale classic
+# SLOVE_Hentairim_Tags.pex shipped in the P+ Core of 0.5.0-0.6.2 and broke the
+# entire label engine (every label call failed on the type mismatch). Runs after
+# every build; checks whichever dist trees exist, so stale leftovers are caught
+# even when only one variant was rebuilt.
+function Assert-VariantTypes {
+    $variantScripts = @('SLOVE_Director', 'SLOVE_Voice', 'SLOVE_SFX',
+                        'SLOVE_Expressions', 'SLOVE_Resistance', 'SLOVE_Hentairim_Tags')
+    # dist tree -> type that must NOT appear in its pexes
+    $forbidden = @{ 'dist' = 'sslBaseAnimation'; 'dist-classic' = 'SexLabThread' }
+    $bad = @()
+    foreach ($d in $forbidden.Keys) {
+        foreach ($s in $variantScripts) {
+            $pex = Join-Path $root "$d\Scripts\$s.pex"
+            if (-not (Test-Path $pex)) { continue }
+            $text = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes($pex))
+            if ($text.IndexOf($forbidden[$d], [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+                $bad += "$d\Scripts\$s.pex references $($forbidden[$d]) - wrong/stale variant compile"
+            }
+        }
+    }
+    if ($bad) {
+        throw ("variant type check FAILED:`n  " + ($bad -join "`n  ") +
+               "`nDelete the offending .pex files and rebuild (Pyro's incremental build preserves stale outputs).")
+    }
+    Write-Host 'variant type check OK (no cross-variant pex contamination)' -ForegroundColor Green
 }
 
 # ------------------------------------------------------------ FOMOD package ---
@@ -182,4 +229,5 @@ function Build-Fomod {
 
 if ($Variant -eq 'Both' -or $Variant -eq 'PPlus')   { Build-PPlus }
 if ($Variant -eq 'Both' -or $Variant -eq 'Classic') { Build-Classic }
+Assert-VariantTypes
 if (-not $NoFomod -and $Variant -eq 'Both')         { Build-Fomod }
