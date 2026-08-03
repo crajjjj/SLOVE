@@ -40,6 +40,23 @@ subs:
         type: String
         required: true
         help: Category name, e.g. Orgasm
+  - name: TestCaption
+    alias: caption
+    func: TestCaption
+    help: Play slot/category and report the picked wav + its caption sidecar text (write=1 = create a test sidecar and replay)
+    args:
+      - name: slot
+        type: String
+        required: true
+        help: Slot id, e.g. F1
+      - name: category
+        type: String
+        required: true
+        help: Category name, e.g. Moan
+      - name: write
+        type: int
+        default: 0
+        help: 1 = if the wav has no sidecar, write a test one next to it and replay (file stays on disk)
   - name: Milk
     alias: milk
     func: Milk

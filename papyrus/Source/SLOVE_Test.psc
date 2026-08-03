@@ -2,6 +2,7 @@ Scriptname SLOVE_Test Hidden
 {Console-callable diagnostics. Examples:
    SLOVE_Test AuditVoicePack M1
    SLOVE_Test SampleCategory M4 Aroused
+   SLOVE_Test TestCaption F1 Moan 1
    SLOVE_Test DumpState}
 
 ;Check every category the engines can request against an installed slot.
@@ -86,6 +87,52 @@ EndFunction
 Function SampleCategory(String slot, String category) Global
 	int h = AudioUtil.PlayVoiceFromSlot(slot, category, Game.GetPlayer())
 	MiscUtil.PrintConsole("SLOVE sample " + slot + "/" + category + " handle=" + h)
+EndFunction
+
+;Test the AudioUtil caption pipeline (API v5+): play one clip from slot/category
+;at the player, then report which wav the shuffle bag picked (GetHandlePath) and
+;the caption text its .toml sidecar resolves to (GetHandleCaption). When the
+;text resolves, the same line should simultaneously be on screen as a game
+;subtitle attributed to the player.
+;aiWrite != 0: if the picked wav has NO sidecar, self-provision the test - write
+;a throwaway sidecar next to it via TomlUtil (en = test text), ReloadConfig
+;(clears AudioUtil's sidecar cache so the new file is seen), replay the SAME
+;file and report the caption again. The test sidecar STAYS on disk afterwards -
+;the console output names it; delete it (or edit it into a real caption) when done.
+Function TestCaption(String slot, String category, Int aiWrite) Global
+	int apiVersion = AudioUtil.GetAPIVersion()
+	if apiVersion < 5
+		MiscUtil.PrintConsole("SLOVE caption: AudioUtil API v5+ required for captions (installed: v" + apiVersion + ")")
+		return
+	endif
+	MiscUtil.PrintConsole("SLOVE caption: captions enabled=" + AudioUtil.AreCaptionsEnabled())
+	int h = AudioUtil.PlayVoiceFromSlot(slot, category, Game.GetPlayer())
+	if h <= 0
+		MiscUtil.PrintConsole("SLOVE caption: nothing played for " + slot + "/" + category + " (unknown slot/category?)")
+		return
+	endif
+	String path = AudioUtil.GetHandlePath(h)
+	String text = AudioUtil.GetHandleCaption(h)
+	MiscUtil.PrintConsole("SLOVE caption: played " + path)
+	if text != ""
+		MiscUtil.PrintConsole("SLOVE caption: text='" + text + "' - the subtitle should be on screen now")
+		return
+	endif
+	if aiWrite == 0
+		MiscUtil.PrintConsole("SLOVE caption: this wav has no sidecar. Rerun with write=1 to create a test sidecar and replay.")
+		return
+	endif
+	;wav -> sidecar path: same base name, .toml extension
+	String sidecar = StringUtil.Substring(path, 0, StringUtil.GetLength(path) - 4) + ".toml"
+	if !TomlUtil.SetString(sidecar, "en", "SLOVE caption test - it works!")
+		MiscUtil.PrintConsole("SLOVE caption: FAILED to write " + sidecar + " (see AudioUtil.log)")
+		return
+	endif
+	AudioUtil.StopHandle(h)
+	AudioUtil.ReloadConfig()
+	int h2 = AudioUtil.PlayFile(path, Game.GetPlayer())
+	MiscUtil.PrintConsole("SLOVE caption: wrote " + sidecar + ", replayed handle=" + h2 + " text='" + AudioUtil.GetHandleCaption(h2) + "'")
+	MiscUtil.PrintConsole("SLOVE caption: if the subtitle is on screen the pipeline works. Delete the test .toml (or fill in real text) when done.")
 EndFunction
 
 ;Dump the player's CURRENT SexLab scene - tags, per-actor labels, resolved AudioUtil
