@@ -98,7 +98,7 @@ Function CaptionLine() Global
 		MiscUtil.PrintConsole("SLOVE caption line: AudioUtil API v5+ required for captions (installed: v" + AudioUtil.GetAPIVersion() + ")")
 		return
 	endif
-	int h = AudioUtil.PlayFile("Sound\\fx\\SLOVE\\Test\\01.wav", Game.GetPlayer())
+	int h = AudioUtil.PlayFileWithLipSync("Sound\\fx\\SLOVE\\Test\\01.wav", Game.GetPlayer())
 	if h <= 0
 		MiscUtil.PrintConsole("SLOVE caption line: FAILED to play Sound\\fx\\SLOVE\\Test\\01.wav (file not deployed?)")
 		return
@@ -117,7 +117,7 @@ EndFunction
 ;the extraction in AudioUtil.log) and, if a .toml sidecar sits next to the
 ;fuz, its caption is on screen too.
 Function FuzLine() Global
-	int h = AudioUtil.PlayFile("Sound\\fx\\SLOVE\\Test\\0001_You_are_more_honest.fuz", Game.GetPlayer())
+	int h = AudioUtil.PlayFileWithLipSync("Sound\\fx\\SLOVE\\Test\\0001_You_are_more_honest.fuz", Game.GetPlayer())
 	if h <= 0
 		MiscUtil.PrintConsole("SLOVE fuz line: FAILED to play Sound\\fx\\SLOVE\\Test\\0001_You_are_more_honest.fuz (not deployed, or extraction failed - see AudioUtil.log)")
 		return
