@@ -44,6 +44,10 @@ subs:
     alias: capline
     func: CaptionLine
     help: Play the dedicated caption test line (Sound\fx\SLOVE\Test\01.wav) at the player - its subtitle should appear on screen
+  - name: FuzLine
+    alias: fuz
+    func: FuzLine
+    help: Play the dedicated test .fuz (Sound\fx\SLOVE\Test) at the player - audible + duration>0 = fuz extraction works
   - name: TestCaption
     alias: caption
     func: TestCaption

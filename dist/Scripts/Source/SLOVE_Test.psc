@@ -110,6 +110,22 @@ Function CaptionLine() Global
 	endif
 EndFunction
 
+;Fuz playback smoke test: play the dedicated test container
+;Sound\fx\SLOVE\Test\0001_You_are_more_honest.fuz at the player via PlayFile.
+;PASS = the line is audible with duration > 0 (proves the engine decoded the
+;payload AudioUtil extracted to Sound\AudioUtilFuzCache\ - the first run logs
+;the extraction in AudioUtil.log) and, if a .toml sidecar sits next to the
+;fuz, its caption is on screen too.
+Function FuzLine() Global
+	int h = AudioUtil.PlayFile("Sound\\fx\\SLOVE\\Test\\0001_You_are_more_honest.fuz", Game.GetPlayer())
+	if h <= 0
+		MiscUtil.PrintConsole("SLOVE fuz line: FAILED to play Sound\\fx\\SLOVE\\Test\\0001_You_are_more_honest.fuz (not deployed, or extraction failed - see AudioUtil.log)")
+		return
+	endif
+	MiscUtil.PrintConsole("SLOVE fuz line: handle=" + h + " duration=" + AudioUtil.GetHandleDuration(h) + "s caption='" + AudioUtil.GetHandleCaption(h) + "'")
+	MiscUtil.PrintConsole("SLOVE fuz line: PASS = audible + duration > 0 (0.0 can be a still-preparing stream - rerun to check the cached copy)")
+EndFunction
+
 ;Test the AudioUtil caption pipeline (API v5+): play one clip from slot/category
 ;at the player, then report which wav the shuffle bag picked (GetHandlePath) and
 ;the caption text its .toml sidecar resolves to (GetHandleCaption). When the
