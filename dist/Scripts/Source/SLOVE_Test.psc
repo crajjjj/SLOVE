@@ -89,6 +89,27 @@ Function SampleCategory(String slot, String category) Global
 	MiscUtil.PrintConsole("SLOVE sample " + slot + "/" + category + " handle=" + h)
 EndFunction
 
+;One-command caption smoke test: play the dedicated test line
+;Sound\fx\SLOVE\Test\01.wav (which ships a .toml caption sidecar next to it)
+;at the player. PASS = its caption text prints below AND is on screen as a
+;subtitle attributed to the player while the line plays.
+Function CaptionLine() Global
+	if AudioUtil.GetAPIVersion() < 5
+		MiscUtil.PrintConsole("SLOVE caption line: AudioUtil API v5+ required for captions (installed: v" + AudioUtil.GetAPIVersion() + ")")
+		return
+	endif
+	int h = AudioUtil.PlayFile("Sound\\fx\\SLOVE\\Test\\01.wav", Game.GetPlayer())
+	if h <= 0
+		MiscUtil.PrintConsole("SLOVE caption line: FAILED to play Sound\\fx\\SLOVE\\Test\\01.wav (file not deployed?)")
+		return
+	endif
+	String text = AudioUtil.GetHandleCaption(h)
+	MiscUtil.PrintConsole("SLOVE caption line: handle=" + h + " text='" + text + "'")
+	if text == ""
+		MiscUtil.PrintConsole("SLOVE caption line: no caption resolved - is 01.toml next to the wav, with an 'en' key? (captions enabled=" + AudioUtil.AreCaptionsEnabled() + ")")
+	endif
+EndFunction
+
 ;Test the AudioUtil caption pipeline (API v5+): play one clip from slot/category
 ;at the player, then report which wav the shuffle bag picked (GetHandlePath) and
 ;the caption text its .toml sidecar resolves to (GetHandleCaption). When the
