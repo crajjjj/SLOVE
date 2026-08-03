@@ -766,7 +766,9 @@ Event OnUpdate()
 			ASLHandlePartnerOrgasmReaction()
 		elseif IsSuckingoffOther() ;blowjob always first because muffled by cock
 			PlayBlowjob()
-		elseif IsCunnilingus() && !ASLcurrentlyintense ;Cunnilingus
+		elseif IsCunnilingus() && (!ASLcurrentlyintense || !IsgettingPenetrated()) ;Cunnilingus
+			;intense + penetrated falls through to the penetration branches below (as it
+			;always did); intense pure licking now voices the Licking Intense pool
 			PlayCunnilingus()
 		elseif IsgettingPenetrated() && IshugePP ; Huge pp Penetration
 			PlayGettingFuckedbyHugePP()
@@ -1299,7 +1301,20 @@ endfunction
 Function PlayCunnilingus()
 	printdebug("Play Cunnilingus")
 
-	PlaySound("BlowjobActionSoft", mainFemaleActor, debugtext = "BlowjobActionSoft")
+	;Licking* pools use the SAME folder names in every pack layout (no legacy A
+	;spelling), so one ladder serves A and B packs - mirroring PlayBlowjobVarB's
+	;forced/comments/intense/soft split. A pack missing a folder degrades through
+	;the config alias/fallback layer to its own Blowjob* audio, then stock (see
+	;SLOVE_voices.toml). Comments reuse the blowjob comment chance - same beat.
+	if SceneHasTag("Forced") || femaleisvictim()
+		PlaySound("LickingForced", mainFemaleActor, debugtext = "Licking Forced")
+	elseif Utility.RandomFloat(0.0, 1.0) < ChanceToCommentonBlowjobStage && currentstage > 1 && !ASLIsBroken()
+		PlaySound("LickingComments", mainFemaleActor, debugtext = "Licking Comments")
+	elseif ASLcurrentlyIntense
+		PlaySound("LickingIntense", mainFemaleActor, debugtext = "Licking Intense")
+	else
+		PlaySound("Licking", mainFemaleActor, debugtext = "Licking")
+	endif
 
 endfunction
 

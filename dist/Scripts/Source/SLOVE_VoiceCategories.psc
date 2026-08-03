@@ -72,7 +72,7 @@ EndFunction
 ;All categories the female engine can request - for pack audits
 ;(SLOVE_Test.AuditVoicePack loops these against AudioUtil.CategoryExists).
 String[] Function AllFemaleCategories() Global
-	String[] cats = new String[71]
+	String[] cats = new String[75]
 	cats[0] = "GreetLover"
 	cats[1] = "GreetFamiliar"
 	cats[2] = "GreetLoadedFamiliar"
@@ -144,6 +144,12 @@ String[] Function AllFemaleCategories() Global
 	cats[68] = "TeaseAnal"
 	cats[69] = "AskForAnal"
 	cats[70] = "MCMSampleSounds"
+	;performing cunnilingus - the Licking* pools share their names across A and B
+	;layouts and alias/fall back to the matching Blowjob* audio when missing
+	cats[71] = "Licking"
+	cats[72] = "LickingIntense"
+	cats[73] = "LickingComments"
+	cats[74] = "LickingForced"
 	return cats
 EndFunction
 
@@ -181,7 +187,7 @@ EndFunction
 ;PullOutGape) and the gag pool (routed via gag_slot, not this slot) are excluded.
 ;Names match case- and space-insensitively in AudioUtil, so exact casing is cosmetic.
 String[] Function AllFemaleVariationBCategories() Global
-	String[] cats = new String[56]
+	String[] cats = new String[60]
 	cats[0] = "After Orgasm Comments"
 	cats[1] = "After Orgasm Comments Intense"
 	cats[2] = "Blowjob Action"
@@ -206,37 +212,41 @@ String[] Function AllFemaleVariationBCategories() Global
 	cats[21] = "KneeJerk"
 	cats[22] = "KneeJerk Intense"
 	cats[23] = "Kissing"
-	cats[24] = "Male Orgasm Soon Ask For Anal Cum"
-	cats[25] = "Male Orgasm Soon Ask For Oral Cum"
-	cats[26] = "Male Orgasm Soon Ask For Vaginal Cum"
-	cats[27] = "Male Orgasm Soon Ask For Vaginal Cum Intense"
-	cats[28] = "Male Orgasm Soon Femdom"
-	cats[29] = "Male Orgasmed Inside"
-	cats[30] = "Male Orgasmed Inside Femdom"
-	cats[31] = "Male Orgasmed Inside Intense"
-	cats[32] = "Male Orgasmed Inside Mouth"
-	cats[33] = "Male Orgasmed Inside Victim"
-	cats[34] = "Orgasm Soon Comments"
-	cats[35] = "Orgasm Soon Comments Intense"
-	cats[36] = "Panting"
-	cats[37] = "Panting Heavy"
-	cats[38] = "Penetrated Anal Comments Intense"
-	cats[39] = "Penetrated Broken Comments"
-	cats[40] = "Penetrated Broken Comments Intense"
-	cats[41] = "Penetrated Comments"
-	cats[42] = "Penetrated Comments Femdom"
-	cats[43] = "Penetrated Comments Femdom Intense"
-	cats[44] = "Penetrated Comments Intense"
-	cats[45] = "Penetrated Comments Over The Top"
-	cats[46] = "Penetrated Comments Victim"
-	cats[47] = "Penetrated Double Comments"
-	cats[48] = "Penetrated Grunt"
-	cats[49] = "Penetrated Grunt Intense"
-	cats[50] = "Penetrated Grunt Over The Top"
-	cats[51] = "Penetrated Grunt Victim"
-	cats[52] = "Penetrated Grunt Victim Intense"
-	cats[53] = "Penetrated Tell Male to Pull Out"
-	cats[54] = "Stimulated Comments"
-	cats[55] = "Stimulated Victim Comments"
+	cats[24] = "Licking"
+	cats[25] = "Licking Comments"
+	cats[26] = "Licking Forced"
+	cats[27] = "Licking Intense"
+	cats[28] = "Male Orgasm Soon Ask For Anal Cum"
+	cats[29] = "Male Orgasm Soon Ask For Oral Cum"
+	cats[30] = "Male Orgasm Soon Ask For Vaginal Cum"
+	cats[31] = "Male Orgasm Soon Ask For Vaginal Cum Intense"
+	cats[32] = "Male Orgasm Soon Femdom"
+	cats[33] = "Male Orgasmed Inside"
+	cats[34] = "Male Orgasmed Inside Femdom"
+	cats[35] = "Male Orgasmed Inside Intense"
+	cats[36] = "Male Orgasmed Inside Mouth"
+	cats[37] = "Male Orgasmed Inside Victim"
+	cats[38] = "Orgasm Soon Comments"
+	cats[39] = "Orgasm Soon Comments Intense"
+	cats[40] = "Panting"
+	cats[41] = "Panting Heavy"
+	cats[42] = "Penetrated Anal Comments Intense"
+	cats[43] = "Penetrated Broken Comments"
+	cats[44] = "Penetrated Broken Comments Intense"
+	cats[45] = "Penetrated Comments"
+	cats[46] = "Penetrated Comments Femdom"
+	cats[47] = "Penetrated Comments Femdom Intense"
+	cats[48] = "Penetrated Comments Intense"
+	cats[49] = "Penetrated Comments Over The Top"
+	cats[50] = "Penetrated Comments Victim"
+	cats[51] = "Penetrated Double Comments"
+	cats[52] = "Penetrated Grunt"
+	cats[53] = "Penetrated Grunt Intense"
+	cats[54] = "Penetrated Grunt Over The Top"
+	cats[55] = "Penetrated Grunt Victim"
+	cats[56] = "Penetrated Grunt Victim Intense"
+	cats[57] = "Penetrated Tell Male to Pull Out"
+	cats[58] = "Stimulated Comments"
+	cats[59] = "Stimulated Victim Comments"
 	return cats
 EndFunction

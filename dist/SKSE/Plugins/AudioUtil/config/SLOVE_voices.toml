@@ -125,8 +125,17 @@ Horse = "C10"
 [category_aliases.female]
 TeaseMaleCloseToOrgasmIntense = "Male Close Tease Intense"
 TeaseMaleCloseToOrgasmSoft = "Male Close Tease Soft"
-MCMSampleSounds = "Orgasm"    # legacy MCM sample name kept in the audit list; without
-                              # this alias every install warns and audits 70/71
+MCMSampleSounds = "Orgasm"    # legacy MCM sample name kept in the audit list
+Licking = "Blowjob Action"    # cunnilingus wet-mouth pool. Off-label alias-as-degrade:
+                              # aliases are tried right after the literal name in EVERY
+                              # slot of the chain, so a B pack without a Licking folder
+                              # plays its own Blowjob Action instead of hopping to stock.
+                              # A/stock slots miss both and use the fallback below.
+# the other Licking* pools degrade the same way: alias = the closest in-pack
+# folder (tried second), [category_fallbacks.female] = the A/stock analog.
+LickingIntense = "Licking"                # act first, intensity via the fallback
+LickingComments = "Blowjob Comments"
+LickingForced = "Blowjob Forced"
 
 [category_aliases.male]
 # the 5 male script properties whose descriptors reuse other folders' audio
@@ -181,6 +190,11 @@ BreathySoft = "Breathy Intense"
 MaleOrgasmReactionLover = "Male Orgasm Reaction Soft"
 RefractoryPeriod = "Want More"
 MaleHalfwayIntense = "Male Close Notice"
+Licking = "BlowjobActionSoft"    # cunnilingus pool for A/stock slots (the alias above
+                                 # catches B packs first) - the pre-Licking sound
+LickingIntense = "Blowjob Action Intense"   # same folder name in A and B; F0 lists it
+LickingComments = "Blowjob Remarks"         # spoken beat -> the A/stock oral remarks
+LickingForced = "BlowjobActionSoft"         # A packs have no forced-oral pool
 
 # --- Variation-B variant fallbacks ---
 # A Variation-B pack that omits an intense / partition variant plays ITS OWN base
@@ -250,6 +264,13 @@ MaleHalfwayIntense = "Male Close Notice"
 # (SLOVE_Voice requests "Breathing") falls back to it - they growl/pant their
 # vanilla sounds. Give a C-slot its own "Breathing" category to override.
 Breathing = "Orgasm"
+# male-routed cunnilingus (male PC / male-only scenes): no male pack ships
+# Licking* folders, so degrade to the stock vMaleMoan sets on M0 - exactly
+# what BlowjobActionSoft/-Intense resolved to before Licking existed.
+Licking = "BlowjobActionSoft"
+LickingIntense = "BlowjobActionIntense"
+LickingComments = "BlowjobActionSoft"
+LickingForced = "BlowjobActionSoft"
 
 # startup group volumes (0.0-1.0). STARTUP only - SLOVE.toml voice.pcvolume /
 # voice.partnervolume / sfx.volume override these at runtime via SetGroupVolume

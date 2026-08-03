@@ -87,6 +87,10 @@ Script/property name → on-disk folder name. Applied when the exact folder does
 TeaseMaleCloseToOrgasmIntense = "Male Close Tease Intense"
 TeaseMaleCloseToOrgasmSoft = "Male Close Tease Soft"
 MCMSampleSounds = "Orgasm"
+Licking = "Blowjob Action"        # degrade: a B pack without a Licking folder plays its own oral SFX
+LickingIntense = "Licking"        # act first, intensity via the fallback below
+LickingComments = "Blowjob Comments"
+LickingForced = "Blowjob Forced"
 
 [category_aliases.male]
 StrugglingOvert = "Struggling Early"
@@ -108,9 +112,17 @@ Substitute (one hop) when a category has no folder in the slot. The substitute m
 [category_fallbacks.female]
 GreetLover = "Greet Familiar"
 BreathySoft = "Breathy Intense"
+Licking = "BlowjobActionSoft"   # A/stock slots: cunnilingus degrades to the old sound
+LickingIntense = "Blowjob Action Intense"
+LickingComments = "Blowjob Remarks"
+LickingForced = "BlowjobActionSoft"
 
 [category_fallbacks.male]
 Breathing = "Orgasm"     # creature ambience reuses the climax clips
+Licking = "BlowjobActionSoft"   # male-routed cunnilingus degrades to stock male moans
+LickingIntense = "BlowjobActionIntense"
+LickingComments = "BlowjobActionSoft"
+LickingForced = "BlowjobActionSoft"
 ```
 
 Full female table: [Category Reference](../packs/categories.md#female-categories).
