@@ -44,6 +44,10 @@ subs:
     alias: capline
     func: CaptionLine
     help: Play the dedicated caption test line (Sound\fx\SLOVE\Test\01.wav) at the player - its subtitle should appear on screen
+  - name: FolderLine
+    alias: folderline
+    func: FolderLine
+    help: Shuffle-bag a file from Sound\fx\SLOVE\Test via PlayFolderWithLipSync - audible + mouth + caption = pass
   - name: FuzLine
     alias: fuz
     func: FuzLine

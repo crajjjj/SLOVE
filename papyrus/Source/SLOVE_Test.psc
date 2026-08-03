@@ -110,6 +110,19 @@ Function CaptionLine() Global
 	endif
 EndFunction
 
+;PlayFolderWithLipSync smoke test: shuffle-bag one file from the test folder
+;(holds a wav AND a fuz, both with caption sidecars) at the player. PASS =
+;audible, mouth moves, caption on screen - whichever file the bag picks.
+;Run repeatedly to hit both files (no repeats until the bag empties).
+Function FolderLine() Global
+	int h = AudioUtil.PlayFolderWithLipSync("Sound\\fx\\SLOVE\\Test", Game.GetPlayer())
+	if h <= 0
+		MiscUtil.PrintConsole("SLOVE folder line: FAILED (Sound\\fx\\SLOVE\\Test empty or not deployed?)")
+		return
+	endif
+	MiscUtil.PrintConsole("SLOVE folder line: handle=" + h + " picked=" + AudioUtil.GetHandlePath(h) + " caption='" + AudioUtil.GetHandleCaption(h) + "'")
+EndFunction
+
 ;Fuz playback smoke test: play the dedicated test container
 ;Sound\fx\SLOVE\Test\0001_You_are_more_honest.fuz at the player via PlayFile.
 ;PASS = the line is audible with duration > 0 (proves the engine decoded the
