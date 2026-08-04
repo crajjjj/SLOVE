@@ -136,6 +136,13 @@ Licking = "Blowjob Action"    # cunnilingus wet-mouth pool. Off-label alias-as-d
 LickingIntense = "Licking"                # act first, intensity via the fallback
 LickingComments = "Blowjob Comments"
 LickingForced = "Blowjob Forced"
+# Rimjob* (performing a rimjob) degrades to the pack's cunnilingus pools first -
+# the closest sound. One alias hop only: a pack with neither Rimjob* nor Licking*
+# folders drops to the A/stock analogs via [category_fallbacks.female] below.
+Rimjob = "Licking"
+RimjobIntense = "Rimjob"                  # act first, intensity via the fallback
+RimjobComments = "Licking Comments"
+RimjobForced = "Licking Forced"
 
 [category_aliases.male]
 # the 5 male script properties whose descriptors reuse other folders' audio
@@ -195,6 +202,12 @@ Licking = "BlowjobActionSoft"    # cunnilingus pool for A/stock slots (the alias
 LickingIntense = "Blowjob Action Intense"   # same folder name in A and B; F0 lists it
 LickingComments = "Blowjob Remarks"         # spoken beat -> the A/stock oral remarks
 LickingForced = "BlowjobActionSoft"         # A packs have no forced-oral pool
+# Rimjob* terminal analogs - same F0-resolvable targets as Licking* (the fallback
+# value must resolve on the stock slot; pointing it at Licking* would dead-end there)
+Rimjob = "BlowjobActionSoft"
+RimjobIntense = "Blowjob Action Intense"
+RimjobComments = "Blowjob Remarks"
+RimjobForced = "BlowjobActionSoft"
 
 # --- Variation-B variant fallbacks ---
 # A Variation-B pack that omits an intense / partition variant plays ITS OWN base
@@ -271,6 +284,11 @@ Licking = "BlowjobActionSoft"
 LickingIntense = "BlowjobActionIntense"
 LickingComments = "BlowjobActionSoft"
 LickingForced = "BlowjobActionSoft"
+# male-routed rimjob: same degrade as Licking*
+Rimjob = "BlowjobActionSoft"
+RimjobIntense = "BlowjobActionIntense"
+RimjobComments = "BlowjobActionSoft"
+RimjobForced = "BlowjobActionSoft"
 
 # startup group volumes (0.0-1.0). STARTUP only - SLOVE.toml voice.pcvolume /
 # voice.partnervolume / sfx.volume override these at runtime via SetGroupVolume

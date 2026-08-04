@@ -121,7 +121,7 @@ Facial expression engine. All face writes go through Mfg Fix NG.
 | `enabletongue` | `1` | sr_fillherup tongue armors. |
 | `tonguetype` | `1` | HALO HDT tongue model `1–10`; `0` = random per actor. |
 | `removetongueonblowjob` | `1` | Unequip the tongue during oral stages. |
-| `cunusetongue` | `1` | Use the tongue during cunnilingus stages. |
+| `cunusetongue` | `1` | Use the tongue during cunnilingus stages — and (P+) during **rimjob** scenes: in a scene tagged `rimjob`/`rimming`/`anilingus` the licker shows the tongue too (there is no collision signal for a rim lick, so this rides the scene tags; in mixed scenes only a female licker is inferred). |
 | `enableahegao` | `1` | Huge partners trigger the ahegao face while penetrating (needs MFEE for the extended version). |
 | `ahegaoitems` | `""` | Comma-separated `Plugin.esp\|FormID` (hex local id, `0x` optional; plugin names may contain spaces), up to 16. While an actor wears any listed item, SLO VE **pauses its own expression writes** for that actor — a second yield alongside the built-in SexLab Survival (`_SLS_AhegaoStateChange`) hook, for any mod that signals ahegao by equipping an item. Empty = off. |
 | `ahegaostoragekeys` | `"TongueOn"` | Same yield, keyed on **StorageUtil int keys** instead of items: while any listed key reads `> 0` on an actor, expression writes pause. The robust way to detect a mod whose many tongue/face variants all set one key — the default catches the Artsick **Ahegao** mod (`AhegaoTongues.esp`), which sets `TongueOn` per actor while its tongue is on. Comma-separated key names, up to 16; harmless (reads `0`) when the mod isn't installed. Empty = off. |

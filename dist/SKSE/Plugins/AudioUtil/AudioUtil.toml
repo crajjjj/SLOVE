@@ -57,12 +57,12 @@ gain = 1.0                    # 0.0-2.0 mouth-open strength
 attack_ms = 30                # opening speed toward a louder level
 release_ms = 90               # closing speed on quiet / clip end
 min_level = 0.04              # levels below this keep the mouth closed
-# categories that never drive the mouth: blowjob action / licking are oral SFX
-# (slurping, not vocalization - and the licking mouth is busy); Orgasm hands the
+# categories that never drive the mouth: blowjob action / licking / rimjob are oral
+# SFX (slurping, not vocalization - and the licking mouth is busy); Orgasm hands the
 # mouth to the climax/ahegao face; PullOutGape is a wet gape squelch (played on
-# the voice path, so block it here). LickingComments is deliberately NOT blocked -
-# those are spoken lines between licks, and spoken lines lipsync.
-block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "BlowjobAction", "Licking", "LickingIntense", "LickingForced", "Orgasm", "PullOutGape"]
+# the voice path, so block it here). LickingComments/RimjobComments are deliberately
+# NOT blocked - those are spoken lines between licks, and spoken lines lipsync.
+block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "BlowjobAction", "Licking", "LickingIntense", "LickingForced", "Rimjob", "RimjobIntense", "RimjobForced", "Orgasm", "PullOutGape"]
 
 [gag]
 # When a speaking female wears a keyword below, her voice routes through her

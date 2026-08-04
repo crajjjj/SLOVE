@@ -16,7 +16,7 @@ A pack does **not** need to supply every category. Whatever it lacks resolves th
 
 ## Female categories
 
-75 categories. Requested for the player and for female NPCs.
+79 categories. Requested for the player and for female NPCs.
 
 ### Greetings & affection
 
@@ -54,12 +54,19 @@ A pack does **not** need to supply every category. Whatever it lacks resolves th
 | `LickingIntense` | Licking Intense | Licking, then Blowjob Action Intense |
 | `LickingComments` | Licking Comments | Blowjob Comments, then Blowjob Remarks |
 | `LickingForced` | Licking Forced | Blowjob Forced, then Blowjob Action Soft |
+| `Rimjob` | Rimjob | Licking, then Blowjob Action Soft |
+| `RimjobIntense` | Rimjob Intense | Rimjob, then Blowjob Action Intense |
+| `RimjobComments` | Rimjob Comments | Licking Comments, then Blowjob Remarks |
+| `RimjobForced` | Rimjob Forced | Licking Forced, then Blowjob Action Soft |
 
 !!! note
-    `BlowjobActionSoft` / `BlowjobActionIntense` / `Licking` / `LickingIntense` / `LickingForced` are **oral SFX**, not vocalisation — they are in `[lipsync] block_categories`, so they never move the mouth. `LickingComments` is spoken lines between licks, so it **does** lipsync.
+    `BlowjobActionSoft` / `BlowjobActionIntense` / `Licking` / `LickingIntense` / `LickingForced` / `Rimjob` / `RimjobIntense` / `RimjobForced` are **oral SFX**, not vocalisation — they are in `[lipsync] block_categories`, so they never move the mouth. `LickingComments` / `RimjobComments` are spoken lines between licks, so they **do** lipsync.
 
 !!! note "The `Licking*` pools"
     Played while the actor **performs cunnilingus** (the `CUN` oral label), mirroring the blowjob split: `Licking` (soft action), `LickingIntense` (intense stages), `LickingComments` (spoken remarks, same chance knob as blowjob comments), `LickingForced` (forced scene or the licker is the victim). The folder names are the **same in both pack layouts** (A or B). A pack missing a folder degrades in-pack first — an alias tries the closest folder the pack already has (shown first in *If missing →*), then the fallback tries the A/stock analog — so installs without the folders sound exactly as before these categories existed.
+
+!!! note "The `Rimjob*` pools"
+    Played while the actor **performs a rimjob**. There is no collision signal for a rim lick (the P+ detector geometry knows crotches, not anuses), so the trigger is authored data: an explicit per-actor `RIM` oral code, or a scene tagged `rimjob` / `rimming` / `anilingus` (Billyy's sets tag `rimjob`) while the licker carries a mouth-busy oral label (`CUN`, or the converted DB's `KIS` stand-in). Same forced/comments/intense/soft split as `Licking*`; missing folders degrade to the pack's `Licking*` pools first, then the A/stock analogs.
 
 ### Insertion & penetration
 
@@ -197,13 +204,13 @@ Everything above describes the **Variation-A** layout: the collapsed, camelCase-
 
 > **Gotcha:** the console `voice` line prints the internal *label*, which is not always the folder. The clearest example is `FemaleOrgasm` — that is an internal label used to drive the orgasm face; the folder it plays from is `Orgasm` (A) or a `Male Orgasmed …` / `Ending …` folder (B). The debug line now also prints the resolved folder in parentheses (`… (folder Orgasm)`) so you can see the real folder.
 
-The 60 B folder names below are the exact on-disk folder names (the authoritative source is `SLOVE_VoiceCategories.AllFemaleVariationBCategories()`). A clean B pack drops any A names it doesn't use to the fallback chain, so audit a B slot with the slot id (below) — the B pass is automatic.
+The 64 B folder names below are the exact on-disk folder names (the authoritative source is `SLOVE_VoiceCategories.AllFemaleVariationBCategories()`). A clean B pack drops any A names it doesn't use to the fallback chain, so audit a B slot with the slot id (below) — the B pass is automatic.
 
 | Group | B folders |
 |---|---|
 | Ambient / filler | `Breathing`, `Breathing Intense`, `Panting`, `Panting Heavy`, `KneeJerk`, `KneeJerk Intense`, `Kissing` |
 | Foreplay | `Foreplay BoobJob Comments`, `Foreplay Femdom Comments`, `Foreplay FootJob Comments`, `Foreplay Handjob Comments`, `Foreplay Tease Orgasm` |
-| Oral / blowjob | `Blowjob Action`, `Blowjob Comments`, `Blowjob Comments Intense`, `Blowjob Forced`, `Blowjob Forced Comments`, `Licking`, `Licking Intense`, `Licking Comments`, `Licking Forced` |
+| Oral / blowjob | `Blowjob Action`, `Blowjob Comments`, `Blowjob Comments Intense`, `Blowjob Forced`, `Blowjob Forced Comments`, `Licking`, `Licking Intense`, `Licking Comments`, `Licking Forced`, `Rimjob`, `Rimjob Intense`, `Rimjob Comments`, `Rimjob Forced` |
 | Penetration — comments & grunts | `Stimulated Comments`, `Stimulated Victim Comments`, `Insertion Over The Top`, `Penetrated Comments`, `Penetrated Comments Intense`, `Penetrated Comments Over The Top`, `Penetrated Comments Victim`, `Penetrated Comments Femdom`, `Penetrated Comments Femdom Intense`, `Penetrated Anal Comments Intense`, `Penetrated Double Comments`, `Penetrated Broken Comments`, `Penetrated Broken Comments Intense`, `Penetrated Grunt`, `Penetrated Grunt Intense`, `Penetrated Grunt Over The Top`, `Penetrated Grunt Victim`, `Penetrated Grunt Victim Intense`, `Penetrated Tell Male to Pull Out` |
 | Her orgasm approaching | `Orgasm Soon Comments`, `Orgasm Soon Comments Intense`, `Broken Begging` |
 | His orgasm approaching | `Male Orgasm Soon Ask For Anal Cum`, `Male Orgasm Soon Ask For Oral Cum`, `Male Orgasm Soon Ask For Vaginal Cum`, `Male Orgasm Soon Ask For Vaginal Cum Intense`, `Male Orgasm Soon Femdom` |
@@ -221,4 +228,4 @@ SLOVE_Test AuditVoicePack F1
 
 Pass the **slot id** (`F1`, `M1`, `C1` …) — **not** the voice-pack folder name. Auditing a pack name (e.g. `Aika`) is the #1 confusion: the audit keys the female/male list off the slot id's first letter (`F…` → female, `M…`/`C…` → male/creature), so a pack name silently checked the 15 male names against a female pack and always reported `0/15`. That argument is now rejected with a hint instead.
 
-It prints every category that does **not** resolve, then a summary like `SLOVE audit F1: 75/75 categories resolve`. A Variation-B slot gets a **second** pass over the B folders above. Resolution is checked **after** aliases, fallbacks and the slot's `fallback` chain — so `75/75` on a small pack means the backfill is working, not that the pack has 75 folders (the `in-pack` vs `backfilled` counts in the summary tell them apart).
+It prints every category that does **not** resolve, then a summary like `SLOVE audit F1: 79/79 categories resolve`. A Variation-B slot gets a **second** pass over the B folders above. Resolution is checked **after** aliases, fallbacks and the slot's `fallback` chain — so `79/79` on a small pack means the backfill is working, not that the pack has 79 folders (the `in-pack` vs `backfilled` counts in the summary tell them apart).

@@ -79,6 +79,7 @@ label engine; the codes below are what appears in the SLSB scene tags.
 | `CUN` | Cunnilingus |
 | `FBJ` | Giving fast/intense blowjob |
 | `SBJ` | Giving soft/slow blowjob |
+| `RIM` | Performing a rimjob — **SLO VE extension**, not in the original Hentairim/IVDT set. No converter emits it; author it by hand. Without it, SLO VE detects rim acts from the `rimjob`/`rimming`/`anilingus` **scene** tags plus a mouth-busy oral label (`CUN`, or the converted DB's `KIS` stand-in) |
 
 ## Tag-string syntax (Change/Find Animation, Stage Maker)
 

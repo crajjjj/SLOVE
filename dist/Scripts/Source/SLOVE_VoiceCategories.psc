@@ -72,7 +72,7 @@ EndFunction
 ;All categories the female engine can request - for pack audits
 ;(SLOVE_Test.AuditVoicePack loops these against AudioUtil.CategoryExists).
 String[] Function AllFemaleCategories() Global
-	String[] cats = new String[75]
+	String[] cats = new String[79]
 	cats[0] = "GreetLover"
 	cats[1] = "GreetFamiliar"
 	cats[2] = "GreetLoadedFamiliar"
@@ -150,6 +150,13 @@ String[] Function AllFemaleCategories() Global
 	cats[72] = "LickingIntense"
 	cats[73] = "LickingComments"
 	cats[74] = "LickingForced"
+	;performing a rimjob (rim-tagged scene / authored RIM oral code) - the Rimjob*
+	;pools share their names across A and B layouts and alias/fall back to the
+	;matching Licking*, then Blowjob* audio when missing
+	cats[75] = "Rimjob"
+	cats[76] = "RimjobIntense"
+	cats[77] = "RimjobComments"
+	cats[78] = "RimjobForced"
 	return cats
 EndFunction
 
@@ -187,7 +194,7 @@ EndFunction
 ;PullOutGape) and the gag pool (routed via gag_slot, not this slot) are excluded.
 ;Names match case- and space-insensitively in AudioUtil, so exact casing is cosmetic.
 String[] Function AllFemaleVariationBCategories() Global
-	String[] cats = new String[60]
+	String[] cats = new String[64]
 	cats[0] = "After Orgasm Comments"
 	cats[1] = "After Orgasm Comments Intense"
 	cats[2] = "Blowjob Action"
@@ -248,5 +255,10 @@ String[] Function AllFemaleVariationBCategories() Global
 	cats[57] = "Penetrated Tell Male to Pull Out"
 	cats[58] = "Stimulated Comments"
 	cats[59] = "Stimulated Victim Comments"
+	;appended (not alphabetical): performing-rimjob pools, same names in A and B
+	cats[60] = "Rimjob"
+	cats[61] = "Rimjob Intense"
+	cats[62] = "Rimjob Comments"
+	cats[63] = "Rimjob Forced"
 	return cats
 EndFunction

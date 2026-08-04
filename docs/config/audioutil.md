@@ -70,7 +70,7 @@ gain = 1.0
 attack_ms = 30
 release_ms = 90
 min_level = 0.04
-block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "BlowjobAction", "Licking", "LickingIntense", "LickingForced", "Orgasm", "PullOutGape"]
+block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "BlowjobAction", "Licking", "LickingIntense", "LickingForced", "Rimjob", "RimjobIntense", "RimjobForced", "Orgasm", "PullOutGape"]
 ```
 
 | Key | SLO VE ships | Meaning |
@@ -83,7 +83,7 @@ block_categories = ["BlowjobActionSoft", "BlowjobActionIntense", "BlowjobAction"
 | `block_in_dialogue` | *(default `true`)* | Suppress lipsync while the actor is in a dialogue with the player — the game drives that mouth. |
 | `block_categories` | see above | **Additive across files.** Categories that never move the mouth. |
 
-Why the shipped blocks: **blowjob action** and the **`Licking`/`LickingIntense`/`LickingForced`** (cunnilingus) clips are oral SFX (slurping, not vocalisation — and the licking mouth is busy), **`Orgasm`** hands the mouth to the climax/ahegao face so a line can't lipsync over an open-mouth expression, and **`PullOutGape`** is a wet gape squelch played on the voice path. `LickingComments` is deliberately not blocked — spoken lines lipsync.
+Why the shipped blocks: **blowjob action**, the **`Licking`/`LickingIntense`/`LickingForced`** (cunnilingus) and **`Rimjob`/`RimjobIntense`/`RimjobForced`** clips are oral SFX (slurping, not vocalisation — and the licking mouth is busy), **`Orgasm`** hands the mouth to the climax/ahegao face so a line can't lipsync over an open-mouth expression, and **`PullOutGape`** is a wet gape squelch played on the voice path. `LickingComments`/`RimjobComments` are deliberately not blocked — spoken lines lipsync.
 
 !!! note "Lipsync needs a loose PCM wav"
     BSA-packed or compressed audio still plays, but the mouth stays shut — the plugin reads the waveform to build the envelope. Creature slots play from the vanilla BSAs and are silent-mouthed by design.

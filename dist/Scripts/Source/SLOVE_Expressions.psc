@@ -566,7 +566,7 @@ Float[] Function BuildTickPreset(float[] base, int varPct, bool mouthblowjob, bo
 
 	bool mouthtongueout = EquippedTongue()
 	bool mouthkis = IsKissing()
-	bool mouthcun = IsCunnilingus()
+	bool mouthcun = IsCunnilingus() || OralLabel == "RIM" ;a rimming mouth uses the licking preset when no tongue is out
 	bool cowgirl = IsCowgirl()
 	bool doggy = false
 	if !MFEEAddAhegao && !brokenface && !cowgirl
@@ -1203,6 +1203,19 @@ Bool Function IsOralTongueActive()
 	if IsCunnilingus()
 		return true
 	endif
+	;rim branch: the collision detector knows crotches, not anuses, so a rimjob can
+	;never fire the physics flags below - it is authored-data only. An explicit RIM
+	;oral code always qualifies (any sex - it names this actor as the licker). In a
+	;rim-TAGGED scene without per-actor codes, the converted DBs stand in KIS for the
+	;rim lick on BOTH positions, so gate the heuristic to females: in Billyy's MF rim
+	;content the female is always the rimmer, and this keeps the tongue off the male
+	;receiver (who carries the same KIS). FF rim scenes may tongue both - both lick.
+	if OralLabel == "RIM"
+		return true
+	endif
+	if SceneTagRimScene && Gender == 1 && OralLabel == "KIS"
+		return true
+	endif
 	if !SceneTagLickScene
 		return false
 	endif
@@ -1699,6 +1712,7 @@ Bool IsHugePP
 bool SceneTagFaint = false
 bool SceneTagDoggy = false
 bool SceneTagLickScene = false ;scene classified as one where a licking tongue fits (lesbian/ff/cunnilingus/licking; NOT 69 - it can involve a penis) - GATES the live oral physics flag
+bool SceneTagRimScene = false ;scene tagged as a rimjob (rimjob/rimming/anilingus) - enables the rim branch of the oral tongue (no physics signal exists for it)
 string CurrentSceneID = ""
 string currentStageID = ""
 Int currentStage = -1
@@ -1752,7 +1766,8 @@ Function HentairimUpdateStageData()
 			;a tongue show during that blowjob half. Leave 69 to the per-actor oral label
 			;(CUN vs SBJ/FBJ) instead. lesbian/ff are safe (two females = genuinely no penis).
 			SceneTagLickScene = CurrentThread.HasSceneTag("lesbian") || CurrentThread.HasSceneTag("ff") || CurrentThread.HasSceneTag("cunnilingus") || CurrentThread.HasSceneTag("cun") || CurrentThread.HasSceneTag("licking") || CurrentThread.HasSceneTag("lick")
-			printdebug("SceneTagLickScene=" + SceneTagLickScene + " for scene " + CurrentSceneID)
+			SceneTagRimScene = CurrentThread.HasSceneTag("rimjob") || CurrentThread.HasSceneTag("rimming") || CurrentThread.HasSceneTag("anilingus")
+			printdebug("SceneTagLickScene=" + SceneTagLickScene + " SceneTagRimScene=" + SceneTagRimScene + " for scene " + CurrentSceneID)
 		endif
 
 		UpdateLabels(actorref)

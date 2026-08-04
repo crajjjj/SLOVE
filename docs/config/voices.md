@@ -91,6 +91,10 @@ Licking = "Blowjob Action"        # degrade: a B pack without a Licking folder p
 LickingIntense = "Licking"        # act first, intensity via the fallback below
 LickingComments = "Blowjob Comments"
 LickingForced = "Blowjob Forced"
+Rimjob = "Licking"                # rimjob degrades to the pack's cunnilingus pools first
+RimjobIntense = "Rimjob"
+RimjobComments = "Licking Comments"
+RimjobForced = "Licking Forced"
 
 [category_aliases.male]
 StrugglingOvert = "Struggling Early"
@@ -116,6 +120,10 @@ Licking = "BlowjobActionSoft"   # A/stock slots: cunnilingus degrades to the old
 LickingIntense = "Blowjob Action Intense"
 LickingComments = "Blowjob Remarks"
 LickingForced = "BlowjobActionSoft"
+Rimjob = "BlowjobActionSoft"    # same terminal analogs as Licking*
+RimjobIntense = "Blowjob Action Intense"
+RimjobComments = "Blowjob Remarks"
+RimjobForced = "BlowjobActionSoft"
 
 [category_fallbacks.male]
 Breathing = "Orgasm"     # creature ambience reuses the climax clips
@@ -123,6 +131,10 @@ Licking = "BlowjobActionSoft"   # male-routed cunnilingus degrades to stock male
 LickingIntense = "BlowjobActionIntense"
 LickingComments = "BlowjobActionSoft"
 LickingForced = "BlowjobActionSoft"
+Rimjob = "BlowjobActionSoft"    # male-routed rimjob: same degrade as Licking*
+RimjobIntense = "BlowjobActionIntense"
+RimjobComments = "BlowjobActionSoft"
+RimjobForced = "BlowjobActionSoft"
 ```
 
 Full female table: [Category Reference](../packs/categories.md#female-categories).

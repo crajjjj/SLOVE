@@ -198,7 +198,11 @@ String Function OralLabel(sslBaseAnimation anim , int stage , Int ActorPos) Glob
 	;precedence: the genital-oral actions win over KIS (see the P+ copy) - many scenes
 	;tag a stage with BOTH kissing and the real oral action, and KIS first masked
 	;cunnilingus/blowjob. Kissing is the fallback oral action.
-	if HasASLTag(anim, stage+ ActorPosition + "CUN")
+	;RIM (performing a rimjob) is checked first: it only exists as an explicit authored
+	;tag (no converter emits it), so when present it is the most specific signal.
+	if HasASLTag(anim, stage+ ActorPosition + "RIM")
+		return "RIM"
+	elseif HasASLTag(anim, stage+ ActorPosition + "CUN")
 		return "CUN"
 	elseif HasASLTag(anim, stage+ ActorPosition + "FBJ")
 		return "FBJ"

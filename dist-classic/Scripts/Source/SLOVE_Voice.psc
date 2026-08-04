@@ -752,7 +752,8 @@ Event OnUpdate()
 			if EnableDDGagVoice == 1
 				PlayGaggedSound()
 			endif
-		elseif IsKissing()  ;kissing
+		elseif IsKissing() && !IsRimming() ;kissing (in a rim-tagged scene KIS is usually the
+			;converted DB's stand-in for the rim lick - fall through to the Rimjob branch below)
 			PlayKissing()
 		elseif MoanOnly == 1 || isShortenedScene()
 			PlayMoanonly()
@@ -766,6 +767,10 @@ Event OnUpdate()
 			ASLHandlePartnerOrgasmReaction()
 		elseif IsSuckingoffOther() ;blowjob always first because muffled by cock
 			PlayBlowjob()
+		elseif IsRimming() && (!ASLcurrentlyintense || !IsgettingPenetrated()) ;Rimjob
+			;rim-tagged scene and the PC's mouth is on the act (RIM/CUN/KIS label) -
+			;same intense+penetrated fall-through rule as the cunnilingus branch
+			PlayRimjob()
 		elseif IsCunnilingus() && (!ASLcurrentlyintense || !IsgettingPenetrated()) ;Cunnilingus
 			;intense + penetrated falls through to the penetration branches below (as it
 			;always did); intense pure licking now voices the Licking Intense pool
@@ -1296,6 +1301,25 @@ Function PlayKissingVarB()
 	printdebug("Play Kissing")
 	;Kissing
 	PlaySound("MaleOrgasmReactionLover", mainFemaleActor, debugtext = "Kissing")
+endfunction
+
+Function PlayRimjob()
+	printdebug("Play Rimjob")
+
+	;Rimjob* pools mirror the Licking ladder one-to-one (forced/comments/intense/soft;
+	;comments reuse the blowjob comment chance). Same folder names in the A and B
+	;layouts. A pack without them degrades through the config alias/fallback layer to
+	;its own Licking*/Blowjob* audio, then stock (see SLOVE_voices.toml).
+	if SceneHasTag("Forced") || femaleisvictim()
+		PlaySound("RimjobForced", mainFemaleActor, debugtext = "Rimjob Forced")
+	elseif Utility.RandomFloat(0.0, 1.0) < ChanceToCommentonBlowjobStage && currentstage > 1 && !ASLIsBroken()
+		PlaySound("RimjobComments", mainFemaleActor, debugtext = "Rimjob Comments")
+	elseif ASLcurrentlyIntense
+		PlaySound("RimjobIntense", mainFemaleActor, debugtext = "Rimjob Intense")
+	else
+		PlaySound("Rimjob", mainFemaleActor, debugtext = "Rimjob")
+	endif
+
 endfunction
 
 Function PlayCunnilingus()
@@ -2969,6 +2993,22 @@ EndFunction
 
 Bool Function IsCunnilingus()
 	return OralLabel == "CUN"
+endfunction
+
+;True while the PC performs a rimjob. Classic has no physics detection at all, so this
+;is authored-data driven: an explicit per-actor RIM oral code wins outright; otherwise
+;a rim-tagged SCENE ("rimjob"/"rimming"/"anilingus" - Billyy's packs tag "rimjob") plus
+;a mouth-busy oral label on the PC (CUN, or the converted DB's KIS stand-in) counts as
+;rimming. Label checks are internal (cheap) and short-circuit the tag externals.
+Bool Function IsRimming()
+	if OralLabel == "RIM"
+		return true
+	endif
+	return (OralLabel == "CUN" || OralLabel == "KIS") && IsRimSceneTagged()
+endfunction
+
+Bool Function IsRimSceneTagged()
+	return SceneHasTag("Rimjob") || SceneHasTag("Rimming") || SceneHasTag("Anilingus")
 endfunction
 
 Bool Function PreviousStageHasPenetration()

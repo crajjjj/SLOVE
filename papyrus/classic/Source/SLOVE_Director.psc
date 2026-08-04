@@ -1114,7 +1114,7 @@ EndFunction
 ;so a moan clip must not drive the jaw over any of them (IsSuckingoffOther is SBJ||FBJ).
 bool Function IsOralGiver(Actor a)
 	string oral = GetOralLabel(a)
-	return oral == "CUN" || oral == "SBJ" || oral == "FBJ"
+	return oral == "CUN" || oral == "RIM" || oral == "SBJ" || oral == "FBJ"
 EndFunction
 
 bool function IsMale(actor char)
@@ -1712,8 +1712,10 @@ string Function DebugVoiceHint(actor char)
 			return "giving blowjob (intense) -> PlayBlowjob [BlowjobActionIntense]"
 		endif
 		return "giving blowjob -> PlayBlowjob [BlowjobActionSoft]"
+	elseif oral == "RIM"
+		return "rimjob -> PlayRimjob [Rimjob]"
 	elseif oral == "CUN"
-		return "cunnilingus -> PlayCunnilingus"
+		return "cunnilingus -> PlayCunnilingus (or PlayRimjob in a rim-tagged scene)"
 	elseif pen == "SDP" || pen == "FDP"
 		return "double penetration -> PlayGettingFuckedDouble"
 	elseif pen == "SCG" || pen == "FCG" || pen == "SAC" || pen == "FAC"

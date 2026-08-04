@@ -1106,10 +1106,11 @@ EndFunction
 ;physics-derived), or - P+ only - the live aOral / aLickingShaft giver flags. Used to
 ;keep a moan line from lipsyncing a licking mouth. Cheap enough for the per-line path.
 bool Function IsOralGiver(Actor a)
-	;CUN cunnilingus, SBJ/FBJ soft/forced blowjob - all occupy the mouth (authored label).
-	;Fall through to the live P+ giver flags only when the label doesn't already say so.
+	;CUN cunnilingus, RIM rimjob, SBJ/FBJ soft/forced blowjob - all occupy the mouth
+	;(authored label). Fall through to the live P+ giver flags only when the label
+	;doesn't already say so.
 	string oral = GetOralLabel(a)
-	if oral == "CUN" || oral == "SBJ" || oral == "FBJ"
+	if oral == "CUN" || oral == "RIM" || oral == "SBJ" || oral == "FBJ"
 		return true
 	endif
 	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
@@ -1398,7 +1399,10 @@ Bool Function ApplyPhysicsLabels()
 			;Oral label (mouth view) - same priority order as the tag version
 			base = BaseOralLabelarr[z]
 			newlbl = base
-			if mouthKis
+			if base == "RIM"
+				;authored rim lick: the collision flags know crotches, not anuses, so no
+				;physics reading can refine RIM - never let a stray kiss/oral flag mask it
+			elseif mouthKis
 				newlbl = "KIS"
 			elseif mouthDeep
 				newlbl = "FBJ"
@@ -1990,8 +1994,10 @@ string Function DebugVoiceHint(actor char)
 			return "giving blowjob (intense) -> PlayBlowjob [BlowjobActionIntense]"
 		endif
 		return "giving blowjob -> PlayBlowjob [BlowjobActionSoft]"
+	elseif oral == "RIM"
+		return "rimjob -> PlayRimjob [Rimjob]"
 	elseif oral == "CUN"
-		return "cunnilingus -> PlayCunnilingus"
+		return "cunnilingus -> PlayCunnilingus (or PlayRimjob in a rim-tagged scene)"
 	elseif pen == "SDP" || pen == "FDP"
 		return "double penetration -> PlayGettingFuckedDouble"
 	elseif pen == "SCG" || pen == "FCG" || pen == "SAC" || pen == "FAC"

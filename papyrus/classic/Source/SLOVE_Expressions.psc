@@ -527,7 +527,7 @@ Float[] Function BuildTickPreset(float[] base, int varPct, bool mouthblowjob, bo
 
 	bool mouthtongueout = EquippedTongue()
 	bool mouthkis = IsKissing()
-	bool mouthcun = IsCunnilingus()
+	bool mouthcun = IsCunnilingus() || OralLabel == "RIM" ;a rimming mouth uses the licking preset when no tongue is out
 	bool cowgirl = IsCowgirl()
 	bool doggy = false
 	if !MFEEAddAhegao && !brokenface && !cowgirl
