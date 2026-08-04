@@ -37,6 +37,17 @@ voice_attenuation = true      # false = old behavior (no distance volume falloff
 attenuation_near = 512.0      # full volume within this distance
 attenuation_far = 2560.0      # volume reaches the floor at/beyond this distance
 attenuation_floor = 0.08      # minimum volume factor for far sounds (0.0 = silent)
+# In-session fuz playback. Skyrim loads loose files only at launch, so a fuz decoded
+# on first play (cache wav written mid-session) would be silent until a restart
+# (worse under MO2). AudioUtil routes the audio through one of N pre-indexed
+# placeholder wavs so it plays immediately, freed when the line ends. N = max fuz
+# lines sounding at once; 24 covers overlapping PC + NPC voices. 0 disables the pool.
+fuz_slots = 24
+# Background decode-ahead at game start (worker thread): first play already works via
+# fuz_slots - this only removes the brief inline-decode hitch on a line's very first
+# play by decoding the slot fuz ahead of time. Cheap once cached. (Ad-hoc folders
+# outside the configured slots aren't prewarmed - use `autest warmfolder <dir>`.)
+prewarm_fuz = true
 default_female_slot = "F0"    # unrouted female NPCs speak the stock moans
 default_male_slot = "M1"
 # reserved player slots: the PC always speaks this slot and no NPC ever resolves
@@ -50,13 +61,29 @@ event_rate_ms = 2000          # min interval per receiver for AudioUtilPPA_Updat
 
 [lipsync]
 # Mouths move with the moans: every PlayVoice line drives the speaker's MFG
-# Aah/BigAah phonemes from the wav's loudness envelope, per frame. Loose PCM
-# wavs only; BSA-packed creature slots play fine without mouth movement.
+# phonemes. Lines that ship lip data (a same-stem .lip, or a .fuz's embedded
+# lip block) play the authored per-phoneme curves; everything else is driven
+# from the wav's loudness envelope. Loose PCM wavs only; BSA-packed creature
+# slots play fine without mouth movement.
 enable = true
 gain = 1.0                    # 0.0-2.0 mouth-open strength
 attack_ms = 30                # opening speed toward a louder level
 release_ms = 90               # closing speed on quiet / clip end
 min_level = 0.04              # levels below this keep the mouth closed
+block_in_dialogue = true      # in a dialogue with the player the game drives the mouth - stay off it
+use_lip_files = false         # EXPERIMENTAL - authored .lip/fuz phoneme curves when a line has them,
+                              # instead of the amplitude envelope. Off = the tested envelope/pseudo path.
+                              # Console A/B toggle: autest lipfiles on|off
+drive_modifiers = false       # keep .lip blink/brow/gaze channels OFF - SLO VE expressions own those
+                              # (only relevant while use_lip_files is on)
+# Lines WITHOUT lip data (all current SLO VE voicepacks): synthesize phoneme
+# curves from the envelope - per-syllable vowel variety (Aah\Oh\Ooh\Eh) plus
+# brief lip closures between moans - instead of the plain Aah jaw-flap.
+# Deterministic per file. Console A\B toggle: autest pseudolip on|off
+pseudo_phonemes = true
+lead_ms = 0                   # mouth timing lead in ms (-300..300): raise if the mouth visibly
+                              # trails the sound. Calibrate live with `autest liplead 80` etc.,
+                              # then persist the winning value here.
 # categories that never drive the mouth: blowjob action / licking / rimjob are oral
 # SFX (slurping, not vocalization - and the licking mouth is busy); Orgasm hands the
 # mouth to the climax/ahegao face; PullOutGape is a wet gape squelch (played on
