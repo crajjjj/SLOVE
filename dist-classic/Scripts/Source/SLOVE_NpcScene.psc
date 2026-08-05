@@ -30,6 +30,7 @@ float malemoanmaxinterval
 float creaturebreathmininterval
 float creaturebreathmaxinterval
 int intenseenjoyment
+float npcvolume
 int enableprintdebug
 
 float lastMaleMoanTime
@@ -68,6 +69,13 @@ Function PerformInitialization()
 	; our own thread's (the PC engine + each other NpcScene do the same)
 	RegisterForModEvent("SexLabOrgasmSeparate", "NpcSceneOrgasm")
 	InitializeConfig()
+	; NPC scenes ride their OWN volume bus (npc_low/npc_high) so voice.npcscenevolume
+	; tunes them apart from your own scene's partners. Each NpcScene sets it, so it
+	; applies even without a PC scene ever having run - the classic SLOVE_Voice only
+	; sets pc_*/partner_*, so without this the npc_* groups stay at the toml startup
+	; default (1.0) and voice.npcscenevolume is ignored (NPC scenes always full volume).
+	AudioUtil.SetGroupVolume("npc_low", npcvolume)
+	AudioUtil.SetGroupVolume("npc_high", npcvolume)
 	BucketActors()
 	SuppressSexLabVoice()
 	lastMaleMoanTime = 0.0
@@ -92,6 +100,9 @@ Function InitializeConfig()
 	creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 5) as float
 	creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 12) as float
 	intenseenjoyment        = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment", 75)
+	; dedicated NPC-scene voice volume (own audio bus), default = partnervolume so it
+	; matches the old behavior until set. 0-100 -> 0-1 for SetGroupVolume.
+	npcvolume               = SLOVE_Config.GetInt("voice.npcscenevolume", SLOVE_Config.GetInt("voice.partnervolume", 100)) as float / 100
 	enableprintdebug        = SLOVE_Config.GetInt("director.printdebug", 0)
 EndFunction
 

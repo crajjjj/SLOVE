@@ -126,6 +126,17 @@ Horse = "C10"
 TeaseMaleCloseToOrgasmIntense = "Male Close Tease Intense"
 TeaseMaleCloseToOrgasmSoft = "Male Close Tease Soft"
 MCMSampleSounds = "Orgasm"    # legacy MCM sample name kept in the audit list
+# NPC-scene ambient on a Variation-B pool pack: SLOVE_NpcScene requests these two
+# A names (via the Director's plain PlaySound, which has none of SLOVE_Voice's
+# per-actor VarB remap), so without these aliases a pooled B pack missed in-pack
+# and every ambient line fell down the F0B/F0 chain to the stock SexLab moans -
+# only Orgasm (shipped by every pack) played pack audio. Same folder targets as
+# SLOVE_Voice's own B remap (debugtext on the PenetrativeGrunts/NearOrgasmNoises
+# lines). A packs and F0/F0B list the literal names, so they resolve before the
+# alias and are unaffected; a B pack missing the target folder still walks the
+# chain to stock exactly as before.
+PenetrativeGrunts = "Penetrated Grunt"
+NearOrgasmNoises = "Penetrated Grunt Intense"
 Licking = "Blowjob Action"    # cunnilingus wet-mouth pool. Off-label alias-as-degrade:
                               # aliases are tried right after the literal name in EVERY
                               # slot of the chain, so a B pack without a Licking folder

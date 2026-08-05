@@ -84,6 +84,13 @@ pseudo_phonemes = true
 lead_ms = 0                   # mouth timing lead in ms (-300..300): raise if the mouth visibly
                               # trails the sound. Calibrate live with `autest liplead 80` etc.,
                               # then persist the winning value here.
+# Pseudo-synthesis tuning: calibrate in AudioUtil's tools\lipsim (drop a SLO VE
+# voicepack wav, drag sliders, "copy constants"), paste here, `au reload`.
+pseudo_voiced_floor = 0.05    # voiced when envelope >= max(min_level, this)
+pseudo_valley_ratio = 0.6     # syllable split depth (higher = choppier)
+pseudo_min_syl_frames = 3     # min syllable length (30 fps frames)
+pseudo_gap_frames = 5         # silence frames earning a lip closure (5 = 165 ms)
+pseudo_closure = 0.85         # closure strength 0-1
 # categories that never drive the mouth: blowjob action / licking / rimjob are oral
 # SFX (slurping, not vocalization - and the licking mouth is busy); Orgasm hands the
 # mouth to the climax/ahegao face; PullOutGape is a wet gape squelch (played on

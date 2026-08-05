@@ -87,15 +87,15 @@ malemoanmaxinterval = 12
 moanonly = 0                   # 1 = moans only, no spoken lines (males then moan via malemoaning above)
 hypebeforeorgasm = 0           # DEPRECATED & ignored - froze SLSO's orgasm at 100%. Leave at 0.
 useblowjobsoundforkissing = 1
-pcvolume = 100                 # 0-100; the PLAYER's own voice
-partnervolume = 100            # 0-100; partners in the PLAYER's scene
-orgasmvolume = 100             # 0-100; PC climax/orgasm cries ONLY (own volume bus, independent of pcvolume)
+pcvolume = 60                 # 0-100; the PLAYER's own voice
+partnervolume = 60            # 0-100; partners in the PLAYER's scene
+orgasmvolume = 70             # 0-100; PC climax/orgasm cries ONLY (own volume bus, independent of pcvolume)
 # 0-100; NPC-only scenes (no player) get their OWN voice bus, so you can make nearby
 # NPC scenes quieter than your own without touching partnervolume. Covers their
 # moans/breathing/reactions AND their orgasm cries. Default = partnervolume (so it
 # matches the old behavior until you change it). Distance falloff (AudioUtil
 # voice_attenuation) still applies on top.
-npcscenevolume = 100
+npcscenevolume = 60
 # Variation A/B is a per-pack property: set variation = "B" on the pack's
 # [[slot]] in its AudioUtil config (see SLOVE_zpack_*.toml).
 enableddgagvoice = 1           # gagged voice when Devious Devices gag worn
