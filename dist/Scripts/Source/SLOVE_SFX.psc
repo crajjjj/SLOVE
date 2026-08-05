@@ -724,6 +724,11 @@ Bool Function PenisSearchForVelocity()
 		endwhile
 	endif
 
+	;the search's real output is the SearchingFoundVelocity member; the declared
+	;Bool had NO return on any path (it fell off the end, returning None). The one
+	;call site discards the value, so nothing broke - return the member so the
+	;signature means what it says
+	return SearchingFoundVelocity
 EndFunction
 
 
