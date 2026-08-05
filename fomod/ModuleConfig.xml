@@ -110,5 +110,46 @@ Based on the silent-SFX replacer approach by DuskWanderer.
       </optionalFileGroups>
     </installStep>
 
+    <installStep name="UBE Body">
+      <optionalFileGroups order="Explicit">
+
+        <group name="UBE custom races (Ultimate Body Enhancer)" type="SelectAny">
+          <plugins order="Explicit">
+
+            <plugin name="UBE tongue support">
+              <description>
+Check this ONLY if you use UBE 2.0 (Ultimate Body Enhancer) and its custom
+races (UBE_AllRace.esp).
+
+UBE turns its bodies into separate custom races. A worn item only renders on
+the races listed in its Armor Addon, and SLO VE's tongue armatures list the
+vanilla / DLC races only - so on a UBE character the equipped tongue is
+INVISIBLE (equip succeeds, nothing shows).
+
+This option installs SLOVE_UBE_Support.esp, an override-only (ESL-flagged)
+patch that adds all 18 UBE races (Breton/Imperial/Nord/Redguard/Dark Elf/
+High Elf/Wood Elf/Orc, their vampire variants, plus 2 custom races) to the
+10 tongue Armor Addons, so the tongue renders on UBE actors. It reuses the
+existing tongue meshes - the tongue is head-attached, not body-shaped, so no
+UBE mesh conversion is needed.
+
+REQUIRES UBE_AllRace.esp (from UBE 2.0). Load SLOVE_UBE_Support.esp AFTER
+both SLOVE.esp and UBE_AllRace.esp. Leave unchecked if you do not run UBE -
+it does nothing without the UBE race plugin and its master will be missing.
+              </description>
+              <files>
+                <folder source="UBESupport" destination="" priority="3" />
+              </files>
+              <typeDescriptor>
+                <type name="Optional" />
+              </typeDescriptor>
+            </plugin>
+
+          </plugins>
+        </group>
+
+      </optionalFileGroups>
+    </installStep>
+
   </installSteps>
 </config>

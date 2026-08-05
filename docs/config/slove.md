@@ -130,6 +130,9 @@ Facial expression engine. All face writes go through Mfg Fix NG.
 | `tonguemouthopenthreshold` | `0.4` | *(float)* **Jaw gate** — minimum measured mouth-open before a tongue is allowed to show, so it never clips through a closed mouth. |
 | `printdebug` | `0` | Print expression decisions. |
 
+!!! note "UBE bodies (custom races)"
+    The tongue armors render only on the races listed in their Armor Addon. On [UBE 2.0](https://www.nexusmods.com/skyrimspecialedition/mods/92989) custom-race actors the equipped tongue is **invisible** until those races are added. The FOMOD's *UBE Body → UBE tongue support* option installs `SLOVE_UBE_Support.esp`, an override-only ESL patch that adds all 18 UBE races to the 10 tongue Armor Addons (reusing the existing head-attached meshes — no UBE mesh conversion needed). Requires `UBE_AllRace.esp`; regenerate with `tools\xedit\SLOVE UBE Patch.pas` when UBE updates its race list.
+
 !!! tip "Lowering script load"
     The four `*expressionupdateinseconds` values and `breathingupdateinseconds` are the expression engine's whole cost. Raising them to e.g. `3.0` / `1.0` noticeably cuts Papyrus work at the price of coarser faces.
 

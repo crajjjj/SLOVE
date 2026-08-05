@@ -214,6 +214,21 @@ function Build-Fomod {
     }
     Write-Host "PPACompat: $($script:ppaCount) silent SFX twins generated" -ForegroundColor Cyan
 
+    # UBESupport = the optional UBE custom-race tongue patch (SLOVE_UBE_Support.esp).
+    # Stored, not generated: it references UBE_AllRace.esp as a master, so it can
+    # only be built with UBE loaded (in xEdit via tools\xedit\SLOVE UBE Patch.pas,
+    # or headless). The prebuilt esp lives in optional\UBESupport\; we just stage
+    # it. Warn (don't fail) if it hasn't been built yet, exactly like dist-classic.
+    $ubeEsp = Join-Path $root 'optional\UBESupport\SLOVE_UBE_Support.esp'
+    if (Test-Path $ubeEsp) {
+        $ubeStage = Join-Path $stage 'UBESupport'
+        New-Item -ItemType Directory -Force $ubeStage | Out-Null
+        Copy-Item $ubeEsp $ubeStage -Force   # esp only - the README stays out of the install
+        Write-Host 'UBESupport: staged SLOVE_UBE_Support.esp' -ForegroundColor Cyan
+    } else {
+        Write-Warning "UBESupport: optional\UBESupport\SLOVE_UBE_Support.esp not found - FOMOD's UBE option will install nothing. Build it with UBE loaded (tools\xedit\SLOVE UBE Patch.pas)."
+    }
+
     # Release archives are named SLO_VE_v<version>.zip. The version is read from
     # fomod\info.xml so there is a single source of truth and the archive name can
     # never drift from what the installer reports.
