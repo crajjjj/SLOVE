@@ -446,9 +446,14 @@ bool Function IsHugePPPartner()
 	if StringUtil.Find(mr, "Brute") > -1 || StringUtil.Find(mr, "Spider") > -1 || StringUtil.Find(mr, "Lurker") > -1 || StringUtil.Find(mr, "Daedroth") > -1 || StringUtil.Find(mr, "Horse") > -1 || StringUtil.Find(mr, "Bear") > -1 || StringUtil.Find(mr, "Chaurus") > -1 || StringUtil.Find(mr, "Dragon") > -1 || StringUtil.Find(mr, "Giant") > -1 || StringUtil.Find(mr, "Troll") > -1 || StringUtil.Find(mr, "Gargoyle") > -1 || StringUtil.Find(mr, "Ogr") > -1 || mr == "Frost Atronach" || mr == "Mammoth" || mr == "Sabre Cat" || mr == "Werewolf" || mr == "Dwarven Centurion"
 		return true
 	endif
-	Faction sos = Game.GetFormFromFile(0xAFF8, "Schlongs of Skyrim.esp") as Faction
-	if sos
-		return partner.GetFactionRank(sos) >= soshugeppsize
+	;guard the lookup like the TNG branch below: GetFormFromFile on an absent plugin
+	;errors in the Papyrus log on every call, and SOS's .esp is missing on any install
+	;running TNG (or SOS Core.esm alone) - the TNG keyword branch covers those
+	if isDependencyReady("Schlongs of Skyrim.esp")
+		Faction sos = Game.GetFormFromFile(0xAFF8, "Schlongs of Skyrim.esp") as Faction
+		if sos
+			return partner.GetFactionRank(sos) >= soshugeppsize
+		endif
 	endif
 	if isDependencyReady("TheNewGentleman.esp")
 		Keyword tngXL = Game.GetFormFromFile(0xFE5, "TheNewGentleman.esp") as Keyword

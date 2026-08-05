@@ -1629,21 +1629,33 @@ int Function GetFinalStageNum()
 	endwhile
 
 	if !Foundending
-		;no EN tags - fall back to SLSB climax annotations from the registry
-		string[] climaxstages = SexlabRegistry.GetClimaxStages(currentsceneid, -1)
-		if climaxstages && climaxstages.Length > 0
-			int maxidx = -1
-			int c = 0
-			while c < climaxstages.Length
-				int idx = AllStages.Find(climaxstages[c])
-				if idx > maxidx
-					maxidx = idx
-				endif
-				c += 1
-			endwhile
-			if maxidx > -1
-				FinalStageNum = maxidx + 1
+		;no EN tags - fall back to SLSB climax annotations from the registry.
+		;GetClimaxStages' documented all-positions sentinel (n = -1) is validated as a
+		;position index by the P+ native BEFORE the sentinel is honored, so it logs an
+		;"Invalid position idx" error on every call - ask per position and union the
+		;lists instead (same set, no log spam)
+		int posCount = SexlabRegistry.GetActorCount(currentsceneid)
+		string[] climaxstages
+		int maxidx = -1
+		int idx = -1
+		int c = 0
+		int pos = 0
+		while pos < posCount
+			climaxstages = SexlabRegistry.GetClimaxStages(currentsceneid, pos)
+			if climaxstages
+				c = 0
+				while c < climaxstages.Length
+					idx = AllStages.Find(climaxstages[c])
+					if idx > maxidx
+						maxidx = idx
+					endif
+					c += 1
+				endwhile
 			endif
+			pos += 1
+		endwhile
+		if maxidx > -1
+			FinalStageNum = maxidx + 1
 		endif
 	endif
 

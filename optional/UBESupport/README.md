@@ -20,6 +20,18 @@ is needed** — only the race-coverage fix. Same approach as Beeing Female NG's
 Masters: `SLOVE.esp` + `UBE_AllRace.esp` (+ `Skyrim.esm`/`Update.esm`/
 `Dawnguard.esm`/`Dragonborn.esm` for the vanilla races already listed).
 
+## ⚠ The shipped esp is STALE — regenerate before the next release
+
+The bundled `SLOVE_UBE_Support.esp` was generated in 0.6.7, **before** the 0.6.8
+fix that added `NordRace` (`00013746`) to the ten tongue Armor Addons — it was
+missing from `SLOVE.esp` since the armors were authored, so a **Nord** actor
+equipped a tongue that rendered nothing (every other vanilla race was listed;
+even `NordRaceVampire` was). The patch is override-only, so where it is enabled
+**its** 45-race lists win over `SLOVE.esp`'s fixed 28 — reintroducing the Nord
+hole for UBE users. Regenerating against the fixed `SLOVE.esp` picks NordRace up
+automatically (the script copies the base record, then adds the UBE races), so
+this needs nothing more than a rerun on a UBE-loaded order.
+
 ## How to (re)build the esp
 
 The patch references `UBE_AllRace.esp`, so it can only be built with **UBE 2.0

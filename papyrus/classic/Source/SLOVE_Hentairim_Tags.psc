@@ -264,6 +264,11 @@ string Function GetSFX(sslBaseAnimation anim , int stage) Global
 		return "NA"
 	endif
 
+	;no SFX tag on this stage - return the empty string EXPLICITLY. Falling off the
+	;end of a String function returns None, which the caller's String variable then
+	;coerces to "" anyway, but only after a per-stage "Assigning None to a non-object
+	;variable" warning in the Papyrus log (the compiler does not check all paths)
+	return ""
 endfunction
 
 bool Function HasASLTag(sslBaseAnimation anim, string tag) Global
