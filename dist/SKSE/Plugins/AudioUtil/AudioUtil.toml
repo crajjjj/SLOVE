@@ -52,7 +52,18 @@ fuz_slots = 24
 # outside the configured slots aren't prewarmed - use `autest warmfolder <dir>`.)
 prewarm_fuz = true
 default_female_slot = "F0"    # unrouted female NPCs speak the stock moans
-default_male_slot = "M1"
+default_male_slot = "M0"      # ...and unrouted male NPCs the stock male moans (the M mirror
+                              # of F0).
+# Creatures (no ActorTypeNPC keyword) never fall through to default_male_slot - they'd
+# borrow a human voice pack (an unmapped frostbite spider spoke M2's Argonian orgasm
+# lines). They take this slot instead, and stop here whether or not it resolves.
+# C0 (SLOVE_voices.toml) is the species-neutral catch-all: any creature the C1-C10
+# [race_map] hints don't cover - spiders, foxes, skeevers, modded beasts - breathes and
+# growls from it. A hinted creature still wins with its own slot. Set "" to make
+# uncovered creatures SILENT instead (GetSlotForActor then returns "", which SLOVE_Voice
+# tests before adding one to the ambience pool).
+# (Needs AudioUtil 0.9.11+; older builds ignore the key and route creatures to a male slot.)
+default_creature_slot = "C0"
 # reserved player slots: the PC always speaks this slot and no NPC ever resolves
 # to it. Set pc_male_slot = "M1" too when playing a male PC.
 pc_female_slot = "F1"

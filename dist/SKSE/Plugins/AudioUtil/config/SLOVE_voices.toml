@@ -108,7 +108,9 @@ DarkElf = "M6"
 HighElf = "M5"
 Khajiit = "M7"
 Orc = "M8"
-# creatures (slots C1-C10, defined at the bottom of this file)
+# creatures (slots C1-C10, defined at the bottom of this file). A creature no hint
+# below matches is NOT left voiceless and never borrows a male pack - it lands on the
+# generic C0 slot (default_creature_slot in the base AudioUtil.toml).
 Werewolf = "C1"
 Draugr = "C2"            # skeletons are NOT covered - add a Skeleton hint if wanted
 Falmer = "C3"
@@ -342,8 +344,9 @@ oneshot = 1.0
 # M1-M8 are the bundled male packs (Hentairim voice pack assets, shipped
 # with SLO VE under Sound\fx\SLOVE):
 # M1 Even Toned, M2 Argonian, M3 Brute, M4 Nord, M5 Condescending,
-# M6 Dark Elf, M7 Khajiit, M8 Orc. Creature slots C1-C10 are defined at the
-# bottom of the file (explicit BSA file lists, no folders).
+# M6 Dark Elf, M7 Khajiit, M8 Orc. Creature slots C0-C10 are defined at the
+# bottom of the file (explicit BSA file lists, no folders) - C1-C10 per [race_map]
+# hint, C0 the generic catch-all for every creature no hint matches.
 
 [[slot]]  # player pack slot - any female pack dropped here wins per category
 id = "F1"
@@ -595,9 +598,12 @@ fallback = "M0D"
 
 # ---- stock male-moan slots (SexLab vMaleMoan01-04) ----
 # The male mirror of F0: loose PCM every SexLab install has, so lipsync works.
-# NOT defaults or blind-scan picks (declared after M1-M8; default_male_slot stays
-# M1) - reached ONLY as the M1-M8 per-category fallback, so a male PC/partner
-# always has a MOAN for the non-verbal categories the spoken packs don't ship.
+# Reached as the M1-M8 per-category fallback, so a male PC/partner always has a
+# MOAN for the non-verbal categories the spoken packs don't ship - and M0 is also
+# default_male_slot (AudioUtil.toml), so a male NPC no voicetype/race route claims
+# moans instead of borrowing an arbitrary pack's accent, exactly like F0 for
+# females. Unlike F0 these list only the non-verbal categories, so an unrouted
+# male has no SPOKEN lines - by design; route him via [voicetype_map] to voice him.
 # Intensity split follows the female stock slots: soft = medium, hot = hot.
 [[slot]]
 id = "M0"
@@ -721,19 +727,55 @@ Smack = 'Sound\fx\SLOVE\Sounds\Smack'
 PullOutGape = 'Sound\fx\SLOVE\Sounds\Pull Out Gape'
 
 # ===========================================================================
-# APPENDIX: creature slot data (referenced by [race_map] in the base AudioUtil.toml)
+# APPENDIX: creature slot data
 # ===========================================================================
+# C1-C10 are reached by the [race_map] hints above; C0 is the catch-all every
+# other creature lands on (default_creature_slot in the base AudioUtil.toml).
 # Explicit file lists playing straight out of the vanilla archives
 # (Skyrim - Sounds.bsa; dlc01 paths are the Dawnguard files merged into it).
 # Explicit [slot.categories] need no folders on disk: the engine's resource
 # loader resolves BSA-packed paths that folder scans cannot see.
 # Two categories per slot: Orgasm fires at climax, Breathing is rolled
 # periodically by SLOVE_Voice during the scene (see SLOVE.toml [voice]
-# creaturebreathing*). Slots without usable ambience material simply omit
-# Breathing - the play resolves nothing and stays silent.
+# creaturebreathing*). A slot with no usable ambience material omits Breathing -
+# the [category_fallbacks.male] Breathing = "Orgasm" hop then covers it (creature
+# slots share the male category tables), so C8 growls its Orgasm pool instead.
 # Every path below is verified against the SE archive listing; vanilla ships
 # no Sound\FX material at all for some creatures (Falmer and Spriggan combat
 # barks live in the voice archives, not fx), which is why some lists are thin.
+
+[[slot]]  # GENERIC creature catch-all - default_creature_slot in AudioUtil.toml.
+          # Reached by any creature (no ActorTypeNPC keyword) that NO [race_map] hint
+          # covers: spiders, foxes, skeevers, mudcrabs, bears, sabrecats, modded
+          # beasts. Without it those fall out of the chain entirely and stay silent
+          # (they must never reach default_male_slot - everything there is a human
+          # voice pack, which is how an unmapped frostbite spider ended up speaking
+          # M2's Argonian lines). Deliberately species-NEUTRAL: low bear/sabrecat/troll
+          # breaths and growls that read as "some large animal" rather than as any one
+          # creature, since this pool plays for all of them. A creature that deserves
+          # its own voice gets a [race_map] hint + its own C-slot instead, which always
+          # wins over this one. All paths are vanilla Skyrim - Sounds.bsa (verified).
+id = "C0"
+sex = "all"
+[slot.categories]
+Orgasm = [
+  'Sound\FX\NPC\Bear\NPC_Bear_AggroWarning_01.wav',
+  'Sound\FX\NPC\Bear\NPC_Bear_AggroWarning_02.wav',
+  'Sound\FX\NPC\Bear\Injured\NPC_Bear_Injured_01.wav',
+  'Sound\FX\NPC\Bear\Injured\NPC_Bear_Injured_02.wav',
+  'Sound\FX\NPC\SabreCat\NPC_SabreCat_IdleCombat_01.wav',
+  'Sound\FX\NPC\SabreCat\NPC_SabreCat_IdleCombat_02.wav',
+  'Sound\FX\NPC\SabreCat\Injured\NPC_SabreCat_Injured_01.wav',
+  'Sound\FX\NPC\SabreCat\Injured\NPC_SabreCat_Injured_02.wav',
+]
+Breathing = [
+  'Sound\FX\NPC\Bear\NPC_Bear_Conscious_LP.wav',
+  'Sound\FX\NPC\Bear\NPC_Bear_IdleRooting_01.wav',
+  'Sound\FX\NPC\SabreCat\NPC_SabreCat_Breathe_LP.wav',
+  'Sound\FX\NPC\SabreCat\NPC_SabreCat_AggroWarning_01.wav',
+  'Sound\FX\NPC\SabreCat\NPC_SabreCat_AggroWarning_02.wav',
+  'Sound\fx\npc\troll\npc_troll_breathe_lp.wav',
+]
 
 [[slot]]  # Werewolf
 id = "C1"
