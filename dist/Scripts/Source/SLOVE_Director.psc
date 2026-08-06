@@ -138,7 +138,7 @@ Function ClearSpellsFromTrackedActors()
 	if VoiceSpell && playerref && playerref.HasSpell(VoiceSpell)
 		playerref.RemoveSpell(VoiceSpell)
 	endif
-	if actorList == None
+	if !actorList ;NOT "== None": comparing a None array logs a cast error
 		return
 	endif
 	int z = 0
@@ -924,7 +924,7 @@ Function TryAdoptNpcScene(int tid)
 		return
 	endif
 	Actor[] positions = t.GetPositions()
-	if positions == None || positions.length == 0
+	if !positions || positions.length == 0 ;NOT "== None": comparing a None array logs a cast error
 		return
 	endif
 	Actor anchor = positions[0]
@@ -951,7 +951,7 @@ Function TryAdoptNpcScene(int tid)
 	ApplyModuleSpellsToNpcList(positions)
 	if NpcSceneSpell
 		anchor.AddSpell(NpcSceneSpell, abVerbose = False)
-		if NpcSceneAnchors == None
+		if !NpcSceneAnchors ;NOT "== None": comparing a None array logs a cast error
 			NpcSceneAnchors = PapyrusUtil.ActorArray(0)
 		endif
 		NpcSceneAnchors = PapyrusUtil.PushActor(NpcSceneAnchors, anchor)
@@ -962,7 +962,7 @@ EndFunction
 ;count still active. Keeps the concurrency cap honest without a scene-end handshake
 ;(which would not survive save/load anyway).
 int Function PruneNpcSceneAnchors()
-	if NpcSceneAnchors == None
+	if !NpcSceneAnchors ;NOT "== None": comparing a None array logs a cast error
 		NpcSceneAnchors = PapyrusUtil.ActorArray(0)
 		return 0
 	endif
@@ -1048,7 +1048,8 @@ EndFunction
 Function SuppressSexLabVoice()
 	;!Available() = AudioUtil DLL missing -> AudioUtil.Play no-ops, so DON'T silence
 	;SexLab too (that would be dead silence). Fail open to SexLab's own moans instead.
-	if enablevoice != 1 || suppresssexlabvoice != 1 || CurrentThread == none || actorList == none || !SLOVE_Config.Available()
+	;!actorList, NOT "actorList == none": comparing a None array logs a cast error
+	if enablevoice != 1 || suppresssexlabvoice != 1 || CurrentThread == none || !actorList || !SLOVE_Config.Available()
 		return
 	endif
 	int i = 0
