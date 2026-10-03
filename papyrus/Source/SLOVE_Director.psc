@@ -1357,6 +1357,9 @@ Function UpdateLabelsArr(string anim , int stage)
 	BasePenisActionLabelarr = CopyStringArray(PenisActionLabelarr)
 	BaseOralLabelarr = CopyStringArray(OralLabelarr)
 	BasePenetrationLabelarr = CopyStringArray(PenetrationLabelarr)
+	;new baseline: forget the overlay's per-position anatomy cache and pending hole sample
+	PhysPenis = PapyrusUtil.IntArray(0)
+	PhysHoleSeen = PapyrusUtil.StringArray(0)
 
 	ApplyPhysicsLabels()
 
@@ -1395,6 +1398,10 @@ endfunction
 ;intensity tracks the real animation speed including user AnimSpeed overrides.
 float[] PhysVelEnvelope
 bool[] PhysVelFast
+;per-position anatomy cache for the overlay (0 unknown, 1 has a penis, -1 none) and
+;the last CONTRADICTING hole sample for its two-pass debounce; both reset per stage
+int[] PhysPenis
+string[] PhysHoleSeen
 ;tag-derived baselines, snapshotted per stage in UpdateLabelsArr; the overlay always
 ;derives from these so labels revert when contact ends and posture info survives
 string[] BaseStimulationlabelarr
@@ -1422,6 +1429,12 @@ Bool Function ApplyPhysicsLabels()
 	if PhysVelEnvelope.Length != actorlist.Length || PhysVelFast.Length != actorlist.Length
 		PhysVelEnvelope = PapyrusUtil.FloatArray(actorlist.Length)
 		PhysVelFast = PapyrusUtil.BoolArray(actorlist.Length)
+	endif
+	if PhysPenis.Length != actorlist.Length
+		PhysPenis = PapyrusUtil.IntArray(actorlist.Length)
+	endif
+	if PhysHoleSeen.Length != actorlist.Length
+		PhysHoleSeen = PapyrusUtil.StringArray(actorlist.Length)
 	endif
 
 	bool changed = false
@@ -1462,6 +1475,30 @@ Bool Function ApplyPhysicsLabels()
 				penisDeep = f[24] ;pDeepthroat
 				penisHJ = f[19] ;pHandJob
 				penisFJ = f[20] ;pFootJob
+
+				;P+ raises these for a CROTCH, not a penis (its pOral reads "pos_crotch is
+				;being licked/sucked"), and its legacy detector books a woman's hand or foot
+				;on another woman's vulva against the TOUCHER. On a position without a penis
+				;they can only mean oral/fingering received - the licker's own oral label
+				;already says CUN - so they must not become a blowjob/handjob/footjob label:
+				;that read a licked woman as "her penis is being sucked", dispatched blowjob
+				;categories and tagged her "rcv strapon oral". Anatomy is asked once per
+				;position per stage (HasPenis costs externals) and only when a flag is up.
+				if penisSucked || penisDeep || penisHJ || penisFJ
+					if PhysPenis[z] == 0
+						if HasPenis(pos)
+							PhysPenis[z] = 1
+						else
+							PhysPenis[z] = -1
+						endif
+					endif
+					if PhysPenis[z] == -1
+						penisSucked = false
+						penisDeep = false
+						penisHJ = false
+						penisFJ = false
+					endif
+				endif
 
 				actor prt
 				if recvVag
@@ -1539,15 +1576,50 @@ Bool Function ApplyPhysicsLabels()
 			;Penetration label (receiver view)
 			string base = BasePenetrationLabelarr[z]
 			string newlbl = base
+			;the measured hole as a code - V / A / D, "" = no contact
+			string hole = ""
 			if recvVag && recvAnal
-				newlbl = sp + "DP"
+				hole = "D"
 			elseif recvVag
+				hole = "V"
+			elseif recvAnal
+				hole = "A"
+			endif
+			;the tag's hole, same codes ("" = the tags have no penetration here)
+			string baseHole = ""
+			if base == "SVP" || base == "FVP" || base == "SCG" || base == "FCG"
+				baseHole = "V"
+			elseif base == "SAP" || base == "FAP" || base == "SAC" || base == "FAC"
+				baseHole = "A"
+			elseif base == "SDP" || base == "FDP"
+				baseHole = "D"
+			endif
+			;debounce a measured hole that CONTRADICTS a tagged one: the legacy detector's
+			;anus and vagina nodes sit close, so a single pVaginal sample on an anal-tagged
+			;stage used to flip the label to VP for one pass (the category said vaginal
+			;while the facts and PPA said anal). Velocity has a hysteresis for the same
+			;reason; the hole gets a two-pass confirmation - the same reading on two
+			;consecutive passes before it overrides the tag. A hole that agrees with the
+			;tag, a tag without penetration or a DP tag apply at once, as before; contact
+			;ending reverts at once too.
+			if hole != "" && baseHole != "" && baseHole != "D" && hole != baseHole
+				if PhysHoleSeen[z] != hole
+					PhysHoleSeen[z] = hole ;first contradicting sample: hold the current label
+					newlbl = PenetrationLabelarr[z]
+					hole = "?"
+				endif
+			else
+				PhysHoleSeen[z] = ""
+			endif
+			if hole == "D"
+				newlbl = sp + "DP"
+			elseif hole == "V"
 				if base == "SCG" || base == "FCG"
 					newlbl = sp + "CG" ;keep cowgirl posture from tags
 				else
 					newlbl = sp + "VP"
 				endif
-			elseif recvAnal
+			elseif hole == "A"
 				if base == "SAC" || base == "FAC"
 					newlbl = sp + "AC"
 				else
@@ -2043,6 +2115,39 @@ bool Function IsSubmissive(actor char)
 		return false
 	endif
 	return CurrentThread.GetSubmissive(char)
+EndFunction
+
+;Does this actor have a penis to receive a penis act with: a man, a futa or a male
+;creature (SexLab sex tiers 0/2/3), or a female-tier actor SOS or TNG schlongs.
+;The physics overlay keys its pOral/pHandJob/pFootJob reading on it - see
+;ApplyPhysicsLabels. Costs externals; callers cache per position.
+Bool Function HasPenis(Actor char)
+	if !char
+		return false
+	endif
+	int tier = GetSexTier(char)
+	if tier == 0 || tier == 2 || tier == 3
+		return true
+	elseif tier != 1
+		return false ;female creature
+	endif
+	if schlongfaction && char.IsInFaction(schlongfaction)
+		return true
+	endif
+	if TNG_Gentlewoman && char.HasKeyword(TNG_Gentlewoman)
+		return true
+	endif
+	return false
+EndFunction
+
+;Is SexLab P+ animating this actor with a strap-on (it equipped one for the scene)?
+;The voice engine's implement facts ask this instead of guessing "strapon" for any
+;woman without a schlong.
+Bool Function IsUsingStrapon(Actor char)
+	if !CurrentThread || !char
+		return false
+	endif
+	return CurrentThread.IsUsingStrapon(char)
 EndFunction
 
 string Function GetActiveSceneId()

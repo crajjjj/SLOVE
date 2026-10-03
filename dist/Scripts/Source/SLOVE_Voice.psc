@@ -22,6 +22,12 @@ Spell Property SceneTrackerSpell Auto ;CK-filled
 Actor actorWithSceneTrackerSpell = None
 Actor mainFemaleActor = None
 Actor mainMaleActor = None
+;per-scene implement caches ("?" / 0 = not asked yet) - see LeadImplement / PartnerImplement
+String LeadImplementCache = "?"
+int PartnerStraponCache = 0
+;PPAPlace's last contradicting hole per direction (its two-sample debounce)
+String PPAPrevPlaceRcv = ""
+String PPAPrevPlaceGiv = ""
 ;--- voice-all-actors: every male in the scene may speak with his own AudioUtil slot
 Actor[] sceneMales                 ;all non-PC males (incl. schlonged females)
 Bool mainMaleIsVoiced = false      ;true only when mainMaleActor is a human male/schlonged futa; the partner fallback (e.g. a creature) must stay silent
@@ -288,6 +294,12 @@ Bool Function IsVoicedMale(Actor a)
 EndFunction
 
 Function FindActorsAndVoices()
+
+	;new cast: forget what the implement caches and the PPA hole debounce knew
+	LeadImplementCache = "?"
+	PartnerStraponCache = 0
+	PPAPrevPlaceRcv = ""
+	PPAPrevPlaceGiv = ""
 
 	Actor[] actorList = MasterScript.GetPositions()
 	Int actorCount = actorList.Length
@@ -1363,21 +1375,45 @@ String Function PPAPlace(String labelPlace, String dir)
 		return labelPlace
 	endif
 	int site = AudioUtilPPA.GetPenetrationSite(receiver)
+	String ppaPlace = ""
 	if site == 1        ;Mouth
-		return "oral"
+		ppaPlace = "oral"
 	elseif site == 2    ;Anus
-		return "anal"
+		ppaPlace = "anal"
 	elseif site == 3    ;Vagina
-		return "vaginal"
+		ppaPlace = "vaginal"
 	elseif site >= 5 && site <= 7   ;HandL / HandR / Hands
 		;PPA's site names where the PENIS is (the struct carries penisSize), so a
 		;hand site is a handjob - the same thing our "hand" token means.
-		return "hand"
+		ppaPlace = "hand"
 	elseif site == 4    ;Both - a DP
-		return "dp"
+		ppaPlace = "dp"
 	endif
-	;site 0 None: nothing measured, so the labels have it
-	return labelPlace
+	if ppaPlace == ""
+		;site 0 None: nothing measured, so the labels have it
+		return labelPlace
+	endif
+	;a PPA hole that CONTRADICTS a tagged hole needs two consecutive reads agreeing
+	;before it wins - the same two-sample rule the Director's physics overlay applies.
+	;The site is per-frame data that can flicker between the anus and the vagina, and
+	;one flicker used to flip a line's place fact on an anal-tagged stage. The redirect
+	;menu this override exists for is a lasting change, so it lands on the next read.
+	;A site that agrees with the label, or a label with no hole, wins at once.
+	bool contradicts = (labelPlace == "anal" || labelPlace == "vaginal") && (ppaPlace == "anal" || ppaPlace == "vaginal") && ppaPlace != labelPlace
+	if dir == "giv"
+		if contradicts && PPAPrevPlaceGiv != ppaPlace
+			PPAPrevPlaceGiv = ppaPlace
+			return labelPlace
+		endif
+		PPAPrevPlaceGiv = ppaPlace
+	else
+		if contradicts && PPAPrevPlaceRcv != ppaPlace
+			PPAPrevPlaceRcv = ppaPlace
+			return labelPlace
+		endif
+		PPAPrevPlaceRcv = ppaPlace
+	endif
+	return ppaPlace
 EndFunction
 
 ;PPA readings live in SLOVE_PPA (shared with SLOVE_NpcScene - this used to be
@@ -1455,10 +1491,21 @@ EndFunction
 ;implement when the LEAD is the one penetrating: her own if she has one,
 ;otherwise she is wearing it.
 String Function LeadImplement()
-	if hasSchlong(mainFemaleActor)
-		return "cock"
+	;her own implement: a schlong, the strap-on the framework equipped on her, or
+	;nothing. It used to answer "strapon" for any lead without a schlong, which made
+	;a licked woman's line say "rcv strapon oral" - a strap-on she never wore. Absent
+	;is the safe degrade (the pool just loses its implement axis). Cached per scene:
+	;the answer cannot change mid-scene and the label predicates ask on every pass.
+	if LeadImplementCache == "?"
+		if hasSchlong(mainFemaleActor)
+			LeadImplementCache = "cock"
+		elseif MasterScript.IsUsingStrapon(mainFemaleActor)
+			LeadImplementCache = "strapon"
+		else
+			LeadImplementCache = ""
+		endif
 	endif
-	return "strapon"
+	return LeadImplementCache
 EndFunction
 
 ;implement when the act runs on the PARTNER's anatomy; "" when he hasn't got one
@@ -1485,7 +1532,20 @@ String Function PartnerImplement(Bool a_inferStrapon = true)
 		;the F/F strapon inference must not apply; absent is the safe degrade here too
 		return ""
 	endif
-	return "strapon"
+	;a female-bodied human partner: the strap-on the framework equipped on her, if
+	;any - asked, not assumed (an F/F penetration scene with strap-ons disabled has
+	;nothing to name). Cached per scene like LeadImplement.
+	if PartnerStraponCache == 0
+		if MasterScript.IsUsingStrapon(mainMaleActor)
+			PartnerStraponCache = 1
+		else
+			PartnerStraponCache = -1
+		endif
+	endif
+	if PartnerStraponCache == 1
+		return "strapon"
+	endif
+	return ""
 EndFunction
 ;per-actor beastkind cache (see BeastkindFor)
 Actor cachedBeastkindActor
@@ -3517,14 +3577,43 @@ Bool Function AllowMaleVoice()
 
 endfunction
 
+;CurrentPenetrationLvl's penetration branch: 3 anal (DP counts as anal, as it
+;always did), 2 vaginal, 1 when PPA says the penis is in a mouth instead. The label
+;answer is the fallback for a hand site or nothing measured.
+Int Function PenetrationHoleLvl()
+	String labelPlace = "vaginal"
+	if IsGettingAnallyPenetrated() || IsGivingAnalPenetration()
+		labelPlace = "anal"
+	endif
+	String dir = "rcv"
+	if !IsgettingPenetrated()
+		dir = "giv"
+	endif
+	String place = PPAPlace(labelPlace, dir)
+	if place == "anal" || place == "dp"
+		return 3
+	elseif place == "vaginal"
+		return 2
+	elseif place == "oral"
+		return 1
+	endif
+	if labelPlace == "anal"
+		return 3
+	endif
+	return 2
+EndFunction
+
 Int Function CurrentPenetrationLvl()
 
 	if Primarystagelabel == "LDI" || IsStimulatingOthers()
 		return 0
-	elseif IsGettingAnallyPenetrated()  ||  IsGivingAnalPenetration()
-		return 3
-	elseif IsGettingVaginallyPenetrated() || IsGivingVaginalPenetration()
-		return 2
+	elseif IsgettingPenetrated() || IsGivingAnalPenetration() || IsGivingVaginalPenetration()
+		;the hole from the SAME resolver the facts use (PPAPlace: PPA's site when it
+		;names one, the labels otherwise), so the category a penetration or cum beat
+		;dispatches on and the place fact on its line can never name different holes
+		;- they did whenever PPA and the labels disagreed ("Ask For Vaginal Cum" with
+		;an "anal" fact)
+		return PenetrationHoleLvl()
 	elseif IsSuckingoffOther() || IsGettingSuckedoff()
 		return 1
 	elseif IsEnding() && (PreviouslyIsSuckingoffOther())
@@ -3621,8 +3710,18 @@ Bool Function IsGettingInsertedBig()
 	return Stimulationlabel == "BST"
 endfunction
 
+;Can the lead be on the receiving end of a penis act at all - a schlong or a
+;strap-on to suck, rub or stroke? Tag data occasionally gives a woman with neither
+;a penis label (SLSB conversions are not perfect; the physics overlay did too) -
+;without this the dispatch sent her to blowjob categories and the facts said
+;"rcv strapon oral". Such a label counts as plain stimulation instead (the stage's
+;SST label, when it has one). One cached read per scene (LeadImplement).
+Bool Function LeadHasImplement()
+	return LeadImplement() != ""
+endfunction
+
 Bool Function IsGettingSuckedoff()
-	return PenisActionLabel == "SMF" ||  PenisActionLabel == "FMF"
+	return (PenisActionLabel == "SMF" ||  PenisActionLabel == "FMF") && LeadHasImplement()
 endfunction
 
 ;--- the RECEIVING side of PenisActionLabel ------------------------------------
@@ -3630,15 +3729,15 @@ endfunction
 ;predicates above. Label only: nothing checks that the lead HAS anything, so the
 ;implement these produce is LeadImplement() - cock when schlonged, else strapon.
 Bool Function IsGettingHandjobbed()
-	return PenisActionLabel == "SHJ" || PenisActionLabel == "FHJ"
+	return (PenisActionLabel == "SHJ" || PenisActionLabel == "FHJ") && LeadHasImplement()
 endfunction
 
 Bool Function IsGettingTitfucked()
-	return PenisActionLabel == "STF" || PenisActionLabel == "FTF"
+	return (PenisActionLabel == "STF" || PenisActionLabel == "FTF") && LeadHasImplement()
 endfunction
 
 Bool Function IsGettingFootjobbed()
-	return PenisActionLabel == "SFJ" || PenisActionLabel == "FFJ"
+	return (PenisActionLabel == "SFJ" || PenisActionLabel == "FFJ") && LeadHasImplement()
 endfunction
 
 Bool Function IsGettingStimulated()
@@ -3691,9 +3790,14 @@ EndFunction
 ;  invents one, so an untagged scene cannot report a rider and keeps her "dom"
 ;- a woman or futa is inside her and she is not riding: the Femdom tag, if the
 ;  scene has one, describes the partner. A man can never be the fem in it
-;Slot order is deliberately NOT a signal: SexLab sorts females first, so a female
-;lead sits in slot 0 whatever the posture, and "giving from slot 0" would strip
-;"dom" from nearly every scene where she pegs a man.
+;Slot order is a signal in ONE direction only. SexLab sorts females first, so a
+;female lead sits in slot 0 whatever the posture - "giving from slot 0" says
+;nothing and would strip "dom" from nearly every scene where she pegs a man. But
+;she lands in slot 1 only when SexLab cast her in the male role of a mixed scene,
+;and SLSB femdom scenes put the dominant woman in position A: so under a Femdom
+;tag with a woman/futa partner in slot 0 and the lead elsewhere, the scene is the
+;partner's. That settles the non-penetrative stages (licking, hands, kissing,
+;lead-in) the two tests above cannot reach, which used to fall to "dom".
 Bool Function PartnerLeadsScene()
 	if mainMaleActor == None || MasterScript.IsSubmissive(mainMaleActor)
 		return false
@@ -3702,6 +3806,11 @@ Bool Function PartnerLeadsScene()
 	elseif IsgettingPenetrated() && !IsCowgirl() && (Sexlab.GetGender(mainMaleActor) % 2) == 1
 		;odd SexLab genders are the female-bodied ones (1 woman/futa, 3 female creature)
 		return MasterScript.HasSceneTag("Femdom")
+	elseif !IsgettingPenetrated() && (Sexlab.GetGender(mainMaleActor) % 2) == 1 && MasterScript.HasSceneTag("Femdom")
+		;non-penetrative stage under a Femdom tag with a woman/futa partner: the one
+		;direction slot order speaks in (see above) - the partner holds position A and
+		;the lead was cast elsewhere, so the tag is the partner's
+		return ActorsInPlay.Find(mainMaleActor) == 0 && ActorsInPlay.Find(mainFemaleActor) > 0
 	endif
 	return false
 EndFunction

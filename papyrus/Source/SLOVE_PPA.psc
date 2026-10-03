@@ -8,7 +8,10 @@ Scriptname SLOVE_PPA Hidden
 
 ;Snapshot slots (match AudioUtilPPA.GetSnapshot; the assembled fallback fills
 ;the first three): [0] depth, [1] context bitmask, [2] penetration site.
-;Empty array = no measurement (PPA absent, actor unknown, nothing tracked).
+;No measurement (PPA absent, actor unknown, nothing tracked) = every slot 0 on
+;AudioUtil 0.9.25+, an EMPTY array on older builds (which the VM handed over as
+;None and logged "Cannot cast from None to Float[]" here per call). The helpers
+;below read both the same way.
 float[] Function Read(Actor a) Global
 	if a == None || !AudioUtilPPA.IsConnected()
 		return PapyrusUtil.FloatArray(0)

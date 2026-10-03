@@ -1715,6 +1715,20 @@ bool Function IsSubmissive(actor char)
 	return CurrentThread.IsVictim(char)
 EndFunction
 
+;Is classic SexLab animating this actor with a strap-on? Its alias flag (UseStrapon:
+;strap-on slot set, not a creature). The voice engine's implement facts ask this
+;instead of guessing "strapon" for any woman without a schlong.
+Bool Function IsUsingStrapon(Actor char)
+	if !CurrentThread || !char
+		return false
+	endif
+	sslActorAlias al = CurrentThread.ActorAlias(char)
+	if !al
+		return false
+	endif
+	return al.UseStrapon
+EndFunction
+
 ;classic has no string scene id: the scene identity is the active sslBaseAnimation.
 ;Returned as a stable per-animation string for consumers/logging.
 string Function GetActiveSceneId()
