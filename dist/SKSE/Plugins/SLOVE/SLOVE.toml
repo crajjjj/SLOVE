@@ -142,7 +142,10 @@ ahegaoitems = ""
 ahegaostoragekeys = "TongueOn"
 chancetostickouttongueduringintense = 30
 chancetostickouttongueduringattacking = 10
-tonguemouthopenthreshold = 0.4 # jaw gate: min measured mouth-open for tongue
+tonguemouthopenthreshold = 0.4 # jaw gate: min measured mouth-open for tongue. The SHAPE the mouth is
+                               # held in while a tongue is out is not a TOML key: edit
+                               # tongueoutphonemeoverride in StorageUtilData\SLOVE\*Expressions.json
+                               # (phonemes 0-15 as 0-100; non-zero channels are forced; keep BigAah 40+)
 tongueretractgraceseconds = 2.0 # grace before retracting when the tongue's trigger briefly drops (oral proximity flickers as the head moves); raise to hold the tongue through longer gaps, 0 = retract instantly
 printdebug = 0
 

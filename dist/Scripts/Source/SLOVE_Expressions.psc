@@ -200,6 +200,12 @@ bool CacheUsedFallback = false
 float[] BlowjobOverrideF
 float[] BrokenOverrideF
 float[] TongueOutOverrideF
+;compact form of the tongue-out preset's NON-ZERO phoneme channels (ids + 0-100 values),
+;built by BuildTongueHold: the mouth held open while a tongue is out. Every hold path
+;reads this one list, so the full pass and the sub-tick can't drift apart.
+int[] TongueHoldIds
+int[] TongueHoldVals
+int TongueHoldCount = 0
 float[] KisOverrideF
 float[] CunOverrideF
 
@@ -478,13 +484,12 @@ Bool Function FullExpressionPass()
 	;FaceOwnsMouth/IsOralGiver fix), and some tongue branches leave the jaw shut - the MFEE
 	;tongue path when tonguephonemebigaah is unconfigured (0), or a cun/blowjob mislabel that
 	;falls through the tongue-out branch - so the tongue would poke through a closed mouth.
-	;Floor BigAah (the jaw opener GetMeasuredMouthOpen keys on, so this also keeps the jaw
-	;gate from retracting the tongue) to the tongue-out preset's own open value whenever a
-	;tongue is out and lipsync isn't actively driving the mouth. No-op when the tongue-out
-	;branch already set it. The tongue-shape channels (e.g. MFEE's 'oh') are left untouched.
-	;cache the hold condition. A tongue-wearer's open mouth is applied via OpenMouth AFTER the
-	;smooth apply below, and re-applied each sub-tick in BreathePass - so the full pass and the
-	;sub-tick use the SAME shape (no pulsing between the tongue-out preset and OpenMouth).
+	;Force the tongue hold (the tongueoutphonemeoverride preset's non-zero channels, see
+	;BuildTongueHold - the jaw openers GetMeasuredMouthOpen keys on, so this also keeps the
+	;jaw gate from retracting the tongue) whenever a tongue is out and lipsync isn't actively
+	;driving the mouth. The preset's zero channels (e.g. MFEE's 'oh') are left untouched.
+	;cache the hold condition. The same hold is re-applied each sub-tick in BreathePass via
+	;OpenMouth - so the full pass and the sub-tick use the SAME shape (no pulsing).
 	HoldMouthOpenTick = (EquippedTongue() || MFEEAddTongue) && !(AudioUtil.IsLipSyncActive(actorref) && !LipSyncBlockedForFace)
 
 	;TEMP DIAGNOSTIC (tongue clip) - commented out for release. Re-enable to trace, per
@@ -497,16 +502,18 @@ Bool Function FullExpressionPass()
 	;	printdebug("TONGUE-MOUTH eq=" + EquippedTongue() + " shown=" + FHUTongueShown + " isPlayer=" + IsPlayer + " cun=" + IsCunnilingus() + " blocked=" + LipSyncBlockedForFace + " lsActive=" + AudioUtil.IsLipSyncActive(actorref) + " | preMouth aah=" + MfgConsoleFunc.GetPhoneme(actorref, 0) + " bigaah=" + MfgConsoleFunc.GetPhoneme(actorref, 1) + " -> apply r0=" + result[0] + " r1=" + result[1] + " | MFEE hasMFEE=" + HasMFEE + " vanilla=" + HasMFEEVanillaRace + " ahegaoVal=" + dbgAhegaoVal + " mfeeTongue=" + MFEEAddTongue + " broken=" + brokenface)
 	;endif
 
-	;wire OpenMouth's shape straight into result (fractions of its 0-100 values) so the single
-	;smooth apply below carries it - same mouth as BreathePass, without 6 extra SetPhoneme calls.
-	;KEEP IN SYNC with OpenMouth(): 0/1=75, 5/6/7=100, 9=68.
+	;wire the tongue hold straight into result (fractions of its 0-100 values) so the single
+	;smooth apply below carries it - the same mouth OpenMouth applies in BreathePass, without
+	;extra SetPhoneme calls. Both read TongueHoldIds/Vals, so the two can't drift apart.
 	if HoldMouthOpenTick
-		result[0] = 0.75
-		result[1] = 0.75
-		result[5] = 1.0
-		result[6] = 1.0
-		result[7] = 1.0
-		result[9] = 0.68
+		if TongueHoldCount == 0 ;instance resumed from a save made before the hold list existed
+			BuildTongueHold()
+		endif
+		int holdIdx = 0
+		while holdIdx < TongueHoldCount
+			result[TongueHoldIds[holdIdx]] = TongueHoldVals[holdIdx] / 100.0
+			holdIdx += 1
+		endwhile
 	endif
 	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
 	BreathIntense = Isintense()
@@ -719,6 +726,51 @@ Float[] Function GetCachedPhase(int p)
 	return CachedPhase5
 EndFunction
 
+Function BuildTongueHold()
+	;the mouth held open for a tongue is the tongueoutphonemeoverride preset (per-actor
+	;expressions JSON): every NON-ZERO phoneme channel (0-15) is forced to its value while a
+	;tongue is out, zero channels are left to the underlying face. Compacted here so the
+	;per-sub-tick apply only touches the channels that matter (6 by default). A preset with
+	;no open-mouth channel (key missing from an old/edited JSON) falls back to SexLab's own
+	;open mouth (sslBaseExpression.OpenMouth: 0/1=75, 5/6/7=100, 9=68 - the shape this used
+	;to hardcode), so a tongue never pokes through a closed mouth. A custom shape should keep
+	;BigAah (1) at 40+ or Aah (0) at 60+: below that SexLab P+'s IsMouthOpen reads the mouth
+	;as closed and re-applies its own shape over ours, and the jaw gate
+	;(tonguemouthopenthreshold) retracts the tongue once the widest jaw channel is under it.
+	TongueHoldIds = new int[16]
+	TongueHoldVals = new int[16]
+	TongueHoldCount = 0
+	int n = 0
+	if TongueOutOverrideF
+		n = TongueOutOverrideF.Length
+	endif
+	int i = 0
+	while i < 16 && i < n
+		if TongueOutOverrideF[i] > 0.0
+			TongueHoldIds[TongueHoldCount] = i
+			TongueHoldVals[TongueHoldCount] = (TongueOutOverrideF[i] * 100.0 + 0.5) as int
+			TongueHoldCount += 1
+		endif
+		i += 1
+	endwhile
+	if TongueHoldCount == 0
+		TongueHoldIds[0] = 0
+		TongueHoldVals[0] = 75
+		TongueHoldIds[1] = 1
+		TongueHoldVals[1] = 75
+		TongueHoldIds[2] = 5
+		TongueHoldVals[2] = 100
+		TongueHoldIds[3] = 6
+		TongueHoldVals[3] = 100
+		TongueHoldIds[4] = 7
+		TongueHoldVals[4] = 100
+		TongueHoldIds[5] = 9
+		TongueHoldVals[5] = 68
+		TongueHoldCount = 6
+	endif
+	printdebug("tongue hold channels : " + TongueHoldCount)
+EndFunction
+
 Float[] Function ConvertPresetToFloats(String[] values)
 	float[] result = new float[32]
 	int srclen = values.length
@@ -866,6 +918,7 @@ Function InitializeConfigandForms()
 	BlowjobOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"blowjobphonemeoverride","") ,","))
 	BrokenOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"brokenmodifieroverride","") ,","))
 	TongueOutOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"tongueoutphonemeoverride","") ,","))
+	BuildTongueHold()
 	KisOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"kisphonemeoverride","") ,","))
 	CunOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"cunphonemeoverride","") ,","))
 	CachedLabelGroup = "" ;presets may have changed - force a phase cache reload
@@ -979,17 +1032,21 @@ Function SetSexLabForceOpenMouth(Actor akActor, bool abForce)
 	endif
 EndFunction
 
-function OpenMouth(Actor act) global
-	;the SexLab open-mouth shape (matches sslBaseExpression.OpenMouth / IsMouthOpen). Only
-	;the 6 non-zero phonemes are set - no per-call array alloc, and the other 10 channels stay
-	;0 (a NiNode wipe already zeroed them). Called every sub-tick per tongue-wearer, so cheap.
-	SLOVE_Expressions.SmoothSetPhoneme(act, 0, 75)
-	SLOVE_Expressions.SmoothSetPhoneme(act, 1, 75)
-	SLOVE_Expressions.SmoothSetPhoneme(act, 5, 100)
-	SLOVE_Expressions.SmoothSetPhoneme(act, 6, 100)
-	SLOVE_Expressions.SmoothSetPhoneme(act, 7, 100)
-	SLOVE_Expressions.SmoothSetPhoneme(act, 9, 68)
-endFunction
+Function OpenMouth(Actor act)
+	;the tongue hold: the tongueoutphonemeoverride preset's non-zero phonemes (see
+	;BuildTongueHold; default = SexLab's open mouth, matching sslBaseExpression.OpenMouth /
+	;IsMouthOpen). Only those channels are set - no per-call array alloc, the zero channels
+	;stay as they are (a NiNode wipe already zeroed them). Called every sub-tick per
+	;tongue-wearer, so cheap.
+	if TongueHoldCount == 0 ;instance resumed from a save made before the hold list existed
+		BuildTongueHold()
+	endif
+	int holdIdx = 0
+	while holdIdx < TongueHoldCount
+		SmoothSetPhoneme(act, TongueHoldIds[holdIdx], TongueHoldVals[holdIdx])
+		holdIdx += 1
+	endwhile
+EndFunction
 
 Function SmoothSetPhoneme(Actor act, Int id, Int str_dest, float modifier = 1.0) global
 	str_dest = (str_dest * modifier) as Int

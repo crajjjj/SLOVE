@@ -189,6 +189,12 @@ bool CacheUsedFallback = false
 float[] BlowjobOverrideF
 float[] BrokenOverrideF
 float[] TongueOutOverrideF
+;compact form of the tongue-out preset's NON-ZERO phoneme channels (ids + 0-100 values),
+;built by BuildTongueHold: the mouth held open while a tongue is out. Every hold path
+;reads this one list, so the full pass and the sub-tick can't drift apart.
+int[] TongueHoldIds
+int[] TongueHoldVals
+int TongueHoldCount = 0
 float[] KisOverrideF
 float[] CunOverrideF
 
@@ -465,15 +471,24 @@ Bool Function FullExpressionPass()
 	;FaceOwnsMouth/IsOralGiver fix), and some tongue branches leave the jaw shut - the MFEE
 	;tongue path when tonguephonemebigaah is unconfigured (0), or a cun/blowjob mislabel that
 	;falls through the tongue-out branch - so the tongue would poke through a closed mouth.
-	;Floor BigAah (the jaw opener GetMeasuredMouthOpen keys on, so this also keeps the jaw
-	;gate from retracting the tongue) to the tongue-out preset's own open value whenever a
-	;tongue is out and lipsync isn't actively driving the mouth. No-op when the tongue-out
-	;branch already set it, and (classic) inert while tongues stay gated off. Shape channels
-	;(e.g. MFEE's 'oh') left untouched.
+	;Floor the tongue hold (the tongueoutphonemeoverride preset's non-zero channels, see
+	;BuildTongueHold - the jaw openers GetMeasuredMouthOpen keys on, so this also keeps the
+	;jaw gate from retracting the tongue) whenever a tongue is out and lipsync isn't actively
+	;driving the mouth. No-op when the tongue-out branch already set it, and (classic) inert
+	;while tongues stay gated off. The preset's zero channels (e.g. MFEE's 'oh') are left
+	;untouched.
 	if (EquippedTongue() || MFEEAddTongue) && !(AudioUtil.IsLipSyncActive(actorref) && !LipSyncBlockedForFace)
-		if TongueOutOverrideF.Length > 1 && result[1] < TongueOutOverrideF[1]
-			result[1] = TongueOutOverrideF[1]
+		if TongueHoldCount == 0 ;instance resumed from a save made before the hold list existed
+			BuildTongueHold()
 		endif
+		int holdIdx = 0
+		while holdIdx < TongueHoldCount
+			float holdVal = TongueHoldVals[holdIdx] / 100.0
+			if result[TongueHoldIds[holdIdx]] < holdVal
+				result[TongueHoldIds[holdIdx]] = holdVal
+			endif
+			holdIdx += 1
+		endwhile
 	endif
 
 	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
@@ -680,6 +695,51 @@ Float[] Function GetCachedPhase(int p)
 	return CachedPhase5
 EndFunction
 
+Function BuildTongueHold()
+	;the mouth held open for a tongue is the tongueoutphonemeoverride preset (per-actor
+	;expressions JSON): every NON-ZERO phoneme channel (0-15) is forced to its value while a
+	;tongue is out, zero channels are left to the underlying face. Compacted here so the
+	;per-sub-tick apply only touches the channels that matter (6 by default). A preset with
+	;no open-mouth channel (key missing from an old/edited JSON) falls back to SexLab's own
+	;open mouth (sslBaseExpression.OpenMouth: 0/1=75, 5/6/7=100, 9=68 - the shape this used
+	;to hardcode), so a tongue never pokes through a closed mouth. A custom shape should keep
+	;BigAah (1) at 40+ or Aah (0) at 60+: below that SexLab P+'s IsMouthOpen reads the mouth
+	;as closed and re-applies its own shape over ours, and the jaw gate
+	;(tonguemouthopenthreshold) retracts the tongue once the widest jaw channel is under it.
+	TongueHoldIds = new int[16]
+	TongueHoldVals = new int[16]
+	TongueHoldCount = 0
+	int n = 0
+	if TongueOutOverrideF
+		n = TongueOutOverrideF.Length
+	endif
+	int i = 0
+	while i < 16 && i < n
+		if TongueOutOverrideF[i] > 0.0
+			TongueHoldIds[TongueHoldCount] = i
+			TongueHoldVals[TongueHoldCount] = (TongueOutOverrideF[i] * 100.0 + 0.5) as int
+			TongueHoldCount += 1
+		endif
+		i += 1
+	endwhile
+	if TongueHoldCount == 0
+		TongueHoldIds[0] = 0
+		TongueHoldVals[0] = 75
+		TongueHoldIds[1] = 1
+		TongueHoldVals[1] = 75
+		TongueHoldIds[2] = 5
+		TongueHoldVals[2] = 100
+		TongueHoldIds[3] = 6
+		TongueHoldVals[3] = 100
+		TongueHoldIds[4] = 7
+		TongueHoldVals[4] = 100
+		TongueHoldIds[5] = 9
+		TongueHoldVals[5] = 68
+		TongueHoldCount = 6
+	endif
+	printdebug("tongue hold channels : " + TongueHoldCount)
+EndFunction
+
 Float[] Function ConvertPresetToFloats(String[] values)
 	float[] result = new float[32]
 	int srclen = values.length
@@ -826,6 +886,7 @@ Function InitializeConfigandForms()
 	BlowjobOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"blowjobphonemeoverride","") ,","))
 	BrokenOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"brokenmodifieroverride","") ,","))
 	TongueOutOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"tongueoutphonemeoverride","") ,","))
+	BuildTongueHold()
 	KisOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"kisphonemeoverride","") ,","))
 	CunOverrideF = ConvertPresetToFloats(papyrusutil.stringsplit(JsonUtil.GetStringValue(ExpressionsFile,"cunphonemeoverride","") ,","))
 	CachedLabelGroup = "" ;presets may have changed - force a phase cache reload

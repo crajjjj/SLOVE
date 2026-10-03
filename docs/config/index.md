@@ -77,7 +77,7 @@ Not TOML, but part of the configuration surface:
 
 | File | Contents |
 |---|---|
-| `SKSE\Plugins\StorageUtilData\SLOVE\PCExpressions.json` | face presets for the player |
+| `SKSE\Plugins\StorageUtilData\SLOVE\PCExpressions.json` | face presets for the player, incl. `tongueoutphonemeoverride`, the mouth held open for a tongue (see [SLOVE.toml](slove.md#expressions)) |
 | `…\MaleExpressions.json`, `…\FemaleExpressions.json` | face presets for NPCs |
 | `…\Masks.json`, `…\NPCTongue.json`, `…\ErinMFEEConfig.json` | mask detection, tongue models, MFEE mapping |
 | `…\ResistanceRaceBase.json` | per-race willpower denominators for NPCs |
