@@ -18,7 +18,7 @@ SLO VE watches the running SexLab scene and drives voices, facial expressions, a
 
 REQUIREMENTS (hard)
 
-- SKSE64 + SexLab P+ 2.19+ (or classic SexLab - see the classic build)
+- SKSE64 + SexLab P+ 2.19+ (or classic SexLab - see the classic build). P+ 2.19 support is beta since SLO VE 0.6.26; on P+ 2.18 or older use SLO VE 0.6.25.
 - AudioUtil 0.9.3+ — the folder-based audio/lipsync/TOML framework SLO VE runs on (update it before updating SLO VE). Please endorse it if you enjoy SLO VE:
   https://www.nexusmods.com/skyrimspecialedition/mods/186249
 - PapyrusUtil, Mfg Fix NG

@@ -13,7 +13,7 @@ reference, troubleshooting.
 
 | Dependency | Why |
 |---|---|
-| SKSE64, SexLab P+ (2.19+) | scene framework |
+| SKSE64, SexLab P+ (2.19+) | scene framework. 2.19 support is **beta** since SLO VE 0.6.26; on P+ 2.18 or older use SLO VE 0.6.25 |
 | **AudioUtil** | voice playback (folder-based slots), lipsync, TOML config API |
 | PapyrusUtil | JSON preset data (expression faces) |
 | Mfg Fix NG (MfgConsoleFunc/Ext) | all face writes |
