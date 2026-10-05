@@ -1274,13 +1274,14 @@ endfunction
 ;            what the classic build uses alone. Physics-only proved too narrow:
 ;            the proximity flags need the mouth exactly at the target, so
 ;            misaligned animations never fired a tongue at all.
-; - physics: f[12] aOral (mouth licking/sucking a crotch) or f[13] aLickingShaft
+; - physics: f[17] aOral (mouth licking/sucking a crotch) or f[15] aLickingShaft
 ;            (mouth licking a shaft) - the per-actor GIVER flags, live per SLPP
 ;            update. More precise than the label (identifies the giver directly;
-;            the receiver carries pOral/f[23], never these), so it adds coverage
+;            the receiver carries pOral/f[18], never these), so it adds coverage
 ;            for lick acts the labels missed - but stays gated by
 ;            SceneTagLickScene so a stray flag can't fire in an unrelated scene.
-;P+ only - classic SexLab has no GetCurrentInteractionFlags and stays on the label.
+;            Indices are SexLab P+ 2.19's InterType order (27 flags).
+;P+ only - classic SexLab has no GetInteractionFlags and stays on the label.
 Bool Function IsOralTongueActive()
 	if IsCunnilingus()
 		return true
@@ -1304,19 +1305,19 @@ Bool Function IsOralTongueActive()
 	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
 		return false
 	endif
-	bool[] f = CurrentThread.GetCurrentInteractionFlags(actorref)
-	if f.Length < 28
+	bool[] f = CurrentThread.GetInteractionFlags(actorref)
+	if f.Length < 27
 		return false
 	endif
-	if !(f[12] || f[13]) ;aOral (mouth on a crotch) / aLickingShaft
+	if !(f[17] || f[15]) ;aOral (mouth on a crotch) / aLickingShaft
 		return false
 	endif
 	;aOral/aLickingShaft fire on a PENIS too, so an MF scene tagged BOTH "cunnilingus" and
 	;"blowjob" (observed: scene 70xybo0o) gave the blowjob-giver a tongue over a dick. Suppress
 	;the lick tongue ONLY when the oral partner is POSITIVELY male (a penis in the mouth). A
 	;female OR an unresolved partner keeps the tongue: FF cunnilingus is the common case and
-	;must never lose its tongue to a failed partner lookup (GetPartnerByTypeRev returns none
-	;more often in no-penis geometry). The CUN-label path above already covers label-detected
+	;must never lose its tongue to a failed partner lookup (seen returning none more often
+	;in no-penis geometry on P+ 2.18). The CUN-label path above already covers label-detected
 	;cunnilingus. Net effect vs the old code: same tongue as before, minus a confirmed dick.
 	Actor oralReceiver = OralReceiver()
 	if oralReceiver && SexLab.GetGender(oralReceiver) % 2 == 0 ;positively male -> penis in mouth
@@ -1332,7 +1333,7 @@ Actor Function OralReceiver()
 	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
 		return none
 	endif
-	return CurrentThread.GetPartnerByTypeRev(actorref, 3)
+	return CurrentThread.GetPartnerByInteractionType(actorref, 17) ;aOral: whom actorref licks/sucks
 EndFunction
 
 Function unequipmask(actor char)

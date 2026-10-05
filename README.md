@@ -1,7 +1,7 @@
 # SLO VE — Voices and Expressions
 
 Standalone scene **voices**, **facial expressions**, **body SFX**
-(slushing/impacts/claps, optionally thrust-synced) and an optional
+(slushing/impacts/claps, optionally thrust-paced) and an optional
 **willpower / resistance** system for SexLab P+ scenes. No MCM — all
 configuration lives in TOML files.
 "SLO" = SexLab / OStim (OStim backend planned; v1 is SexLab P+ only).
@@ -13,7 +13,7 @@ reference, troubleshooting.
 
 | Dependency | Why |
 |---|---|
-| SKSE64, SexLab P+ (2.17+) | scene framework |
+| SKSE64, SexLab P+ (2.19+) | scene framework |
 | **AudioUtil** | voice playback (folder-based slots), lipsync, TOML config API |
 | PapyrusUtil | JSON preset data (expression faces) |
 | Mfg Fix NG (MfgConsoleFunc/Ext) | all face writes |

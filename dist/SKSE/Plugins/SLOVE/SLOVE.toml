@@ -10,8 +10,12 @@ enableexpressions = 1          # master switch: facial expressions
 enablepcexpression = 1
 enablemalenpcexpression = 1
 enablefemalenpcexpression = 1
-usephysicslabels = 1           # velocity-driven intense/soft (needs SLPP interactions)
-physicsfastvelocity = 25.0     # abs velocity at/above which a stage reads as Fast
+usephysicslabels = 1           # speed-driven intense/soft (needs SLPP interactions, P+ 2.19+)
+# Contact speed (world units/s) at/above which a stage reads as Fast. P+ 2.19
+# reports a ~0.25s average, lower than the peak 2.18 gave: 18 is the old 25
+# re-based, not yet calibrated in game. director.printdebug = 1 logs the live
+# values ("Physics speed") to tune it against.
+physicsfastvelocity = 18.0
 physicsslowfactor = 0.65       # hysteresis: drop back to Slow below fast*factor
 soshugeppsize = 6              # SOS size / TNG size counted as "huge"
 # NPC-only scenes (no player). When ON, SexLab scenes the player is NOT in - two NPCs
@@ -158,7 +162,13 @@ printdebug = 0
 # are patch additions and are not in the shipped Hentairim SFX config.
 enable = 1                     # master switch (applies the SFX effect to scene actors)
 volume = 60                    # 0-100, startup value for the "sfx" audio group
-usevelocity = 1                # thrust-synced sounds from SLPP collision velocity
+usevelocity = 1                # thrust-paced sounds from SLPP contact speed (P+ 2.19+)
+# World units one full thrust (in + out) travels. P+ 2.19 reports a speed, not a
+# signed velocity, so a beat fires each time the contact has travelled this far:
+# the sound rate follows the animation, the exact moment of impact is not known.
+# Lower = more beats per thrust. 16 is an estimate, not yet calibrated in game -
+# sfx.printdebug = 1 logs each beat ("Thrust beat") with the speed it saw.
+thruststroke = 16.0
 # SOSBend calibration search: spams Debug.SendAnimationEvent(SOSBend) with 0.3s
 # waits to hunt for a bend that yields velocity data. Heaviest path in the
 # engine and off by default - only turn on if a scene otherwise reports no
@@ -167,9 +177,10 @@ useadaptivevelocity = 0        # SOSBend calibration search when no velocity dat
 timestosearch = 0              # adaptive: max calibration attempts per stage (0 = never search)
 usecontactsfx = 1              # one-shots on contact edges (insertion, pull-out gape, kiss, oral)
 usecontactvictimreactions = 1  # suppress tender kiss cues when a victim is involved
-# poll intervals (seconds). velocitypoll must stay tight to catch thrust
-# reversals; normalpoll paces the label/tag-driven loop (raise it to cut
-# script load further - the sound's own clip length already paces playback).
+# poll intervals (seconds). velocitypoll is the speed-sampling step of the
+# thrust pacing (coarser = more jitter per beat); normalpoll paces the
+# label/tag-driven loop (raise it to cut script load further - the sound's
+# own clip length already paces playback).
 velocitypoll = 0.1
 normalpoll = 0.5
 # measured-gape thresholds (PPA bridge): openings are unitless magic numbers,

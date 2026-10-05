@@ -99,7 +99,7 @@ function Build-Classic {
                          "<Import>.\papyrus\classic\Source</Import>`n        <Import>.\papyrus\Source</Import>"
 
     # SexLab P+ -> SLSO + classic 1.63
-    $pplusImport = '<Import>@BuildFolder\SexLab Framework PPLUS - V2.17.1\Source\Scripts</Import>'
+    $pplusImport = '<Import>@BuildFolder\SexLab Framework PPLUS - V2.19.0\Source\Scripts</Import>'
     $classicImports = "<Import>$slso</Import>`n        <Import>$classicSexLab</Import>"
     if ($ppj -notmatch [regex]::Escape($pplusImport)) {
         throw 'Could not find the SexLab P+ <Import> line in SLOVE.ppj - update build.ps1 to match your ppj'

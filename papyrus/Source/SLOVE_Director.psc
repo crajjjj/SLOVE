@@ -399,7 +399,9 @@ Function InitializeDirectorConfigs()
 	resenablefemalenpc = SLOVE_Config.GetInt("resistance.enablefemalenpc", 1)
 	resenablecreaturenpc = SLOVE_Config.GetInt("resistance.enablecreaturenpc", 1)
 	usephysicslabels = SLOVE_Config.GetInt("director.usephysicslabels", 1)
-	physicsfastvelocity = SLOVE_Config.GetFloat("director.physicsfastvelocity", 25.0)
+	;18 is the old 25 re-based for P+ 2.19: its speed is a ~0.25s average of the
+	;motion, which sits below the near-instantaneous peak 2.18's velocity gave
+	physicsfastvelocity = SLOVE_Config.GetFloat("director.physicsfastvelocity", 18.0)
 	physicsslowfactor = SLOVE_Config.GetFloat("director.physicsslowfactor", 0.65)
 	if physicsslowfactor > 1.0
 		physicsslowfactor = 1.0
@@ -1304,11 +1306,11 @@ bool Function IsOralGiver(Actor a)
 	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
 		return false
 	endif
-	bool[] f = CurrentThread.GetCurrentInteractionFlags(a)
-	if f.Length < 28
+	bool[] f = CurrentThread.GetInteractionFlags(a)
+	if f.Length < 27
 		return false
 	endif
-	return f[12] || f[13] ;aOral (licking a crotch) / aLickingShaft
+	return f[17] || f[15] ;aOral (licking a crotch) / aLickingShaft
 EndFunction
 
 bool function IsMale(actor char)
@@ -1458,32 +1460,34 @@ Bool Function ApplyPhysicsLabels()
 			actor oralTarget = none
 			float maxVel = 0.0
 
-			;one flags call per position replaces the pairwise GetInteractionTypes sweep;
-			;partner lookups and velocity reads only for the types the flags say are active
-			bool[] f = CurrentThread.GetCurrentInteractionFlags(pos)
-			if f.Length >= 28
-				recvVag = f[15] ;pVaginal
-				recvAnal = f[16] ;pAnal
+			;one flags call per position; velocity reads only for the types the flags say
+			;are active. The indices are SexLab P+ 2.19's InterType order (27 flags) - the
+			;28-flag layout of 2.18 and older is gone, and so is support for it.
+			bool[] f = CurrentThread.GetInteractionFlags(pos)
+			if f.Length >= 27
+				recvVag = f[24] ;pVaginal
+				recvAnal = f[26] ;pAnal
 				recvGrind = f[4] ;pGrinding
-				mouthOral = f[12] ;aOral
-				mouthDeep = f[14] ;aDeepthroat
-				mouthShaft = f[13] ;aLickingShaft
-				mouthKis = f[9] ;bKissing
-				givesVag = f[26] ;aVaginal
-				givesAnal = f[27] ;aAnal
-				penisSucked = f[23] ;pOral
-				penisDeep = f[24] ;pDeepthroat
-				penisHJ = f[19] ;pHandJob
-				penisFJ = f[20] ;pFootJob
+				mouthOral = f[17] ;aOral
+				mouthDeep = f[19] ;aDeepthroat
+				mouthShaft = f[15] ;aLickingShaft
+				mouthKis = f[0] ;bKissing
+				givesVag = f[23] ;aVaginal
+				givesAnal = f[25] ;aAnal
+				penisSucked = f[18] ;pOral
+				penisDeep = f[20] ;pDeepthroat
+				penisHJ = f[10] ;pHandJob
+				penisFJ = f[8] ;pFootJob
 
-				;P+ raises these for a CROTCH, not a penis (its pOral reads "pos_crotch is
-				;being licked/sucked"), and its legacy detector books a woman's hand or foot
-				;on another woman's vulva against the TOUCHER. On a position without a penis
-				;they can only mean oral/fingering received - the licker's own oral label
-				;already says CUN - so they must not become a blowjob/handjob/footjob label:
-				;that read a licked woman as "her penis is being sucked", dispatched blowjob
-				;categories and tagged her "rcv strapon oral". Anatomy is asked once per
-				;position per stage (HasPenis costs externals) and only when a flag is up.
+				;P+ raises these for a GENITAL, not a penis (its pOral reads "position's
+				;genital is licked/sucked", pHandJob/pFootJob "genital is stimulated by
+				;partner's hands/feet"), so a licked or fingered woman carries them too. On
+				;a position without a penis they can only mean oral/fingering received - the
+				;licker's own oral label already says CUN - so they must not become a
+				;blowjob/handjob/footjob label: that read a licked woman as "her penis is
+				;being sucked", dispatched blowjob categories and tagged her "rcv strapon
+				;oral". Anatomy is asked once per position per stage (HasPenis costs
+				;externals) and only when a flag is up.
 				if penisSucked || penisDeep || penisHJ || penisFJ
 					if PhysPenis[z] == 0
 						if HasPenis(pos)
@@ -1500,64 +1504,51 @@ Bool Function ApplyPhysicsLabels()
 					endif
 				endif
 
-				actor prt
+				;2.19 keys both lookups by the position's OWN flag, so there is no
+				;giver/receiver argument order left to get wrong, and a none partner asks
+				;for the fastest contact of that type across every partner - which is the
+				;maximum this loop was building pair by pair anyway. Only the oral target
+				;is still resolved by name: its sex decides CUN below.
 				if recvVag
-					prt = CurrentThread.GetPartnerByTypeRev(pos, 1) ;whoever penetrates pos
-					if prt != none
-						maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetVelocity(pos, prt, 1))
-					endif
+					maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetInteractionVelocity(pos, none, 24))
 				endif
 				if recvAnal
-					prt = CurrentThread.GetPartnerByTypeRev(pos, 2)
-					if prt != none
-						maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetVelocity(pos, prt, 2))
-					endif
+					maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetInteractionVelocity(pos, none, 26))
 				endif
 				if recvGrind
-					prt = CurrentThread.GetPartnerByTypeRev(pos, 4)
-					if prt != none
-						maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetVelocity(pos, prt, 4))
-					endif
+					maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetInteractionVelocity(pos, none, 4))
 				endif
 				if mouthOral
-					oralTarget = CurrentThread.GetPartnerByTypeRev(pos, 3) ;whom pos licks/sucks
-					if oralTarget != none
-						maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetVelocity(pos, oralTarget, 3))
-					endif
+					oralTarget = CurrentThread.GetPartnerByInteractionType(pos, 17) ;whom pos licks/sucks
+					maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetInteractionVelocity(pos, oralTarget, 17))
 				endif
 				if givesVag
-					prt = CurrentThread.GetPartnerByType(pos, 1) ;receiver pos penetrates
-					if prt != none
-						maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetVelocity(prt, pos, 1))
-					endif
+					maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetInteractionVelocity(pos, none, 23))
 				endif
 				if givesAnal
-					prt = CurrentThread.GetPartnerByType(pos, 2)
-					if prt != none
-						maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetVelocity(prt, pos, 2))
-					endif
+					maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetInteractionVelocity(pos, none, 25))
 				endif
 				if penisSucked
-					prt = CurrentThread.GetPartnerByType(pos, 3) ;whoever sucks pos off
-					if prt != none
-						maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetVelocity(prt, pos, 3))
-					endif
+					maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetInteractionVelocity(pos, none, 18))
 				endif
 				if penisHJ
-					prt = CurrentThread.GetPartnerByType(pos, 9)
-					if prt != none
-						maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetVelocity(prt, pos, 9))
-					endif
+					maxVel = MaxAbsVelocity(maxVel, CurrentThread.GetInteractionVelocity(pos, none, 10))
 				endif
 			endif
 
-			;velocity envelope: a single sample can land on a thrust reversal (~0),
-			;so decay the previous peak instead of trusting the instantaneous value
+			;speed envelope: P+ 2.19 hands back a non-negative speed already smoothed
+			;over ~0.25s, so one sample no longer lands on a thrust reversal as a bare
+			;zero - but it still dips there, and a detection dropout reads 0. Decay the
+			;previous peak instead of trusting the instantaneous value.
 			float env = PhysVelEnvelope[z] * 0.7
 			if maxVel > env
 				env = maxVel
 			endif
 			PhysVelEnvelope[z] = env
+			;the numbers physicsfastvelocity is calibrated against
+			if enableprintdebug == 1 && env > 0.0
+				printdebug("Physics speed - pos " + z + ": sample " + maxVel + ", envelope " + env + ", fast at " + physicsfastvelocity)
+			endif
 			;hysteresis: rise to F at the threshold, fall back to S only well below it,
 			;so a sub-second thrust cycle sampled at 0.5s does not flap the prefix
 			if !PhysVelFast[z] && env >= physicsfastvelocity
@@ -1594,8 +1585,9 @@ Bool Function ApplyPhysicsLabels()
 			elseif base == "SDP" || base == "FDP"
 				baseHole = "D"
 			endif
-			;debounce a measured hole that CONTRADICTS a tagged one: the legacy detector's
-			;anus and vagina nodes sit close, so a single pVaginal sample on an anal-tagged
+			;debounce a measured hole that CONTRADICTS a tagged one: the two openings sit
+			;close (seen with P+ 2.18's node detector; kept for 2.19's surface detector
+			;until proven unnecessary), so a single pVaginal sample on an anal-tagged
 			;stage used to flip the label to VP for one pass (the category said vaginal
 			;while the facts and PPA said anal). Velocity has a hysteresis for the same
 			;reason; the hole gets a two-pass confirmation - the same reading on two

@@ -52,8 +52,9 @@ The thread type changes from `SexLabThread` (P+) to **`sslThreadController`**
 
 ## Dropped subsystems (no classic equivalent)
 
-1. **SLPP physics / node-collision bridge.** `GetCurrentInteractionFlags`,
-   `IsInteractionRegistered`, `GetVelocity`, `GetPartnerByType`/`Rev` are P+-only.
+1. **SLPP physics / node-collision bridge.** `GetInteractionFlags`,
+   `IsInteractionRegistered`, `GetInteractionVelocity`, `GetPartnerByInteractionType`
+   (the P+ 2.19 names) are P+-only.
    The Director's physics-label overlay (`ApplyPhysicsLabels`) and `SLOVE_SFX`'s
    SOSBend adaptive-velocity search are removed; `director.usephysicslabels`,
    `sfx.usevelocity` and `sfx.useadaptivevelocity` are forced to `0` at load
@@ -68,7 +69,7 @@ The thread type changes from `SexLabThread` (P+) to **`sslThreadController`**
    penetration edge from the label system (`IsGivingVaginalPenetration` /
    `IsGivingAnalPenetration`) and resolves the receiver via
    `ResolvePenetrationReceiver()` — the other position carrying a penetration
-   label — instead of `GetPartnerByType`. That preserves both:
+   label - instead of `GetPartnerByInteractionType`. That preserves both:
 
      - the **PPA-measured pull-out gape** SFX, with the existing `IsHugePP`
        fallback when PPA is absent, and

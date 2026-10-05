@@ -190,7 +190,7 @@ Causes, most common first:
 ## SFX are wrong or missing
 
 - `sfx.enable = 1`? `sfx.volume` above zero?
-- Thrust-synced sounds need velocity data from SLPP interactions — with none, the engine falls back to label pacing. `sfx.printdebug = 1` shows what it's getting.
+- Thrust-paced sounds need speed data from SLPP interactions (SexLab P+ 2.19+) - with none, the engine falls back to label pacing. `sfx.printdebug = 1` shows what it's getting.
 - **Don't** reach for `useadaptivevelocity` first; it's the heaviest path in the mod and needs `timestosearch > 0` as well.
 - Gape one-shots need the Accurate Penetration bridge. The four `gape*` thresholds are unitless — calibrate them from the `printdebug` pull-out line in your own scenes.
 

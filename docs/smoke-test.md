@@ -147,7 +147,7 @@ SLOVE.toml (back to 0 afterwards). Static probes need ConsoleUtil.
 3. **Dog/husky scene:** console `scene creatures voiced: 1`; pant/whine every
    ~5–12 s (faster when intense); climax whine replaces a running breath; no
    human lines from the creature.
-4. **Body SFX** (`sfx.enable=1`): slush/impact track thrusts, successive
+4. **Body SFX** (`sfx.enable=1`): slush/impact rate follows the thrusting, successive
    slushes replace, ejac one-shot at climax, kiss SFX, all stop at scene end.
 5. **SLS ahegao** (SLS ≥ 0.707): face + moan-lipsync yield while active
    (moans stay audible — played with `blockLipSync=true`, so the mouth stays on

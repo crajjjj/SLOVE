@@ -21,14 +21,15 @@
 
             <plugin name="SexLab Framework P+ (2.x)">
               <description>
-Default. For SexLab Framework P+ 2.17 or newer (the SLPP fork with SexLab Scene
+Default. For SexLab Framework P+ 2.19 or newer (the SLPP fork with SexLab Scene
 Builder and node-collision physics).
 
 This build uses the full feature set: per-stage/per-position scene annotations,
 measured thrust-speed intensity (the F/S label prefix), physics-driven contact
 SFX, and SLSB climax annotations.
 
-Requires: SexLab Framework P+ 2.17+.
+Requires: SexLab Framework P+ 2.19+. Older P+ builds use a different
+interaction API and lose every physics-driven feature with this build.
               </description>
               <typeDescriptor>
                 <type name="Recommended" />

@@ -100,7 +100,7 @@ has no per-node contact detection, so:
   the same `voice.intenseenjoyment` overlay** (both variants refresh it every update
   tick) — the difference is only the baseline it overlays: P+'s F/S label prefix is
   measured from live thrust, classic's comes from the tag database.
-- **Thrust-synced velocity SFX and the adaptive SOSBend search are off.**
+- **Thrust-paced SFX and the adaptive SOSBend search are off.**
   `sfx.usevelocity`, `sfx.useadaptivevelocity` and `director.usephysicslabels`
   are ignored on this build.
 - **Live cunnilingus detection is off.** P+ classifies `CUN` from live

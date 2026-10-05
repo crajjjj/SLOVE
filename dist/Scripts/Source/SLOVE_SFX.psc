@@ -2,7 +2,7 @@ Scriptname SLOVE_SFX extends ActiveMagicEffect
 {SLO VE body-SFX engine: per-actor magic
  effect that plays slushing / impact / clap / kissing / blowjob body sounds
  through AudioUtil, driven by scene labels, SFX scene tags, and (optionally)
- SLPP node-collision velocity for thrust-synced playback. Settings come from
+ SLPP contact speed for thrust-paced playback. Settings come from
  SLOVE.toml via SLOVE_Config ("sfx." keys). SLO VE drops the Hentairim
  resistance hooks (victim insertion trauma) and the dead animation-speed
  escalation clauses; everything else stays mechanically identical.}
@@ -144,9 +144,9 @@ Event OnUpdate()
 	if position > 0
 
 		;set the poll BEFORE the spinner so its internal Utility.wait uses it.
-		;Velocity paths poll tight (thrust reversals); the label/tag path polls
-		;at normalpoll - it was needlessly churning GetCurrentInteractionFlags at
-		;10Hz for a sound whose own clip length already paces it.
+		;Velocity paths poll tight (they integrate the thrust speed); the label/tag
+		;path polls at normalpoll - it was needlessly churning GetInteractionFlags
+		;at 10Hz for a sound whose own clip length already paces it.
 		if (IsGivingAnalPenetration() || IsGivingVaginalPenetration() || (EndingLabel != "LDI" && PrevIsGivingAnalOrVaginalPenetration()) ) && useadaptivevelocity == 1 && usevelocity == 1 && !HasCreature() && !isEnding()
 			printdebug("Running Adaptive Velocity SFX")
 			updateRate = velocitypoll
@@ -154,7 +154,7 @@ Event OnUpdate()
 		elseif (IsGivingAnalPenetration() || IsGivingVaginalPenetration()) && usevelocity == 1 && !HasCreature() && !isEnding() ;only use velocityfx for non creatures scene as no data is available
 			printdebug("Running Velocity SFX")
 			updateRate = velocitypoll
-			CalculateAndPlayVelocitySFX() ;Velocity Based SFX from reversal
+			CalculateAndPlayVelocitySFX() ;thrust-paced SFX from contact speed
 		elseif UpdateFuckingPartner() && (IsGivingAnalPenetration() || IsGivingVaginalPenetration()) && usevelocity == 1 && !isEnding()
 			printdebug("Running Creature Velocity SFX")
 			updateRate = velocitypoll
@@ -247,9 +247,10 @@ int usecontactsfx
 int victiminsertiontrauma
 int usecontactvictimreactions
 int timestosearch
-;poll intervals (seconds). velocitypoll drives the thrust-reversal spinners
-;(needs to stay tight to catch reversals); normalpoll paces the label/tag-driven
-;loop, which is otherwise a needless 10Hz churn of GetCurrentInteractionFlags
+;poll intervals (seconds). velocitypoll is the speed-sampling step of the thrust
+;pacing spinners (a coarse step adds jitter to each beat); normalpoll paces the
+;label/tag-driven loop, which is otherwise a needless 10Hz churn of
+;GetInteractionFlags
 float velocitypoll
 float normalpoll
 ;measured-gape thresholds. Per the PPA author, openings are "magic unsigned
@@ -274,6 +275,10 @@ Function InitializeConfigandForms()
 	usecontactvictimreactions = SLOVE_Config.GetInt("sfx.usecontactvictimreactions", 1)
 	victiminsertiontrauma = SLOVE_Config.GetInt("resistance.victiminsertiontrauma", 5)
 	timestosearch = SLOVE_Config.GetInt("sfx.timestosearch", 0)
+	thruststroke = SLOVE_Config.GetFloat("sfx.thruststroke", 16.0)
+	if thruststroke < 1.0
+		thruststroke = 1.0 ;it is a divisor (see AdvanceThrust)
+	endif
 	velocitypoll = SLOVE_Config.GetFloat("sfx.velocitypoll", 0.1)
 	normalpoll = SLOVE_Config.GetFloat("sfx.normalpoll", 0.5)
 	updateRate = velocitypoll
@@ -543,6 +548,80 @@ float updateRate = 0.1
 float TimeLastReverseIn
 Float TimeLastReverseOut
 Bool CanPlayReverseIn
+;------------------------------ thrust pacing ------------------------------
+;SexLab P+ 2.19 reports contact motion as a SPEED: never negative, and low-pass
+;filtered over ~0.25s. The signed velocity of 2.18 and older, whose sign flip
+;marked each thrust reversal, is gone - a reversal can no longer be observed.
+;Distance travelled still can (speed x time), and one full thrust, in plus out,
+;covers about thruststroke world units. So the engine integrates the speed and
+;fires a beat for every stroke's worth of travel. The sound RATE follows the
+;animation, AnimSpeed overrides included; the PHASE is not locked to it, so on
+;a slow stage a clap can land between two visible impacts.
+float thruststroke
+float ThrustPhase ;share of the current stroke already travelled, 0..1
+bool ThrustHalfPlayed ;the mid-stroke slush already fired for this stroke
+float ThrustLastSample ;real time of the previous speed sample, 0 = none yet
+
+;FuckingPartnerInteractionType keeps the 1 = vaginal / 2 = anal meaning the
+;sound pickers key on; P+ 2.19 wants the giver's own flag index instead.
+int Function ThrustInterType()
+	if FuckingPartnerInteractionType == 2
+		return 25 ;aAnal
+	endif
+	return 23 ;aVaginal
+EndFunction
+
+;Credits one speed sample (must be > 0) to the stroke and plays what falls due:
+;the bottom-out beat - impact plus slush - at a full stroke, and on a non-intense
+;stage the re-entry slush at the half. These are the two events the old code
+;read off the velocity sign ("reversal from inside" / "from outside").
+Function AdvanceThrust(float speed)
+	float now = Utility.GetCurrentRealTime()
+	float dt = now - ThrustLastSample
+	ThrustLastSample = now
+	;the first sample of a run only sets the clock, and a gap this long is a
+	;stage change or a stall - there is no travel to credit for either
+	if dt <= 0.0 || dt > 1.0
+		return
+	endif
+	ThrustPhase += speed * dt / thruststroke
+
+	bool beat = ThrustPhase >= 1.0
+	bool half = !beat && CanPlayReverseIn && !ThrustHalfPlayed && ThrustPhase >= 0.5
+	if !beat && !half
+		return
+	endif
+	if beat
+		ThrustPhase -= 1.0
+		if ThrustPhase >= 1.0
+			ThrustPhase = 0.0 ;the poll is slower than the thrust - never owe beats
+		endif
+		ThrustHalfPlayed = false
+	else
+		ThrustHalfPlayed = true
+	endif
+	;a frozen scene keeps reporting its last speed, so the stroke keeps filling
+	;behind an overlay menu: the beat is consumed above, the sound is not played
+	if SLOVE_Utils.GamePaused()
+		return
+	endif
+
+	;what the pickers call TimetoThrust is the length of the inward half of the
+	;stroke; at this speed that is half a stroke's travel time
+	float timetothrust = 0.5 * thruststroke / speed
+	PrintDebug("Thrust beat=" + beat + " | speed=" + speed + " | TimetoThrust=" + timetothrust)
+	if beat && StageShouldplayClap
+		String ImpactVelocitySFX = GetImpactSoundToPlay(timetothrust)
+		if ImpactVelocitySFX != ""
+			AudioUtil.PlaySFX(ImpactVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_impact_" + position)
+		endif
+	endif
+	String SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, timetothrust)
+	if SlushVelocitySFX != ""
+		AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
+	endif
+EndFunction
+
 ;Calculate play sound
 Function CalculateAndPlayVelocitySFX()
 ;the velocity/impact streams play straight through AudioUtil, so the voice
@@ -554,68 +633,23 @@ Function CalculateAndPlayVelocitySFX()
 		UpdateFuckingPartner()
 		return
 	endif
-	Float TimetoThrust = 0
 	Float velocity
-	Float LastVelocity
-	String SlushVelocitySFX = ""
-	String ImpactVelocitySFX = ""
+	ThrustLastSample = 0.0 ;a fresh run of samples
 
 	while Currentthread.getstatus() == 3 && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
 
-		velocity = Currentthread.GetVelocity(FuckingPartner, Actorref, FuckingPartnerInteractionType)
-		if velocity == 0
+		velocity = Currentthread.GetInteractionVelocity(Actorref, FuckingPartner, ThrustInterType())
+		if velocity <= 0
+			;no contact tracked, or one that only just (re)started: look again
+			;and let the next update tick retry
 			UpdateFuckingPartner()
 			return
 		endif
 
-		PrintDebug("lastVelocity=" + lastVelocity as String + " | velocity=" + velocity as String)
-
-		if lastVelocity >= 0 && velocity < 0 ; Reversal From Inside
-			Float CurrentReverseOutTIme = CurrentThread.GetTimeTotal()
-			PrintDebug("Seconds Since Last Reverse Out : " + (CurrentReverseOutTime - TimeLastReverseOut) as String + " Seconds | CurrentReverseOutTime=" + CurrentReverseOutTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String)
-			if StageShouldplayClap
-				printdebug("playing Impact Velocity")
-				ImpactVelocitySFX = GetImpactSoundToPlay(TimetoThrust)
-				if ImpactVelocitySFX != ""
-					AudioUtil.PlaySFX(ImpactVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_impact_" + position)
-				else
-					printdebug("ImpactVelocitySFX : is none!")
-				endif
-			Endif
-
-			SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
-			if SlushVelocitySFX != ""
-				printdebug("playing Slush Velocity")
-				AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
-			else
-				printdebug("SlushVelocitySFX : is none!")
-			endif
-			TimeLastReverseOut = CurrentReverseOutTIme
-			TimetoThrust = 0
-		elseif CanPlayReverseIn && lastVelocity <= 0 && velocity > 0 ;reversal from outside
-			printdebug("Velocity : " + Velocity + " | lastVelocity : " + LastVelocity + " | FuckingPartnerInteractionType : " + FuckingPartnerInteractionType)
-			Float CurrentReverseInTIme = CurrentThread.GetTimeTotal()
-
-			PrintDebug("CurrentReverseInTime=" + CurrentReverseInTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String + " | Seconds Since Last Reverse In=" + (CurrentReverseInTime - TimeLastReverseOut) as String + " Seconds")
-			SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
-			if SlushVelocitySFX != ""
-				printdebug("playing Slush Velocity")
-				AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
-			else
-				printdebug("SlushVelocitySFX : is none!")
-			endif
-			TimeLastReverseIn = CurrentReverseInTIme
-		else
-			printdebug("Wait")
-			if Velocity > 0
-				TimetoThrust += updateRate
-			endif
-		endif
+		AdvanceThrust(velocity)
 
 		ProcessContactEdges()
 		Utility.wait(updateRate)
-
-		LastVelocity = velocity
 	endwhile
 
 EndFunction
@@ -804,21 +838,21 @@ Function RunAdaptiveVelocitySFX()
 		z += 1
 	endwhile
 
-	Float TimetoThrust = 0
 	Float velocity
-	Float LastVelocity
-	String SlushVelocitySFX = ""
-	String ImpactVelocitySFX = ""
+	ThrustLastSample = 0.0 ;a fresh run of samples
 
 	while !Masterscript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && !UpdateNow
 		int TimesNotFoundVelocity
-		velocity = Currentthread.GetVelocity(FuckingPartner, Actorref, FuckingPartnerInteractionType)
+		velocity = 0.0
+		if FuckingPartner != none && FuckingPartnerInteractionType != 0
+			velocity = Currentthread.GetInteractionVelocity(Actorref, FuckingPartner, ThrustInterType())
+		endif
 
-		if velocity == 0 && !SearchingFoundVelocity
+		if velocity <= 0 && !SearchingFoundVelocity
 			PlayFillerSounds()
 		endif
 
-		if Velocity == 0 && SearchingFoundVelocity
+		if velocity <= 0 && SearchingFoundVelocity
 			TimesNotFoundVelocity += 1
 			if TimesNotFoundVelocity > 10
 				UpdateFuckingPartner()
@@ -826,56 +860,16 @@ Function RunAdaptiveVelocitySFX()
 			endif
 		endif
 
-		PrintDebug("lastVelocity=" + lastVelocity as String + " | velocity=" + velocity as String)
-
-		if lastVelocity >= 0 && velocity < 0 ; Reversal From Inside
+		if velocity > 0
 			TimesNotFoundVelocity = 0
-			Float CurrentReverseOutTIme = CurrentThread.GetTimeTotal()
-			PrintDebug("Seconds Since Last Reverse Out : " + (CurrentReverseOutTime - TimeLastReverseOut) as String + " Seconds | CurrentReverseOutTime=" + CurrentReverseOutTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String)
-			if StageShouldplayClap
-				printdebug("playing Impact Velocity")
-				ImpactVelocitySFX = GetImpactSoundToPlay(TimetoThrust)
-				if ImpactVelocitySFX != ""
-					AudioUtil.PlaySFX(ImpactVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_impact_" + position)
-				else
-					printdebug("ImpactVelocitySFX : is none!")
-				endif
-			Endif
-
-			SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
-			if SlushVelocitySFX != ""
-				printdebug("playing Slush Velocity")
-				AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
-			else
-				printdebug("SlushVelocitySFX : is none!")
-			endif
-			TimeLastReverseOut = CurrentReverseOutTIme
-			TimetoThrust = 0
-		elseif CanPlayReverseIn && lastVelocity <= 0 && velocity > 0 ;reversal from outside
-			TimesNotFoundVelocity = 0
-			printdebug("Velocity : " + Velocity + " | lastVelocity : " + LastVelocity + " | FuckingPartnerInteractionType : " + FuckingPartnerInteractionType)
-			Float CurrentReverseInTIme = CurrentThread.GetTimeTotal()
-
-			PrintDebug("CurrentReverseInTime=" + CurrentReverseInTime as String + " | TimeLastReverseOut=" + TimeLastReverseOut as String + " | Seconds Since Last Reverse In=" + (CurrentReverseInTime - TimeLastReverseOut) as String + " Seconds")
-			SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, TimetoThrust)
-			if SlushVelocitySFX != ""
-				printdebug("playing Slush Velocity")
-				AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
-			else
-				printdebug("SlushVelocitySFX : is none!")
-			endif
-			TimeLastReverseIn = CurrentReverseInTIme
+			AdvanceThrust(velocity)
 		else
-			printdebug("Wait")
-			if Velocity > 0
-				TimetoThrust += updateRate
-			endif
+			;no travel to credit across a gap in the data
+			ThrustLastSample = 0.0
 		endif
 
 		ProcessContactEdges()
 		Utility.wait(updateRate)
-
-		LastVelocity = velocity
 	endwhile
 
 EndFunction
@@ -891,34 +885,21 @@ Bool Function UpdateFuckingPartner()
 
 	FuckingPartner = None
 	FuckingPartnerInteractionType = 0
-	int[] Interactionarr
 
-	int z = 0
-	while z < actorList.length
-		Actor candidate = actorList[z]
-
-		if candidate != actorref ; skip self
-
-			Interactionarr = currentthread.GetInteractionTypes(candidate, actorref)
-
-			if Interactionarr && Interactionarr.length > 0
-
-				; Vaginal interaction
-				if findint(Interactionarr, 1) > -1
-					FuckingPartner = candidate
-					FuckingPartnerInteractionType = 1
-					z = actorList.length
-					; Anal interaction
-				elseif findint(Interactionarr, 2) > -1
-					FuckingPartner = candidate
-					FuckingPartnerInteractionType = 2
-					z = actorList.length
-				endif
-			endif
+	;P+ 2.19 answers "whom is actorref penetrating" directly, keyed by actorref's
+	;own giver flag - no sweep over the positions. Vaginal first, then anal;
+	;FuckingPartnerInteractionType keeps its 1 / 2 meaning (see ThrustInterType).
+	Actor receiver = CurrentThread.GetPartnerByInteractionType(actorref, 23) ;aVaginal
+	if receiver != none
+		FuckingPartner = receiver
+		FuckingPartnerInteractionType = 1
+	else
+		receiver = CurrentThread.GetPartnerByInteractionType(actorref, 25) ;aAnal
+		if receiver != none
+			FuckingPartner = receiver
+			FuckingPartnerInteractionType = 2
 		endif
-
-		z += 1
-	endwhile
+	endif
 
 	; Final result
 	if FuckingPartner
@@ -981,8 +962,9 @@ Function ProcessContactEdges()
 	if usecontactsfx != 1 || position <= 0 || CurrentThread == none || !CurrentThread.IsInteractionRegistered()
 		return
 	endif
-	bool[] f = CurrentThread.GetCurrentInteractionFlags(actorref)
-	if f.Length < 28
+	;P+ 2.19 flags (27, InterType order); partners are looked up by actorref's own flag
+	bool[] f = CurrentThread.GetInteractionFlags(actorref)
+	if f.Length < 27
 		return
 	endif
 	;falling edges are debounced by elapsed scene time, not poll count - callers
@@ -991,15 +973,15 @@ Function ProcessContactEdges()
 	float now = CurrentThread.GetTimeTotal()
 
 	;--- penetration edges (actorref as giver) ---
-	bool pen = f[26] || f[27] ;aVaginal / aAnal
+	bool pen = f[23] || f[25] ;aVaginal / aAnal
 	if pen
 		ContactPenLastSeen = now
 		if !PrevContactPenetrating
 			PrevContactPenetrating = true
 			ContactPenStartTime = now
-			LastPenReceiver = CurrentThread.GetPartnerByType(actorref, 1)
+			LastPenReceiver = CurrentThread.GetPartnerByInteractionType(actorref, 23)
 			if LastPenReceiver == none
-				LastPenReceiver = CurrentThread.GetPartnerByType(actorref, 2)
+				LastPenReceiver = CurrentThread.GetPartnerByInteractionType(actorref, 25)
 			endif
 			;resistance system: a forced insertion onto a submissive receiver deposits
 			;trauma their SLOVE_Resistance drains into willpower loss on its next tick
@@ -1048,13 +1030,13 @@ Function ProcessContactEdges()
 	endif
 
 	;--- kissing start (fire from the higher position of the pair so it plays once) ---
-	bool kis = f[9] ;bKissing
+	bool kis = f[0] ;bKissing
 	if kis
 		ContactKisLastSeen = now
 		if !PrevContactKissing
 			PrevContactKissing = true
 			if !IsKissing()
-				Actor kisPartner = CurrentThread.GetPartnerByTypeRev(actorref, 10)
+				Actor kisPartner = CurrentThread.GetPartnerByInteractionType(actorref, 0)
 				if kisPartner != none && CurrentThread.GetPositionIdx(kisPartner) < position && Kissing != ""
 					;no tender kiss cue when either side is a victim - aggressive
 					;animations bring faces together without it being romantic
@@ -1072,16 +1054,16 @@ Function ProcessContactEdges()
 	endif
 
 	;--- blowjob/deepthroat start (actorref getting sucked) ---
-	bool deep = f[24] ;pDeepthroat
-	bool suck = deep || f[23] ;pOral
+	bool deep = f[20] ;pDeepthroat
+	bool suck = deep || f[18] ;pOral
 	if suck
 		ContactSuckLastSeen = now
 		if !PrevContactSucked
 			PrevContactSucked = true
 			if !IsGettingSuckedoff()
-				Actor sucker = CurrentThread.GetPartnerByType(actorref, 3)
+				Actor sucker = CurrentThread.GetPartnerByInteractionType(actorref, 18)
 				if sucker == none
-					sucker = CurrentThread.GetPartnerByType(actorref, 5)
+					sucker = CurrentThread.GetPartnerByInteractionType(actorref, 20)
 				endif
 				if sucker != none
 					printdebug("Contact edge: oral started")
@@ -1103,8 +1085,8 @@ Function ProcessContactEdges()
 	;the same rule the Director's OralLabel bridge uses to assign "CUN". No SLPP
 	;cunnilingus flag exists, so it shares the kiss SFX (a wet mouth sound).
 	bool cun = false
-	if f[12] ;aOral - actorref's mouth is active on a partner
-		Actor lickTarget = CurrentThread.GetPartnerByTypeRev(actorref, 3)
+	if f[17] ;aOral - actorref's mouth is active on a partner
+		Actor lickTarget = CurrentThread.GetPartnerByInteractionType(actorref, 17)
 		cun = lickTarget != none && Sexlab.GetGender(lickTarget) % 2 == 1
 	endif
 	if cun

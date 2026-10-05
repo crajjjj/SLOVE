@@ -16,7 +16,7 @@ Everything is configured in plain **TOML** files that reload live from the conso
 - **Every participant is voiced** — not just the lead. Partners rotate through their own lines and each NPC keeps a consistent voice across scenes. Creature partners pant and growl on their own timing, straight out of the vanilla BSAs.
 - **Female voices work out of the box** — they default to SexLab's own moan sets. Any Hentairim/IVDT female pack is a drop-in upgrade: install its WAVs and it plays, and any category the pack lacks backfills from the stock moans.
 - **Facial expressions** — live breathing, stage-intensity faces, tongue-out (sr_fillherup) and ahegao on huge partners, with a jaw-gate so a tongue only shows when the mouth is actually open.
-- **Body SFX** — slushing, impacts, claps, kissing and blowjob sounds, optionally thrust-synced to collision velocity on **SexLab P+**, plus contact one-shots on insertion, pull-out gape, kiss and oral. (The gape and insertion sounds work on classic too; thrust-syncing is P+ only — see [SexLab Flavours](sexlab-flavours.md).)
+- **Body SFX** - slushing, impacts, claps, kissing and blowjob sounds, optionally paced by the measured thrust speed on **SexLab P+**, plus contact one-shots on insertion, pull-out gape, kiss and oral. (The gape and insertion sounds work on classic too; thrust pacing is P+ only - see [SexLab Flavours](sexlab-flavours.md).)
 - **Gagged voice** — a speaker wearing a mouth-owning device switches to a muffled pool automatically, and lip movement hands off to the device.
 - **Lipsync** — mouths move in time with the audio, on any loose PCM wav. No `.lip` baking.
 - **Willpower / resistance** *(optional)* — the one gameplay system carried over from Hentairim, or switch it off entirely.

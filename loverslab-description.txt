@@ -12,13 +12,13 @@ SLO VE watches the running SexLab scene and drives voices, facial expressions, a
 - Female voices — default to SexLab's moan sets out of the box; add one of SLO VE's own female voice packs (optional downloads on this page) or any Hentairim/IVDT pack for a drop-in upgrade. Female NPC partners are voiced too, auto-mapped across your installed packs deterministically (same NPC, same voice).
 - Bundled audio — male packs M1–M8, smack/pull-out one-shots, and the full body-SFX library ship with the mod.
 - Facial expressions — live breathing, stage faces, tongue-out and ahegao (soft deps), jaw-gated.
-- Body SFX — slushing, impacts, claps, kissing/blowjob, optional thrust-sync, contact one-shots; gape reads from Accurate Penetration when present.
+- Body SFX - slushing, impacts, claps, kissing/blowjob, optional thrust pacing, contact one-shots; gape reads from Accurate Penetration when present.
 - Gagged voice, milk squirts, and audio-driven lipsync on any loose voice file.
 
 
 REQUIREMENTS (hard)
 
-- SKSE64 + SexLab P+ 2.17+ (or classic SexLab — see the classic build)
+- SKSE64 + SexLab P+ 2.19+ (or classic SexLab - see the classic build)
 - AudioUtil 0.9.3+ — the folder-based audio/lipsync/TOML framework SLO VE runs on (update it before updating SLO VE). Please endorse it if you enjoy SLO VE:
   https://www.nexusmods.com/skyrimspecialedition/mods/186249
 - PapyrusUtil, Mfg Fix NG
@@ -33,7 +33,7 @@ INSTALLATION
 
 Use a mod manager (MO2 recommended). SLO VE is mostly loose scripts, sounds, and TOML config plus one small ESL-flagged plugin — there is nothing to build and no MCM to configure.
 
-1. Install the hard requirements first, each per its own instructions: SKSE64, SexLab Framework P+ 2.17+, PapyrusUtil, Mfg Fix NG (MfgConsoleFunc/Ext), and AudioUtil — the folder-based audio / lipsync / TOML framework SLO VE runs on. AudioUtil must be present or SLO VE has no voice engine.
+1. Install the hard requirements first, each per its own instructions: SKSE64, SexLab Framework P+ 2.19+, PapyrusUtil, Mfg Fix NG (MfgConsoleFunc/Ext), and AudioUtil - the folder-based audio / lipsync / TOML framework SLO VE runs on. AudioUtil must be present or SLO VE has no voice engine.
 
 2. (Optional) Add female voice packs. Females already work out of the box on SexLab's stock moans, but a real pack is a drop-in upgrade — grab one of SLO VE's own female voice packs (optional files on this page), or use any Hentairim/IVDT pack (you only need its SOUND FILES/WAVs, not its ESP/scripts). Player voice goes in Sound\fx\SLOVE\F1; for a follower/partner voice, put the same files in F2 (F3, …). Male packs M1–M8 and the full body-SFX library are already bundled.
 
