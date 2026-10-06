@@ -278,3 +278,53 @@ Function DumpState() Global
 	MiscUtil.PrintConsole("  player slot=" + AudioUtil.GetSlotForActor(Game.GetPlayer()))
 	MiscUtil.PrintConsole("  esp loaded=" + SLOVE_Utils.isDependencyReady("SLOVE.esp"))
 EndFunction
+
+;Send one of the SLOVE_Mute_* events the way another mod would, to try the external
+;mute API without that mod: the actor under the crosshair (aim before opening the
+;console), else the player. scope "scene" = SLOVE_Mute_Scene, anything else =
+;SLOVE_Mute_Stage; aiFace != 0 also hands over the face. The Director writes one
+;"Mute :" line per event to SLOVE.0.log.
+Function Mute(String scope, Int aiFace) Global
+	Actor a = Game.GetCurrentCrosshairRef() as Actor
+	if a == None
+		a = Game.GetPlayer()
+	endif
+	string ev = "SLOVE_Mute_Stage"
+	if scope == "scene"
+		ev = "SLOVE_Mute_Scene"
+	endif
+	float face = 0.0
+	if aiFace != 0
+		face = 1.0
+	endif
+	a.SendModEvent(ev, "slovetest", face)
+	MiscUtil.PrintConsole("SLO VE: sent " + ev + " for " + a.GetDisplayName() + " (face=" + (aiFace != 0) + ") - 'slovetest mutes' shows the result")
+EndFunction
+
+;The matching SLOVE_Unmute_Stage / SLOVE_Unmute_Scene, same target rule as Mute.
+Function Unmute(String scope) Global
+	Actor a = Game.GetCurrentCrosshairRef() as Actor
+	if a == None
+		a = Game.GetPlayer()
+	endif
+	string ev = "SLOVE_Unmute_Stage"
+	if scope == "scene"
+		ev = "SLOVE_Unmute_Scene"
+	endif
+	a.SendModEvent(ev, "slovetest")
+	MiscUtil.PrintConsole("SLO VE: sent " + ev + " for " + a.GetDisplayName() + " - 'slovetest mutes' shows the result")
+EndFunction
+
+;List every actor currently muted through the SLOVE_Mute_* events.
+Function Mutes() Global
+	int n = StorageUtil.FormListCount(None, "SLOVE_MutedActors")
+	MiscUtil.PrintConsole("SLO VE: " + n + " muted actor(s)")
+	int i = 0
+	while i < n
+		Actor a = StorageUtil.FormListGet(None, "SLOVE_MutedActors", i) as Actor
+		if a
+			MiscUtil.PrintConsole("  " + a.GetDisplayName() + " stage=" + StorageUtil.GetIntValue(a, "SLOVE_MuteStage", 0) + " scene=" + StorageUtil.GetIntValue(a, "SLOVE_MuteScene", 0) + " (1 = voice, 2 = voice + face) by '" + SLOVE_Utils.MutedBy(a) + "'")
+		endif
+		i += 1
+	endwhile
+EndFunction

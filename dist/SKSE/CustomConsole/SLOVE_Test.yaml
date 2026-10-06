@@ -82,3 +82,29 @@ subs:
         type: int
         default: 0
         help: 1 = intense (milk.levelintense), 0 = non-intense (default)
+  - name: Mute
+    alias: mute
+    func: Mute
+    help: Send SLOVE_Mute_Stage / SLOVE_Mute_Scene for the crosshair actor (else the player) as another mod would - they go quiet until the stage changes / the scene ends
+    args:
+      - name: scope
+        type: String
+        required: true
+        help: stage (until the stage changes) or scene (until the scene ends)
+      - name: face
+        type: int
+        default: 0
+        help: 1 = also hand over the face (expressions pause on that actor)
+  - name: Unmute
+    alias: unmute
+    func: Unmute
+    help: Send SLOVE_Unmute_Stage / SLOVE_Unmute_Scene for the crosshair actor (else the player)
+    args:
+      - name: scope
+        type: String
+        required: true
+        help: stage or scene
+  - name: Mutes
+    alias: mutes
+    func: Mutes
+    help: List the actors currently muted through the SLOVE_Mute_* events, with level and caller

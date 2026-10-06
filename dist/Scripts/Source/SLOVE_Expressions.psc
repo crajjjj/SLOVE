@@ -90,12 +90,11 @@ int AhegaoItemCount = 0
 string[] AhegaoStorageKeys
 int AhegaoStorageKeyCount = 0
 bool ExternalAhegaoYieldActive = false
-;SexLab Snuff rides the same yield (see OnUpdate): SLSnuff.esp main quest, or None
-;when the hand-over is inert (SLOVE_Utils.GetSnuffQuest)
-Quest SnuffQuest
-;SLSnuff owned this actor at our last tick - read by resetexpressions at teardown,
-;after SLSnuff has already cleared its per-thread flags
-bool SnuffYieldActive = false
+;an external mute that also took the face (SLOVE_Mute_* with numArg >= 1) rides the
+;same yield. True from the tick we first see it until the face is handed back
+;mid-scene - read by resetexpressions, so a face that was given away is still
+;not ours to reset at teardown
+bool FaceHandedOver = false
 
 Event OnSLSAhegaoStateChange(string eventName, string argString, float argNum, form sender)
 	;SLS ahegao is a player-only face; ignore for NPC instances
@@ -227,18 +226,25 @@ Event OnUpdate()
 	;this covers any mod that signals ahegao by an item or a per-actor key, on
 	;any actor. Transition once so we drop the tongue / hand back the mouth on
 	;enter and force a fresh pass on exit.
-	;SexLab Snuff (SLSnuff.esp) rides the same yield: while it chokes this actor,
-	;holds them "dead" at 1 HP or uses them as a necro corpse, it repaints its own
-	;face every second, so ours would only flicker against it.
-	bool snuffed = SnuffQuest && SLOVE_Utils.IsSnuffSilenced(SnuffQuest, actorref, ThreadID)
-	SnuffYieldActive = snuffed
-	bool extAhegao = snuffed || ExternalAhegaoActive()
+	;An external mute that also took the face (SLOVE_Mute_Stage / SLOVE_Mute_Scene with
+	;numArg >= 1, see SLOVE_Utils) rides the same yield: the muting mod paints this
+	;face now, so ours would only flicker against it.
+	bool facemuted = SLOVE_Utils.MuteLevel(actorref) >= 2
+	if facemuted
+		FaceHandedOver = true
+	endif
+	bool extAhegao = facemuted || ExternalAhegaoActive()
+	if FaceHandedOver && !extAhegao && ThreadEnding()
+		;the mute did not end, the scene did (mutes expire with it) - stay yielded so
+		;the teardown leaves the face to its owner instead of repainting it first
+		extAhegao = true
+	endif
 	if extAhegao && !ExternalAhegaoYieldActive
 		ExternalAhegaoYieldActive = true
-		printdebug("External face owner (ahegao item / storage key / SLSnuff) - pausing expressions")
+		printdebug("External face owner (ahegao item / storage key / mute event) - pausing expressions")
 		RemoveTongue()
-		if snuffed && (HasMFEE || HasMFEEVanillaRace)
-			;its face is MFG only - our painted MFEE ahegao is a morph it never
+		if facemuted && (HasMFEE || HasMFEEVanillaRace)
+			;the muting mod's face is MFG - our painted MFEE ahegao is a morph it never
 			;overwrites, so retract it (an external AHEGAO is left to stack on ours)
 			MFEEAddAhegao = false
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref, 0, 0, 0)
@@ -247,6 +253,7 @@ Event OnUpdate()
 		StorageUtil.SetIntValue(actorref, "SLOVE_FaceOwnsMouth_Expr", 0)
 	elseif !extAhegao && ExternalAhegaoYieldActive
 		ExternalAhegaoYieldActive = false
+		FaceHandedOver = false ;handed back mid-scene - the face is ours again
 		CachedLabelGroup = ""
 		printdebug("External face owner released - resuming expressions")
 	endif
@@ -978,7 +985,6 @@ Function InitializeConfigandForms()
 
 	LoadAhegaoItems()
 	LoadAhegaoStorageKeys()
-	SnuffQuest = SLOVE_Utils.GetSnuffQuest()
 	InitializeAddNPCTongue()
 	printdebug("------------------Initialize Hentai Expressions Configs and Forms END-------------------------")
 endfunction
@@ -1659,12 +1665,11 @@ function resetexpressions()
 		return
 	endif
 
-	;SexLab Snuff kills its marked victim as the scene ends and re-applies its death
-	;face on the corpse - a reset from us would land after that and wipe it. So an
-	;actor it owned at our last tick who is now dead or pinned at 1 HP keeps the MFG
-	;channels it set; a survivor is reset as usual. The MFEE morphs below are ours
-	;to revert either way.
-	if !(SnuffYieldActive && SLOVE_Utils.IsNearDeath(actorref))
+	;a face another mod took with a mute event (FaceHandedOver, see OnUpdate) is
+	;not ours to reset: its owner may want it kept past the scene end, and SexLab's
+	;own scene-end reset still clears a living actor. The MFEE morphs below are
+	;ours to revert either way.
+	if !FaceHandedOver
 		;0.1 = near-instant: the default 0.75 makes the reset itself a slow smooth
 		;transition that a concurrently-interpolating apply can win against
 		MfgConsoleFuncExt.resetmfg(actorref, 0.1)
@@ -1956,6 +1961,16 @@ string Labelsconcat
 ;a different (or no) thread, so we self-compute base labels off our own thread.
 bool Function OnPCThread()
 	return CurrentThread && CurrentThread.HasPlayer()
+endfunction
+
+;True once this actor's scene is over or winding down (thread status is neither
+;SETUP 2 nor INSCENE 3). External mutes expire with the scene - see OnUpdate.
+bool Function ThreadEnding()
+	if SceneEnded || CurrentThread == None || !Sexlab.GetThreadByActor(actorref)
+		return true
+	endif
+	int status = CurrentThread.GetStatus()
+	return status != 2 && status != 3
 endfunction
 
 Function UpdateLabels(actor char)

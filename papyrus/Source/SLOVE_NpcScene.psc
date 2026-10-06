@@ -19,7 +19,6 @@ Actor[] sceneFemales
 Actor[] sceneCreatures
 bool sceneHasPenetrator ;any male or creature in the raw position list (slot or not)
 int threadId
-Quest snuffQuest ;SLSnuff.esp main quest; None = SexLab Snuff hand-over inert (SLOVE_Utils.GetSnuffQuest)
 
 ; ---- config ([voice]/[director] in SLOVE.toml) ----
 int enablevoice
@@ -111,13 +110,6 @@ Function InitializeConfig()
 	; matches the old behavior until set. 0-100 -> 0-1 for SetGroupVolume.
 	npcvolume               = SLOVE_Config.GetInt("voice.npcscenevolume", SLOVE_Config.GetInt("voice.partnervolume", 100)) as float / 100
 	enableprintdebug        = SLOVE_Config.GetInt("director.printdebug", 0)
-	snuffQuest              = SLOVE_Utils.GetSnuffQuest()
-EndFunction
-
-; SexLab Snuff victim (being choked, or held "dead" at 1 HP): makes no sound of their
-; own - see the hand-over block in SLOVE_Utils. Free when SLSnuff is absent.
-bool Function SnuffSilenced(Actor a)
-	return snuffQuest != None && SLOVE_Utils.IsSnuffSilenced(snuffQuest, a, threadId)
 EndFunction
 
 ; Bucket the scene's actors by kind, mirroring SLOVE_Voice.FindActorsAndVoices but
@@ -184,7 +176,8 @@ Event NpcSceneOrgasm(Form actorRef, Int thread)
 		return
 	endif
 	;same hold as OnUpdate - this one is event-driven, so it needs its own gate
-	if SLOVE_Utils.GamePaused() || SnuffSilenced(a)
+	;...and an actor another mod has muted (SLOVE_Mute_*) makes no sound of their own
+	if SLOVE_Utils.GamePaused() || SLOVE_Utils.MuteLevel(a) > 0
 		return
 	endif
 	MasterScript.PlaySound("Orgasm", a, False, "npc_high", "slove_np" + a.GetFormID(), SceneFacts(SceneIsIntense(), "mine"))
@@ -291,7 +284,7 @@ Function PlayCreatureBreathing(bool intense)
 		maxPause = maxPause / 2.0
 	endif
 	creatureBreathCooldown = Utility.RandomFloat(minPause, maxPause)
-	if SnuffSilenced(c)
+	if SLOVE_Utils.MuteLevel(c) > 0 ;muted by another mod (SLOVE_Mute_*)
 		return
 	endif
 	MasterScript.PlaySound("Breathing", c, False, "npc_low", "slove_np" + c.GetFormID(), SceneFacts(intense))
@@ -310,7 +303,7 @@ EndFunction
 ; all-female scene. Males keep the grunt names: on a male slot they ARE the
 ; generic moan categories (PlayMaleMoaning requests the same two).
 Function PlayAmbient(Actor a, bool intense, bool female = false)
-	if SnuffSilenced(a)
+	if SLOVE_Utils.MuteLevel(a) > 0 ;muted by another mod (SLOVE_Mute_*)
 		return
 	endif
 	string cat = "PenetrativeGrunts"

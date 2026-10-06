@@ -6,12 +6,6 @@
 [director]
 enablevoice = 1                # master switch: scene voices
 suppresssexlabvoice = 1        # 1 = silence SexLab's own moans in player scenes (AudioUtil owns the voice); 0 = let SexLab moan too. Only acts when enablevoice = 1.
-# SexLab Snuff (SLSnuff.esp) hand-over. That mod chokes / kills an actor mid-scene and
-# mutes them through SexLab's own voice, which SLO VE does not use. With this ON, an
-# actor it is choking, holding "dead" at 1 HP, or using as the corpse of a necro scene
-# makes no SLO VE sound and keeps the face SLSnuff gives them; everyone else carries on.
-# Does nothing unless SLSnuff.esp is installed.
-slsnuffyield = 1               # 1 = hand SLSnuff's victim over (voice + face); 0 = ignore SLSnuff
 enableexpressions = 1          # master switch: facial expressions
 enablepcexpression = 1
 enablemalenpcexpression = 1

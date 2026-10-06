@@ -62,7 +62,6 @@ Int voiceAllActors = 1             ;SLOVE.toml "voice.voiceallactors"
 Actor playerCharacter = None
 
 Int ThreadID = -1
-Quest SnuffQuest ;SLSnuff.esp main quest; None = SexLab Snuff hand-over inert (SLOVE_Utils.GetSnuffQuest)
 string CurrentSceneid = ""
 bool GreetedMalePartner = false
 
@@ -154,7 +153,6 @@ float	orgasmvolume
 Function InitializeConfigValues()
 
 	ActorsInPlay = MasterScript.GetPositions()
-	SnuffQuest = SLOVE_Utils.GetSnuffQuest()
 	;SLO VE: dropped - donotadvance* keys (stage-advance handshake), chancetoorgasmsquirt /
 	;enablethickcumleak / chancetoleakthickcum (cum shaders)
 	enablebrokenstatus = SLOVE_Config.GetInt("resistance.enablebrokenstatus", 1)
@@ -1645,13 +1643,12 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 		Return
 	endif
 
-	;SexLab Snuff (SLSnuff.esp): this actor is being choked, is held "dead" at 1 HP
-	;for the rest of the scene, or is the corpse of one of its necro scenes. It mutes
-	;them through SexLab's own voice, which never reaches AudioUtil, so skip the line
-	;the same way as above (no PlayVoice, so no lipsync over its face either). Per
-	;actor: the strangler keeps talking. Free when SLSnuff is absent.
-	if SnuffQuest && SLOVE_Utils.IsSnuffSilenced(SnuffQuest, audioActor, ThreadID)
-		Printdebug("Voice + lipsync suppressed (SLSnuff victim) : " + debugtext)
+	;external mute (SLOVE_Mute_Stage / SLOVE_Mute_Scene, see SLOVE_Utils): another mod
+	;has taken this actor's voice for the stage or the scene - it is playing their
+	;sounds itself. Skip the line the same way as above (no PlayVoice, so no lipsync
+	;either). Per actor: everyone else in the scene keeps talking.
+	if SLOVE_Utils.MuteLevel(audioActor) > 0
+		Printdebug("Voice + lipsync suppressed (muted by '" + SLOVE_Utils.MutedBy(audioActor) + "') : " + debugtext)
 		Return
 	endif
 

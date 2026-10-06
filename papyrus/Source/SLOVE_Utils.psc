@@ -93,55 +93,30 @@ Function ClearHentaiScenario() Global
 	StorageUtil.UnsetStringValue(None, "HentaiScenario")
 EndFunction
 
-;=== SexLab Snuff hand-over (SLSnuff.esp, optional) ===
-;SLSnuff (strangulation / necro) silences its victim through SexLab's own voice
-;and paints its own choke / death faces. Neither reaches SLO VE: AudioUtil is
-;the voice here, and the expression engine repaints over a foreign face. So the
-;voice and expression engines ask before a line or a face pass. Everything read
-;here is state SLSnuff publishes itself, so no script dependency:
-;  - Victim<tid> on its main quest: the actor it picked as that thread's
-;    strangle victim, kept until the scene ends. Nothing below counts for
-;    anyone else - low health alone is ordinary in a defeat scene.
-;  - VoiceMuted<tid> on its main quest: 1 while it mutes that victim - during
-;    a choke stage, and on through the rest of the scene once the victim is
-;    "marked for death". Its own stage-accurate verdict (override list, SLAL
-;    flags, tags); animation tags cannot reproduce it.
-;  - health, as the fallback for when its choke audio (and so that flag) is
-;    switched off: it pins the marked victim at 1 HP until the scene ends. The
-;    pin is a 1s damage/restore tick with regen running in between, so test a
-;    fraction of max, never == 1.
-;  - SLSnuff_NecroThisDeath on the actor: > 0 for the corpse of its necro
-;    scenes, which never get a Victim<tid> (counted per dead state, zeroed
-;    when it ends).
-;Resolve the quest once per scene with GetSnuffQuest and keep it - None (not
-;installed, or director.slsnuffyield = 0) makes every check free.
-Quest Function GetSnuffQuest() Global
-	if SLOVE_Config.GetInt("director.slsnuffyield", 1) != 1 || !isDependencyReady("SLSnuff.esp")
-		return None
+;=== External mute (the SLOVE_Mute_* mod events) ===
+;Another mod can take an actor's voice - and optionally their face - away from
+;SLO VE for the current stage or for the rest of the scene. The events are sent
+;FROM the actor, with the caller's name as the string (docs/authors/integration.md):
+;  akActor.SendModEvent("SLOVE_Mute_Stage", "MyMod")      until the stage changes
+;  akActor.SendModEvent("SLOVE_Mute_Scene", "MyMod")      until the scene ends
+;  akActor.SendModEvent("SLOVE_Unmute_Stage", "MyMod")    lift either one early
+;  akActor.SendModEvent("SLOVE_Unmute_Scene", "MyMod")
+;numArg >= 1 also hands over the face. SLOVE_Director owns the events, their log
+;lines and the expiry; the state it keeps is two StorageUtil ints on the actor,
+;so the voice and expression engines read it per line / per tick without a
+;cross-script call.
+
+;0 = not muted, 1 = voice muted, 2 = voice muted and face handed over
+Int Function MuteLevel(Actor a) Global
+	int stageLevel = StorageUtil.GetIntValue(a, "SLOVE_MuteStage", 0)
+	int sceneLevel = StorageUtil.GetIntValue(a, "SLOVE_MuteScene", 0)
+	if stageLevel > sceneLevel
+		return stageLevel
 	endif
-	return Game.GetFormFromFile(0xD62, "SLSnuff.esp") as Quest
+	return sceneLevel
 EndFunction
 
-;True while SLSnuff holds the victim's SexLab voice muted on this thread
-Bool Function IsSnuffVoiceMuted(Quest snuffQuest, Int threadID) Global
-	return StorageUtil.GetIntValue(snuffQuest, "VoiceMuted" + threadID, 0) == 1
-EndFunction
-
-;True for an actor that is dead or pinned at death's door (1 HP plus regen drift)
-Bool Function IsNearDeath(Actor a) Global
-	return a.IsDead() || a.GetActorValuePercentage("Health") <= 0.05
-EndFunction
-
-;True while SLSnuff owns this actor's voice and face (see the block above)
-Bool Function IsSnuffSilenced(Quest snuffQuest, Actor a, Int threadID) Global
-	if snuffQuest == None || a == None
-		return false
-	endif
-	if StorageUtil.GetIntValue(a, "SLSnuff_NecroThisDeath", 0) > 0
-		return true
-	endif
-	if StorageUtil.GetFormValue(snuffQuest, "Victim" + threadID) != a
-		return false
-	endif
-	return IsSnuffVoiceMuted(snuffQuest, threadID) || IsNearDeath(a)
+;The caller name the latest mute on this actor was sent with ("" = none)
+String Function MutedBy(Actor a) Global
+	return StorageUtil.GetStringValue(a, "SLOVE_MuteBy", "")
 EndFunction
