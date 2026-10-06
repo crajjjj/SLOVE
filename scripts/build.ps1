@@ -243,19 +243,30 @@ function Build-Fomod {
     }
     Write-Host "PPACompat: $($script:ppaCount) silent SFX twins generated" -ForegroundColor Cyan
 
-    # UBESupport = the optional UBE custom-race tongue patch (SLOVE_UBE_Support.esp).
-    # Stored, not generated: it references UBE_AllRace.esp as a master, so it can
-    # only be built with UBE loaded (in xEdit via tools\xedit\SLOVE UBE Patch.pas,
-    # or headless). The prebuilt esp lives in optional\UBESupport\; we just stage
-    # it. Warn (don't fail) if it hasn't been built yet, exactly like dist-classic.
-    $ubeEsp = Join-Path $root 'optional\UBESupport\SLOVE_UBE_Support.esp'
+    # UBESupport = the optional UBE custom-race tongue option: SLOVE_UBE_Support.esp
+    # plus the UBE-fitted tongue meshes its armor addons point at
+    # (meshes\!UBE\SLOVE\tongues). Stored, not generated: the esp has
+    # UBE_AllRace.esp as a master, so it can only be authored with UBE loaded
+    # (optional\UBESupport\README.md). We stage the esp and the meshes; the README
+    # stays out of the install. Warn (don't fail) if the esp is absent, exactly
+    # like dist-classic - but an esp naming a mesh we do not ship is an invisible
+    # tongue in game, so that one is a hard error.
+    $ubeSrc = Join-Path $root 'optional\UBESupport'
+    $ubeEsp = Join-Path $ubeSrc 'SLOVE_UBE_Support.esp'
     if (Test-Path $ubeEsp) {
         $ubeStage = Join-Path $stage 'UBESupport'
         New-Item -ItemType Directory -Force $ubeStage | Out-Null
-        Copy-Item $ubeEsp $ubeStage -Force   # esp only - the README stays out of the install
-        Write-Host 'UBESupport: staged SLOVE_UBE_Support.esp' -ForegroundColor Cyan
+        Copy-Item $ubeEsp $ubeStage -Force
+        $ubeMeshes = Join-Path $ubeSrc 'meshes'
+        if (Test-Path $ubeMeshes) { Copy-Item $ubeMeshes $ubeStage -Recurse -Force }
+        $espText = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes($ubeEsp))
+        $named = @([regex]::Matches($espText, '!UBE\\[\x20-\x7e]+?\.nif') | ForEach-Object { $_.Value } | Sort-Object -Unique)
+        $missing = @($named | Where-Object { -not (Test-Path -LiteralPath (Join-Path $ubeStage "meshes\$_")) })
+        if ($missing.Count) { throw "UBESupport: SLOVE_UBE_Support.esp names meshes missing from optional\UBESupport\meshes: $($missing -join ', ')" }
+        if (-not $named.Count) { throw 'UBESupport: SLOVE_UBE_Support.esp names no !UBE mesh - it is the pre-0.6.28 race-list patch, rebuild it (optional\UBESupport\README.md).' }
+        Write-Host "UBESupport: staged SLOVE_UBE_Support.esp + $($named.Count) UBE tongue meshes" -ForegroundColor Cyan
     } else {
-        Write-Warning "UBESupport: optional\UBESupport\SLOVE_UBE_Support.esp not found - FOMOD's UBE option will install nothing. Build it with UBE loaded (tools\xedit\SLOVE UBE Patch.pas)."
+        Write-Warning "UBESupport: optional\UBESupport\SLOVE_UBE_Support.esp not found - FOMOD's UBE option will install nothing. Author it with UBE loaded (optional\UBESupport\README.md)."
     }
 
     # Release archives are named SLO_VE_v<version>.zip. The version is read from

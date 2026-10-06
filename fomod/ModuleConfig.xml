@@ -129,12 +129,15 @@ the races listed in its Armor Addon, and SLO VE's tongue armatures list the
 vanilla / DLC races only - so on a UBE character the equipped tongue is
 INVISIBLE (equip succeeds, nothing shows).
 
-This option installs SLOVE_UBE_Support.esp, an override-only (ESL-flagged)
-patch that adds all 18 UBE races (Breton/Imperial/Nord/Redguard/Dark Elf/
-High Elf/Wood Elf/Orc, their vampire variants, plus 2 custom races) to the
-10 tongue Armor Addons, so the tongue renders on UBE actors. It reuses the
-existing tongue meshes - the tongue is head-attached, not body-shaped, so no
-UBE mesh conversion is needed.
+This option gives UBE actors their own tongues. It installs:
+- ten UBE-fitted tongue meshes (meshes\!UBE\SLOVE\tongues), and
+- SLOVE_UBE_Support.esp (ESL-flagged), which gives each of the 10 tongue
+  armors a second Armor Addon that lists only the 18 UBE races (Breton/
+  Imperial/Nord/Redguard/Dark Elf/High Elf/Wood Elf/Orc, their vampire
+  variants, plus 2 custom races) and points at the UBE mesh.
+
+The game picks the addon by the wearer's race: a UBE actor wears the
+UBE-fitted tongue, everyone else keeps the standard one. No setting to flip.
 
 REQUIRES UBE_AllRace.esp (from UBE 2.0). Load SLOVE_UBE_Support.esp AFTER
 both SLOVE.esp and UBE_AllRace.esp. Leave unchecked if you do not run UBE -

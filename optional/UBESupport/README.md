@@ -1,55 +1,72 @@
-# UBE tongue support (optional FOMOD patch)
+# UBE tongue support (optional FOMOD option)
 
-This folder is the **staging source** for the FOMOD's *UBE Body → UBE tongue
-support* option. `scripts\build.ps1` copies it verbatim into
-`Release\FOMOD\UBESupport\` (only if `SLOVE_UBE_Support.esp` is present).
+This folder is the **staging source** for the FOMOD's *UBE Body -> UBE tongue
+support* option. `scripts\build.ps1` copies `SLOVE_UBE_Support.esp` and the
+`meshes\` tree into `Release\FOMOD\UBESupport\` (this README stays out of the
+install).
 
-## What it is
+## What it does
 
-`SLOVE_UBE_Support.esp` — an **override-only, ESL-flagged** patch that adds all
-18 UBE races (`UBE_AllRace.esp`) to the *Additional Races* of SLO VE's 10 tongue
-Armor Addons (`SLOVE_TongueAA1`..`10`, `SLOVE.esp` `000809`–`000812`).
+UBE 2.0 ships its bodies as 18 separate custom races (`UBE_AllRace.esp`). A worn
+item renders only on the races its Armor Addon lists, and SLO VE's tongue addons
+list the vanilla and DLC races, so on a UBE actor the equipped tongue shows
+nothing.
 
-Without it, an equipped tongue is **invisible on UBE custom-race actors**: a worn
-mesh only renders on the races listed in its Armor Addon, and SLO VE's tongue
-armatures list the vanilla/DLC races only. The tongue is head-attached (NPC Head
-bone + the `tong1` HDT chain), not body-conforming, so **no UBE mesh conversion
-is needed** — only the race-coverage fix. Same approach as Beeing Female NG's
-`BF UBE Support` patch.
+Since 0.6.28 the option gives UBE actors **their own tongues**, chosen by the
+game from the wearer's race:
 
-Masters: `SLOVE.esp` + `UBE_AllRace.esp` (+ `Skyrim.esm`/`Update.esm`/
-`Dawnguard.esm`/`Dragonborn.esm` for the vanilla races already listed).
+| Piece | Content |
+|---|---|
+| `meshes\!UBE\SLOVE\tongues\linga1..10.nif` | The ten tongues fitted to the UBE head. `!UBE\<same path>` is the UBE mesh convention. |
+| `SLOVE_UBE_Support.esp` (ESL) | Ten new Armor Addons `SLOVE_TongueAA1_UBE`..`10_UBE` (`000800`-`000809`): slot 44, races = the 18 UBE races only, model = the mesh above, priority 10. Ten overrides of `SLOVE_Tongue1Armor`..`10Armor` (`SLOVE.esp` `000813`-`00081C`) that append the UBE addon after the standard one. |
 
-## Race count: 46 per armature
+Each tongue armor therefore carries two addons: the standard one (vanilla and DLC
+races) and the UBE one (UBE races). An actor matches exactly one, so no script
+has to know about UBE and `SLOVE_Expressions` equips the same ten armors as
+before.
 
-The bundled esp was first generated in 0.6.7 with **45** races each — the 27 that
-`SLOVE.esp` listed then, plus UBE's 18. 0.6.8 fixed a `SLOVE.esp` omission dating
-back to when the tongue armors were authored (`NordRace` `00013746` was never in
-the list, so a Nord equipped a tongue that rendered nothing), and because this
-patch is **override-only** its own lists win wherever it is enabled — so the
-shipped esp was updated in lockstep to **46** (`NordRace` appended to all ten).
+Masters: `Skyrim.esm`, `Update.esm`, `UBE_AllRace.esp`, `SLOVE.esp`.
 
-A regeneration per the steps below reproduces that automatically: the script
-copies the base ARMA record — now including NordRace — before adding UBE's races.
-Sanity check after any rebuild, without loading the game: the file should hold
-`10 x 46 = 460` `MODL` subrecords.
+## Rules that keep it working
 
-## How to (re)build the esp
+- **Never add UBE races to the standard addons** (`SLOVE_TongueAA1`..`10`). That
+  is what this patch did up to 0.6.27 (override-only, standard mesh on UBE heads).
+  Doing both makes a UBE actor match two addons of the same armor.
+- **The UBE addon outranks the standard one** (priority 10 against 0, and it is
+  last in the list). The third-party *UBE Armor Race Patcher* DLL adds the UBE
+  races to every Nord-fitting addon at load, the standard tongue addons
+  included, so with that DLL installed both addons match. The priority makes the
+  UBE one win slot 44, and the DLL redirects the standard addon to
+  `meshes\!UBE\<path>` anyway, which is the same file.
+- **Slot 44 lives in the records only.** The UBE meshes skin with a plain
+  `NiSkinInstance` and carry no body-part partition, so unlike SLO VE's own
+  meshes there is no slot to patch in the nif.
+- The meshes reference `meshes\morten\lingas\tong.xml` (HDT-SMP) and
+  `textures\Tongue\*`, both shipped by SLO VE's core install, so the option needs
+  nothing from FillHerUp.
 
-The patch references `UBE_AllRace.esp`, so it can only be built with **UBE 2.0
-loaded**. When UBE updates its race list, regenerate it.
+## Where the meshes come from
 
-**xEdit (recommended, matches the BF workflow):**
+They are unmodified copies of the tongue meshes in the *sr_FillHerUp UBE patch*
+(`meshes\!UBE\morten\lingas\linga1..10.nif`): the UBE conversions of FillHerUp's
+ten tongues, the set SLO VE's standard meshes also come from. Credit for the
+conversion goes to that patch's author.
 
-1. Copy `tools\xedit\SLOVE UBE Patch.pas` into your xEdit `Edit Scripts` folder.
-2. Launch xEdit with your full load order; `SLOVE.esp` **and** `UBE_AllRace.esp`
-   must be ticked.
-3. Right-click any record → *Apply Script…* → **SLOVE UBE Patch** → OK.
-4. When prompted, name the new file `SLOVE_UBE_Support.esp`; add masters when
-   asked.
-5. In the File Header, tick the **ESL** record flag, then Ctrl+S → Save.
-6. Copy the resulting `SLOVE_UBE_Support.esp` into **this folder**, next to this
-   README, then run `scripts\build.ps1` to fold it into the FOMOD.
+## Rebuilding the esp
 
-The script sweeps every `SLOVE_Tongue*Armor` ARMO, follows its armature, and
-adds the UBE races (de-duped) — so it survives new tongue armors automatically.
+Needed when UBE changes its race list or SLO VE gains a tongue armor. The esp
+needs `UBE_AllRace.esp` as a master, so author it with UBE in the load order.
+The shipped file was written with houseCARL (Mutagen); xEdit works as well:
+
+1. New plugin, masters `SLOVE.esp` and `UBE_AllRace.esp`, ESL flag set.
+2. For each tongue N, add an Armor Addon `SLOVE_TongueAA{N}_UBE`: biped slot 44
+   only, armor type Clothing, male and female priority 10, race = the first
+   `UBE_AllRace.esp` race, additional races = the rest, male and female world
+   model `!UBE\SLOVE\tongues\linga{N}.nif`.
+3. Copy `SLOVE_Tongue{N}Armor` as an override and append the new addon to its
+   Armature list, after the standard one.
+4. Save it here as `SLOVE_UBE_Support.esp` and run `scripts\build.ps1`, which
+   fails if the esp names a mesh that is not under `meshes\`.
+
+Sanity check without the game: the file holds 20 records (10 `ARMO` overrides,
+10 new `ARMA`) and no override of `SLOVE_TongueAA*`.
