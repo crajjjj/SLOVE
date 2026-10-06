@@ -1014,25 +1014,45 @@ Function PlayPullOutGape()
 EndFunction
 
 ;SexLab P+ older than 2.19 has no contact flags, so there the penetration edge is
-;taken from the LABEL system instead - the classic variant's edge logic, ported.
-;It keeps the two things an edge feeds that need no detector: the forced-insertion
-;trauma deposit, and the pull-out gape (measured by the AudioUtil PPA bridge, which
-;is framework-independent). The insertion / kiss / oral one-shots are NOT here:
-;they exist to catch what the labels miss, and an edge that comes from the labels
-;can never be one of those.
+;taken from the LABEL system instead, as the classic variant does. It keeps the two
+;things an edge feeds that need no detector: the forced-insertion trauma deposit,
+;and the pull-out gape (measured by the AudioUtil PPA bridge, which is
+;framework-independent). The insertion / kiss / oral one-shots are NOT here: they
+;exist to catch what the labels miss, and an edge that comes from the labels can
+;never be one of those.
 Function ProcessLabelEdges()
-	float now = CurrentThread.GetTimeTotal()
 	bool pen = IsGivingVaginalPenetration() || IsGivingAnalPenetration()
+	Actor receiver = none
+	if pen && !PrevContactPenetrating
+		receiver = ResolvePenetrationReceiver()
+	endif
+	PenetrationEdge(pen, CurrentThread.GetTimeTotal(), receiver, false)
+EndFunction
+
+;The penetration edge itself, for both detectors (ProcessContactEdges on contact
+;flags, ProcessLabelEdges on labels). pen: actorref is penetrating right now.
+;akReceiver: whom - the caller looks it up, and it is read on the rising edge only.
+;abInsertionShot: the insertion one-shot may play; it is for an insertion the
+;labels have not classified, so only a detector that is not the labels asks for it.
+Function PenetrationEdge(bool pen, float now, Actor akReceiver, bool abInsertionShot)
 	if pen
 		ContactPenLastSeen = now
 		if !PrevContactPenetrating
 			PrevContactPenetrating = true
 			ContactPenStartTime = now
-			LastPenReceiver = ResolvePenetrationReceiver()
+			LastPenReceiver = akReceiver
 			;resistance system: a forced insertion onto a submissive receiver deposits
 			;trauma their SLOVE_Resistance drains into willpower loss on its next tick
 			if LastPenReceiver != none && victiminsertiontrauma > 0 && MasterScript.IsSubmissive(LastPenReceiver)
 				StorageUtil.AdjustFloatValue(LastPenReceiver, "SLOVE_ResDebt", victiminsertiontrauma as float)
+			endif
+			;insertion one-shot only when the label system hasn't classified this as penetration yet
+			if abInsertionShot && LastPenReceiver != none && !IsGivingVaginalPenetration() && !IsGivingAnalPenetration()
+				printdebug("Contact edge: insertion detected")
+				String InsertionSFX = GetSlushSoundToPlay(1, 0.5)
+				if InsertionSFX != ""
+					PlayContactSound(InsertionSFX, LastPenReceiver)
+				endif
 			endif
 		endif
 	elseif PrevContactPenetrating && now - ContactPenLastSeen >= 0.5
@@ -1043,16 +1063,20 @@ EndFunction
 
 ;The actor this one is penetrating, going by the labels: whichever OTHER position
 ;carries a penetration label right now. Exact for the usual single-receiver scene;
-;in a group scene it takes the first such position.
+;in a group scene it takes the first such position. Read from this effect's OWN
+;thread, the way ComputeOwnThreadLabels does: the Director's labels are the
+;player's scene, and this effect runs on NPC-only scenes as well.
 Actor Function ResolvePenetrationReceiver()
-	Actor[] pos = MasterScript.GetPositions()
+	if !CurrentThread
+		return none
+	endif
+	string sceneid = CurrentThread.GetActiveScene()
+	actor[] al = CurrentThread.GetPositions()
+	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(sceneid, GetLegacyStageNum(sceneid, CurrentThread.GetActiveStage()), al)
 	int z = 0
-	while z < pos.Length
-		if pos[z] != none && pos[z] != actorref
-			string lbl = MasterScript.GetPenetrationLabel(pos[z])
-			if lbl != "" && lbl != "LDI"
-				return pos[z]
-			endif
+	while z < al.Length && z < pen.Length
+		if al[z] != none && al[z] != actorref && pen[z] != "" && pen[z] != "LDI"
+			return al[z]
 		endif
 		z += 1
 	endwhile
@@ -1084,33 +1108,14 @@ Function ProcessContactEdges()
 
 	;--- penetration edges (actorref as giver) ---
 	bool pen = f[23] || f[25] ;aVaginal / aAnal
-	if pen
-		ContactPenLastSeen = now
-		if !PrevContactPenetrating
-			PrevContactPenetrating = true
-			ContactPenStartTime = now
-			LastPenReceiver = CurrentThread.GetPartnerByInteractionType(actorref, 23)
-			if LastPenReceiver == none
-				LastPenReceiver = CurrentThread.GetPartnerByInteractionType(actorref, 25)
-			endif
-			;resistance system: a forced insertion onto a submissive receiver deposits
-			;trauma their SLOVE_Resistance drains into willpower loss on its next tick
-			if LastPenReceiver != none && victiminsertiontrauma > 0 && MasterScript.IsSubmissive(LastPenReceiver)
-				StorageUtil.AdjustFloatValue(LastPenReceiver, "SLOVE_ResDebt", victiminsertiontrauma as float)
-			endif
-			;insertion one-shot only when the label system hasn't classified this as penetration yet
-			if LastPenReceiver != none && !IsGivingVaginalPenetration() && !IsGivingAnalPenetration()
-				printdebug("Contact edge: insertion detected")
-				String InsertionSFX = GetSlushSoundToPlay(1, 0.5)
-				if InsertionSFX != ""
-					PlayContactSound(InsertionSFX, LastPenReceiver)
-				endif
-			endif
+	Actor receiver = none
+	if pen && !PrevContactPenetrating
+		receiver = CurrentThread.GetPartnerByInteractionType(actorref, 23)
+		if receiver == none
+			receiver = CurrentThread.GetPartnerByInteractionType(actorref, 25)
 		endif
-	elseif PrevContactPenetrating && now - ContactPenLastSeen >= 0.5
-		PrevContactPenetrating = false
-		PlayPullOutGape()
 	endif
+	PenetrationEdge(pen, now, receiver, true)
 
 	;--- kissing start (fire from the higher position of the pair so it plays once) ---
 	bool kis = f[0] ;bKissing

@@ -130,7 +130,7 @@ EndFunction
 ;Another mod can take an actor's voice - and optionally their face - away from
 ;SLO VE for the current stage or for the rest of the scene. The events are sent
 ;FROM the actor, with the caller's name as the string (docs/authors/integration.md):
-;  akActor.SendModEvent("SLOVE_Mute_Stage", "MyMod")      until the stage changes
+;  akActor.SendModEvent("SLOVE_Mute_Stage", "MyMod")      until the next stage starts
 ;  akActor.SendModEvent("SLOVE_Mute_Scene", "MyMod")      until the scene ends
 ;  akActor.SendModEvent("SLOVE_Unmute_Stage", "MyMod")    lift either one early
 ;  akActor.SendModEvent("SLOVE_Unmute_Scene", "MyMod")
@@ -145,21 +145,27 @@ EndFunction
 ;  - scene floor: when the PREVIOUS scene on that thread ended. A mute older than
 ;    that belongs to an earlier scene - thread ids are reused, and the player's
 ;    scenes nearly all run on thread 0
-;  - stage start: when the current stage began. A stage mute older than that,
-;    less a grace, has had its stage
+;  - stage start: when the latest stage began, the scene's first stage aside (a
+;    stage mute sent while the scene is still being set up belongs to stage 1).
+;    A stage mute older than that has had its stage - with a grace on BOTH sides
+;    of the start
 ;Nothing sweeps, and nothing reads the framework's own stage state, so there is
 ;no order in which the muting mod and SLO VE have to hear a StageStart - P+ sends
-;it BEFORE it advances the stage, and both mods answer the same event. The grace
-;is what lets a mute re-sent in answer to a StageStart count for the stage it
-;announced even when it lands a moment before SLO VE marks that stage. Nothing
-;flips at scene end either, so an engine tearing its scene down still sees the
-;mute (a face that was handed over stays handed over).
+;it BEFORE it advances the stage, and both mods answer the same event. That is
+;what the grace is for. Before the start: a mute re-sent in answer to a
+;StageStart counts for the stage it announced even when it lands a moment before
+;SLO VE marks that stage. After the start: the outgoing stage's mute stays in
+;force for the same few seconds, so there is no gap for a voice line or an
+;expression pass to slip through while the re-sent mute is still on its way.
+;Nothing flips at scene end either, so an engine tearing its scene down still
+;sees the mute (a face that was handed over stays handed over).
 ;Real time restarts with the game, so none of this means anything after a load:
-;the Director bulk-clears the SLOVE_Mute prefix first thing in Maintenance.
+;the Director calls ClearMutes first thing in Maintenance.
 
-;Seconds a stage mute may precede the stage start it answers. Longer = a mute sent
-;just before a stage change also covers the next stage; shorter = under script lag
-;a re-sent mute can lose the race and miss its stage.
+;The grace around a stage start, in seconds. Longer = a stage mute sent just
+;before a stage change also covers the next stage, and every stage mute outlasts
+;its stage by this much; shorter = under script lag a re-sent mute can lose the
+;race and leave a gap.
 Float Function MuteGrace() Global
 	return 2.0
 EndFunction
@@ -171,24 +177,40 @@ Bool Function MuteWritten(Actor a) Global
 EndFunction
 
 ;0 = not muted, 1 = voice muted, 2 = voice muted and face handed over.
-;aiThread: id of the SexLab thread the asking engine has this actor in.
+;aiThread: id of the SexLab thread the asking engine has this actor in. Pass -1
+;when the actor resolves to no thread any more (a scene in its last moments - on
+;P+ an ending thread no longer answers for its actors): the mute is then judged
+;on the thread it was set in, for as long as that thread's scene has not ended.
 Int Function MuteLevel(Actor a, Int aiThread) Global
 	int sceneLevel = StorageUtil.GetIntValue(a, "SLOVE_MuteScene", 0)
 	int stageLevel = StorageUtil.GetIntValue(a, "SLOVE_MuteStage", 0)
 	if sceneLevel == 0 && stageLevel == 0
 		return 0 ;nearly every call ends here
 	endif
-	if StorageUtil.GetIntValue(a, "SLOVE_MuteThread", 0) != aiThread + 1
+	int setOn = StorageUtil.GetIntValue(a, "SLOVE_MuteThread", 0) - 1
+	float sceneFloor = StorageUtil.GetFloatValue(None, "SLOVE_MuteFloor" + setOn, 0.0)
+	if aiThread < 0
+		float ended = StorageUtil.GetFloatValue(None, "SLOVE_MuteSceneEnd" + setOn, 0.0)
+		if ended > sceneFloor
+			sceneFloor = ended
+		endif
+	elseif aiThread != setOn
 		return 0 ;set in a scene on another thread
 	endif
-	float sceneFloor = StorageUtil.GetFloatValue(None, "SLOVE_MuteFloor" + aiThread, 0.0)
 	if sceneLevel > 0 && StorageUtil.GetFloatValue(a, "SLOVE_MuteSceneAt", 0.0) <= sceneFloor
 		sceneLevel = 0 ;set in an earlier scene on this thread
 	endif
 	if stageLevel > 0
 		float stageAt = StorageUtil.GetFloatValue(a, "SLOVE_MuteStageAt", 0.0)
-		if stageAt <= sceneFloor || stageAt < StorageUtil.GetFloatValue(None, "SLOVE_MuteStageStart" + aiThread, 0.0) - MuteGrace()
-			stageLevel = 0 ;an earlier scene, or its stage is over
+		if stageAt <= sceneFloor
+			stageLevel = 0 ;set in an earlier scene on this thread
+		else
+			;over once a later stage has started - grace on both sides of that start
+			float stageStart = StorageUtil.GetFloatValue(None, "SLOVE_MuteStageStart" + setOn, 0.0)
+			float grace = MuteGrace()
+			if stageAt < stageStart - grace && Utility.GetCurrentRealTime() >= stageStart + grace
+				stageLevel = 0
+			endif
 		endif
 	endif
 	if stageLevel > sceneLevel
@@ -222,7 +244,7 @@ Function SetMute(Actor a, Int aiThread, Bool abScene, Int aiLevel, String asCall
 		StorageUtil.SetFloatValue(a, "SLOVE_MuteStageAt", now)
 		StorageUtil.SetIntValue(a, "SLOVE_MuteStage", aiLevel)
 	endif
-	;an index for DescribeMute only - nothing that decides a mute reads it
+	;an index for DescribeMute and MutedCount - nothing that decides a mute reads it
 	StorageUtil.FormListAdd(None, "SLOVE_MutedActors", a, false)
 EndFunction
 
@@ -239,25 +261,35 @@ Function LiftMute(Actor a, Bool abScene) Global
 	StorageUtil.SetFloatValue(None, "SLOVE_MuteLiftedAt", Utility.GetCurrentRealTime())
 EndFunction
 
-;True for a few seconds after any unmute. A mod that mutes an actor here has
-;usually force-silenced SexLab's own voice for them as well, and hands THAT back
-;when it unmutes - with ForceSilence off, which also drops the silence SLO VE set
-;at scene start, so SexLab's moans would run under ours from then on. Its restore
-;and its unmute arrive in either order, so the scene drivers re-assert the
-;silence on every tick this is true (and again on every stage start).
+;True for a few seconds after a mute was lifted or may just have run out (any
+;unmute, and any stage start once a mute has been written this session). A mod
+;that mutes an actor here has usually force-silenced SexLab's own voice for them
+;as well, and hands THAT back when it is done - with ForceSilence off, which also
+;drops the silence SLO VE set at scene start, so SexLab's moans would run under
+;ours from then on. Its restore, its unmute and SLO VE's own handlers run in any
+;order, so the scene drivers re-assert the silence on every tick this is true.
+;The window is twice the stage grace: an outgoing stage mute still reads as in
+;force for the first half, and a muted actor is skipped.
 Bool Function MuteJustLifted() Global
 	float liftedAt = StorageUtil.GetFloatValue(None, "SLOVE_MuteLiftedAt", 0.0)
-	return liftedAt > 0.0 && Utility.GetCurrentRealTime() - liftedAt < 4.0
+	return liftedAt > 0.0 && Utility.GetCurrentRealTime() - liftedAt < 2.0 * MuteGrace()
 EndFunction
 
 ;The per-thread marks MuteLevel judges against. SLOVE_Director sets them from
 ;SexLab's AnimationStarting / AnimationStart, AnimationEnd and StageStart events,
 ;for EVERY thread - adopted or not, a mute can be sent in any of them.
+;
+;Scene start. Both start events call this; the second call finds the scene marked.
 Function MarkSceneStart(Int aiThread) Global
+	float ended = StorageUtil.GetFloatValue(None, "SLOVE_MuteSceneEnd" + aiThread, 0.0)
+	if StorageUtil.GetFloatValue(None, "SLOVE_MuteSceneStart" + aiThread, 0.0) > ended
+		return
+	endif
 	;the scene starting now is judged against the end of the one before it. The
 	;floor stays put until the NEXT scene starts, so this scene's own end does not
 	;turn its mutes off under the engines still tearing it down
-	StorageUtil.SetFloatValue(None, "SLOVE_MuteFloor" + aiThread, StorageUtil.GetFloatValue(None, "SLOVE_MuteSceneEnd" + aiThread, 0.0))
+	StorageUtil.SetFloatValue(None, "SLOVE_MuteFloor" + aiThread, ended)
+	StorageUtil.SetFloatValue(None, "SLOVE_MuteSceneStart" + aiThread, Utility.GetCurrentRealTime())
 EndFunction
 
 Function MarkSceneEnd(Int aiThread) Global
@@ -265,7 +297,19 @@ Function MarkSceneEnd(Int aiThread) Global
 EndFunction
 
 Function MarkStageStart(Int aiThread) Global
-	StorageUtil.SetFloatValue(None, "SLOVE_MuteStageStart" + aiThread, Utility.GetCurrentRealTime())
+	float now = Utility.GetCurrentRealTime()
+	if StorageUtil.GetFloatValue(None, "SLOVE_MuteFirstStage" + aiThread, 0.0) <= StorageUtil.GetFloatValue(None, "SLOVE_MuteSceneStart" + aiThread, 0.0)
+		;the scene's first stage start is not a boundary: stage 1 owns every stage
+		;mute sent since the scene was set up (classic sends AnimationStart seconds
+		;before the first StageStart, so a mute answering it would be gone at once)
+		StorageUtil.SetFloatValue(None, "SLOVE_MuteFirstStage" + aiThread, now)
+	else
+		StorageUtil.SetFloatValue(None, "SLOVE_MuteStageStart" + aiThread, now)
+	endif
+	if MutedCount() > 0
+		;a stage mute may be running out right here - see MuteJustLifted
+		StorageUtil.SetFloatValue(None, "SLOVE_MuteLiftedAt", now)
+	endif
 EndFunction
 
 ;Forget every mute and every mark - one bulk clear of the SLOVE_Mute prefix, on
@@ -289,15 +333,15 @@ String Function DescribeMute(Int aiIndex) Global
 	if a == None
 		return ""
 	endif
-	int thread = StorageUtil.GetIntValue(a, "SLOVE_MuteThread", 0) - 1
+	int setOn = StorageUtil.GetIntValue(a, "SLOVE_MuteThread", 0) - 1
 	string line = a.GetDisplayName() + " stage=" + StorageUtil.GetIntValue(a, "SLOVE_MuteStage", 0) + " scene=" + StorageUtil.GetIntValue(a, "SLOVE_MuteScene", 0)
-	return line + " (1 = voice, 2 = voice + face) by '" + MutedBy(a) + "' on thread " + thread + ", in force: " + MuteLevel(a, thread)
+	return line + " (1 = voice, 2 = voice + face) by '" + MutedBy(a) + "' on thread " + setOn + ", in force: " + MuteLevel(a, -1)
 EndFunction
 
 ;The exclusivity channel an actor's voice lines play on: "slove_pc" for the
-;player, "slove_np<FormID>" for anyone else, and the same name with "_orgasm"
-;appended for climax cries. SLOVE_Voice.PlaySound and SLOVE_NpcScene build these
-;names inline where they play; this is for a caller that has to STOP a line.
+;player, "slove_np<FormID>" for anyone else. The PC engine appends "_orgasm" for
+;climax cries. Every place that plays a voice line and the one that has to STOP
+;one (SLOVE_Director.DirectorOnMute) take the name from here.
 String Function VoiceChannel(Actor a) Global
 	if a == Game.GetPlayer()
 		return "slove_pc"

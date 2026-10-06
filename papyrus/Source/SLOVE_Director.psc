@@ -205,12 +205,11 @@ Event DirectorOnMute(string eventName, string argString, float argNum, form send
 	endif
 	SLOVE_Utils.SetMute(a, thread, eventName == "SLOVE_Mute_Scene", level, argString)
 	;a mute silences NOW, not from the next line: cut what this actor is in the
-	;middle of saying and let go of the mouth, which would otherwise keep moving
-	;with the clip and then snap shut over whatever the muting mod has posed
+	;middle of saying. Stopping the line is all the mouth needs - AudioUtil fades
+	;it shut as the line ends, where StopLipSync would freeze it mid-shape
 	string channel = SLOVE_Utils.VoiceChannel(a)
 	AudioUtil.StopChannel(channel)
 	AudioUtil.StopChannel(channel + "_orgasm")
-	AudioUtil.StopLipSync(a)
 	SLOVE_Log.WriteLog("Mute : " + eventName + " actor=" + a.GetDisplayName() + " caller='" + argString + "' face=" + (level == 2) + " thread=" + thread, 0)
 EndEvent
 
@@ -550,10 +549,6 @@ Event DirectorStageStart(string eventName, string argString, float argNum, form 
 		endwhile
 
 		actorlist = currentthread.Getpositions()
-		;re-assert SexLab's own silence every stage: a mod that silenced an actor's
-		;SexLab voice itself for a stage hands it back with ForceSilence off, which
-		;also drops the silence SuppressSexLabVoice set at scene start
-		SuppressSexLabVoice()
 		;SLO VE: re-broadcast for consumers; label refresh happens in OnUpdate via the id comparison
 		SendModEvent("SLOVE_StageStart", argString)
 	endif
@@ -1331,7 +1326,8 @@ Function PlaySound(String theSound, Actor actorMakingSound, Bool waitForCompleti
 	;through - the PC engine, its partner and creature ambience, the NPC-scene
 	;driver - so the gate is here; SLOVE_Voice.PlaySound also asks, earlier, only to
 	;spare its own ducking and waits. The actor's thread is looked up only when a
-	;mute is written on them at all.
+	;mute is written on them at all; an actor who resolves to no thread any more
+	;(-1, the scene's last moments) is judged on the thread the mute was set in.
 	if SLOVE_Utils.MuteWritten(actorMakingSound) && SLOVE_Utils.MuteLevel(actorMakingSound, ActorThreadID(actorMakingSound)) > 0
 		printdebug("Voice line dropped (muted by '" + SLOVE_Utils.MutedBy(actorMakingSound) + "') : " + theSound)
 		return

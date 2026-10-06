@@ -740,15 +740,20 @@ EndFunction
 ;classic replacement for SLPP GetPartnerByType: the actor this one is penetrating
 ;is whichever OTHER position currently carries a penetration label. Exact for the
 ;usual single-receiver scene; in a group scene it takes the first such position.
+;Read from this effect's OWN thread, the way ComputeOwnThreadLabels does: the
+;Director's labels are the player's scene, and this effect runs on NPC-only scenes
+;as well - going through the Director named an actor of the PLAYER's scene as the
+;receiver of an NPC scene's insertion.
 Actor Function ResolvePenetrationReceiver()
-	Actor[] pos = MasterScript.GetPositions()
+	if !CurrentThread
+		return none
+	endif
+	actor[] al = CurrentThread.Positions
+	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(CurrentThread.Animation, CurrentThread.Stage, al)
 	int z = 0
-	while z < pos.Length
-		if pos[z] != none && pos[z] != actorref
-			string lbl = MasterScript.GetPenetrationLabel(pos[z])
-			if lbl != "" && lbl != "LDI"
-				return pos[z]
-			endif
+	while z < al.Length && z < pen.Length
+		if al[z] != none && al[z] != actorref && pen[z] != "" && pen[z] != "LDI"
+			return al[z]
 		endif
 		z += 1
 	endwhile

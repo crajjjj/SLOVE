@@ -90,6 +90,11 @@ int AhegaoItemCount = 0
 string[] AhegaoStorageKeys
 int AhegaoStorageKeyCount = 0
 bool ExternalAhegaoYieldActive = false
+;a face mute (SLOVE_Mute_* with numArg >= 1) has been seen on this actor and was
+;not lifted while the scene ran. A latch, so the teardown's verdict on the face
+;does not hang on re-judging the mute at that late moment (the next scene on
+;the thread may already have moved the floor) - see OnUpdate, resetexpressions
+bool FaceHandedOver = false
 ;SexLab P+ 2.19+ interaction API is there (SLOVE_Utils.HasInteractionAPI), probed
 ;once in InitializeConfigandForms - see InteractionsLive
 bool HasInteractions = false
@@ -230,6 +235,18 @@ Event OnUpdate()
 	;when the scene ends, so the yield holds through this effect's teardown as well.
 	bool facemuted = SLOVE_Utils.MuteLevel(actorref, ThreadID) >= 2
 	bool extAhegao = facemuted || ExternalAhegaoActive()
+	if facemuted
+		FaceHandedOver = true
+	elseif FaceHandedOver
+		;the face mute is no longer in force. Lifted while the scene runs: the face
+		;is ours again. With the scene gone, the mute went with it - stay out of the
+		;face and let the yield branch below tear this effect down
+		if SceneGone()
+			extAhegao = true
+		else
+			FaceHandedOver = false
+		endif
+	endif
 	if extAhegao && !ExternalAhegaoYieldActive
 		ExternalAhegaoYieldActive = true
 		printdebug("External face owner (ahegao item / storage key / mute event) - pausing expressions")
@@ -1676,10 +1693,10 @@ function resetexpressions()
 
 	;a face another mod took with a mute event (SLOVE_Mute_* with numArg >= 1) is not
 	;ours to reset: its owner may want it kept past the scene end (a death face), and
-	;SexLab's own scene-end reset still clears a living actor. A mute stays in force
-	;through the teardown of the scene it was set in for exactly this. The MFEE
-	;morphs below are ours to revert either way.
-	if SLOVE_Utils.MuteLevel(actorref, ThreadID) < 2
+	;SexLab's own scene-end reset still clears a living actor. The latch decides
+	;(see FaceHandedOver); the live read covers a mute that arrived since the last
+	;tick. The MFEE morphs below are ours to revert either way.
+	if !FaceHandedOver && SLOVE_Utils.MuteLevel(actorref, ThreadID) < 2
 		;0.1 = near-instant: the default 0.75 makes the reset itself a slow smooth
 		;transition that a concurrently-interpolating apply can win against
 		MfgConsoleFuncExt.resetmfg(actorref, 0.1)

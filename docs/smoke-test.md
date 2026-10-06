@@ -90,7 +90,9 @@ grep -n 'MasterScript.PlaySound(' "SLO VE/papyrus/Source/SLOVE_Voice.psc"
 ```
 
 **Pass:** first grep returns nothing; every voice `PlaySound` forward includes
-a `voiceChannel`/`slove_np...` channel argument. Known-good channel scheme:
+a `voiceChannel` / `SLOVE_Utils.VoiceChannel(...)` channel argument (that helper
+is the one spelling of the voice channel names - the mute events stop a line by
+it, so a play site that builds the name itself can drift). Known-good channel scheme:
 `slove_pc` / `slove_np<formid>` (voice), `sfx_main_/sfx_contact_/sfx_impact_/
 sfx_slush_/sfx_ejac_<position>` (SFX).
 

@@ -580,7 +580,7 @@ Function PlayCreatureBreathing()
 	endif
 	creatureBreathCooldown = Utility.RandomFloat(minPause, maxPause)
 	printdebug("creature breathing: " + creature.getdisplayname())
-	MasterScript.PlaySound("Breathing", creature, False, "partner_low", "slove_np" + creature.GetFormID(), BuildFacts(creature))
+	MasterScript.PlaySound("Breathing", creature, False, "partner_low", SLOVE_Utils.VoiceChannel(creature), BuildFacts(creature))
 EndFunction
 
 ;Post-nut lines belong to whoever actually climaxed
@@ -1678,10 +1678,7 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 	;on their own threads - both slipped past the counters and stacked lines).
 	;Different speakers keep their own channels and still overlap deliberately
 	;(male comments over the PC's moans, group chatter between males).
-	String voiceChannel = "slove_pc"
-	if audioActor != playerCharacter
-		voiceChannel = "slove_np" + audioActor.GetFormID()
-	endif
+	String voiceChannel = SLOVE_Utils.VoiceChannel(audioActor) ;"slove_pc" / "slove_np<FormID>"
 	;Orgasm cries (soundPriority 3) get their OWN exclusivity lane, separate from the
 	;moan/comment channel above. The shared channel plus AudioUtil's priority-blind guard
 	;let a mundane priority-1 moan occupy the channel and drop the climax cry (and

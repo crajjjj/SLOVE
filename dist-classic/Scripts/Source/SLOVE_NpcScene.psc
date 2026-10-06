@@ -70,8 +70,6 @@ Function PerformInitialization()
 	; climax cries: SexLab fires this per orgasming actor for EVERY scene; we keep only
 	; our own thread's (the PC engine + each other NpcScene do the same)
 	RegisterForModEvent("SexLabOrgasmSeparate", "NpcSceneOrgasm")
-	; every stage start re-asserts the SexLab-voice silence (see NpcSceneStageStart)
-	RegisterForModEvent("StageStart", "NpcSceneStageStart")
 	InitializeConfig()
 	; NPC scenes ride their OWN volume bus (npc_low/npc_high) so voice.npcscenevolume
 	; tunes them apart from your own scene's partners. Each NpcScene sets it, so it
@@ -162,16 +160,6 @@ Function SuppressSexLabVoice()
 	endwhile
 EndFunction
 
-; SexLab's own voice is silenced once at scene start, but a mod that silences an
-; actor's SexLab voice itself for a stage hands it back with ForceSilence off, which
-; drops our silence with it - so re-assert on every stage start of this scene, and
-; in the tick for a few seconds after any unmute (SLOVE_Utils.MuteJustLifted).
-Event NpcSceneStageStart(string eventName, string argString, float argNum, form sender)
-	if argString as Int == threadId && CurrentThread != None
-		SuppressSexLabVoice()
-	endif
-EndEvent
-
 ; A scene actor climaxed -> play their orgasm cry (their own pack, partner climax bus,
 ; their own channel so it cuts any in-flight moan). Filtered to THIS scene's thread.
 ; Males gated by enablemalevoice, mirroring the ambient path; the category resolves
@@ -191,7 +179,7 @@ Event NpcSceneOrgasm(Form actorRef, Int thread)
 	if SLOVE_Utils.GamePaused()
 		return
 	endif
-	MasterScript.PlaySound("Orgasm", a, False, "npc_high", "slove_np" + a.GetFormID(), SceneFacts(SceneIsIntense(), "mine"))
+	MasterScript.PlaySound("Orgasm", a, False, "npc_high", SLOVE_Utils.VoiceChannel(a), SceneFacts(SceneIsIntense(), "mine"))
 EndEvent
 
 Event OnUpdate()
@@ -203,6 +191,9 @@ Event OnUpdate()
 	;same hold as the PC engine's OnUpdate: a menu that freezes the scene must not
 	;let ambient voice keep walking over an animation that isn't moving. Lines
 	;already playing ring out; nothing new starts until the menu closes.
+	; SexLab's own voice is silenced once at scene start, but a mod that mutes an actor
+	; here (SLOVE_Mute_*) often hands SexLab's voice back with ForceSilence off when it
+	; is done, which drops our silence too - re-assert it while that can have happened
 	if SLOVE_Utils.MuteJustLifted()
 		SuppressSexLabVoice()
 	endif
@@ -296,7 +287,7 @@ Function PlayCreatureBreathing(bool intense)
 		maxPause = maxPause / 2.0
 	endif
 	creatureBreathCooldown = Utility.RandomFloat(minPause, maxPause)
-	MasterScript.PlaySound("Breathing", c, False, "npc_low", "slove_np" + c.GetFormID(), SceneFacts(intense))
+	MasterScript.PlaySound("Breathing", c, False, "npc_low", SLOVE_Utils.VoiceChannel(c), SceneFacts(intense))
 EndFunction
 
 ; Route a human ambient line through the Director's PlaySound (partner group + own
@@ -347,7 +338,7 @@ Function PlayAmbient(Actor a, bool intense, bool female = false)
 	if cat == "PenetrativeGrunts" && intense
 		cat = "NearOrgasmNoises"
 	endif
-	MasterScript.PlaySound(cat, a, False, "npc_low", "slove_np" + a.GetFormID(), SceneFacts(intense) + actFacts)
+	MasterScript.PlaySound(cat, a, False, "npc_low", SLOVE_Utils.VoiceChannel(a), SceneFacts(intense) + actFacts)
 EndFunction
 
 ;PPA readings live in SLOVE_PPA (shared with the PC voice engine - this used to
