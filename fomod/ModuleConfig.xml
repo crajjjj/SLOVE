@@ -29,8 +29,9 @@ measured thrust-speed intensity (the F/S label prefix), physics-driven contact
 SFX, and SLSB climax annotations.
 
 Requires: SexLab Framework P+ 2.17+. The physics-driven features (measured
-intensity, thrust-paced and contact SFX, the contact tongue) need P+ 2.19+;
-on an older P+ this build runs on the scene's stage tags instead.
+intensity, thrust-paced SFX, the insertion / kiss / oral one-shots, live oral
+detection for the tongue) need P+ 2.19+; on an older P+ this build runs on
+the scene's stage tags instead.
               </description>
               <typeDescriptor>
                 <type name="Recommended" />

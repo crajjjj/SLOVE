@@ -90,11 +90,9 @@ int AhegaoItemCount = 0
 string[] AhegaoStorageKeys
 int AhegaoStorageKeyCount = 0
 bool ExternalAhegaoYieldActive = false
-;an external mute that also took the face (SLOVE_Mute_* with numArg >= 1) rides the
-;same yield. True from the tick we first see it until the face is handed back
-;mid-scene - read by resetexpressions, so a face that was given away is still
-;not ours to reset at teardown
-bool FaceHandedOver = false
+;SexLab P+ 2.19+ interaction API is there (SLOVE_Utils.HasInteractionAPI), probed
+;once in InitializeConfigandForms - see InteractionsLive
+bool HasInteractions = false
 
 Event OnSLSAhegaoStateChange(string eventName, string argString, float argNum, form sender)
 	;SLS ahegao is a player-only face; ignore for NPC instances
@@ -228,17 +226,10 @@ Event OnUpdate()
 	;enter and force a fresh pass on exit.
 	;An external mute that also took the face (SLOVE_Mute_Stage / SLOVE_Mute_Scene with
 	;numArg >= 1, see SLOVE_Utils) rides the same yield: the muting mod paints this
-	;face now, so ours would only flicker against it.
-	bool facemuted = SLOVE_Utils.MuteLevel(actorref) >= 2
-	if facemuted
-		FaceHandedOver = true
-	endif
+	;face now, so ours would only flicker against it. Nothing about a mute changes
+	;when the scene ends, so the yield holds through this effect's teardown as well.
+	bool facemuted = SLOVE_Utils.MuteLevel(actorref, ThreadID) >= 2
 	bool extAhegao = facemuted || ExternalAhegaoActive()
-	if FaceHandedOver && !extAhegao && ThreadEnding()
-		;the mute did not end, the scene did (mutes expire with it) - stay yielded so
-		;the teardown leaves the face to its owner instead of repainting it first
-		extAhegao = true
-	endif
 	if extAhegao && !ExternalAhegaoYieldActive
 		ExternalAhegaoYieldActive = true
 		printdebug("External face owner (ahegao item / storage key / mute event) - pausing expressions")
@@ -253,7 +244,6 @@ Event OnUpdate()
 		StorageUtil.SetIntValue(actorref, "SLOVE_FaceOwnsMouth_Expr", 0)
 	elseif !extAhegao && ExternalAhegaoYieldActive
 		ExternalAhegaoYieldActive = false
-		FaceHandedOver = false ;handed back mid-scene - the face is ours again
 		CachedLabelGroup = ""
 		printdebug("External face owner released - resuming expressions")
 	endif
@@ -261,6 +251,14 @@ Event OnUpdate()
 	if SLSAhegaoActive || extAhegao
 		;an external ahegao owns the face right now - don't fight it. Keep the loop
 		;ticking so we pick straight back up once it ends.
+		;...but not for ever: this branch returns before FullExpressionPass, whose
+		;scene-gone test is the backstop for an AnimationEnd that never reached us.
+		;A face mute holds this branch for whole scenes, so make the test here too.
+		if SceneGone()
+			SceneEnded = true
+			RemoveExpressions()
+			return
+		endif
 		float idleinterval = breathingupdateinseconds
 		if idleinterval <= 0.0
 			idleinterval = 0.5
@@ -319,7 +317,7 @@ Bool Function FullExpressionPass()
 	;is the PC scene's teardown flag - honor it only for a PC-scene actor, else a concurrent
 	;PC scene ending would wrongly end this NPC-scene effect. NPC scenes end on their own
 	;thread going away.
-	if !Sexlab.GetThreadByActor(actorref) || (OnPCThread() && MasterScript.AnimationisEnding())
+	if SceneGone()
 		SceneEnded = true
 		RemoveExpressions()
 		return true
@@ -921,6 +919,7 @@ Function InitializeConfigandForms()
 	playerref = game.getplayer()
 	IsPlayer = actorref == playerref
 	Gender = sexlab.GetGender(ActorRef)
+	HasInteractions = SLOVE_Utils.HasInteractionAPI() ;once per scene - it cannot change while the game runs
 
 	;seed the SLS ahegao state in case it's already active when this instance starts.
 	;Gated on SL Survival actually being loaded: the _SLS_IsAhegaoing StorageUtil key
@@ -1362,11 +1361,12 @@ Actor Function OralReceiver()
 EndFunction
 
 ;True when this actor's scene has live contact data this build can read: SexLab P+
-;2.19 or newer AND its detector registered for the thread. The version probe comes
+;2.19 or newer AND its detector registered for the thread. The version answer comes
 ;FIRST - the interaction calls above do not exist on an older P+ (see
-;SLOVE_Utils.HasInteractionAPI). False = the tongue stays on the authored labels.
+;SLOVE_Utils.HasInteractionAPI; HasInteractions is that probe, taken at init).
+;False = the tongue is timed by the authored labels alone.
 bool Function InteractionsLive()
-	return CurrentThread != none && SLOVE_Utils.HasInteractionAPI() && CurrentThread.IsInteractionRegistered()
+	return HasInteractions && CurrentThread != none && CurrentThread.IsInteractionRegistered()
 EndFunction
 
 Function unequipmask(actor char)
@@ -1674,11 +1674,12 @@ function resetexpressions()
 		return
 	endif
 
-	;a face another mod took with a mute event (FaceHandedOver, see OnUpdate) is
-	;not ours to reset: its owner may want it kept past the scene end, and SexLab's
-	;own scene-end reset still clears a living actor. The MFEE morphs below are
-	;ours to revert either way.
-	if !FaceHandedOver
+	;a face another mod took with a mute event (SLOVE_Mute_* with numArg >= 1) is not
+	;ours to reset: its owner may want it kept past the scene end (a death face), and
+	;SexLab's own scene-end reset still clears a living actor. A mute stays in force
+	;through the teardown of the scene it was set in for exactly this. The MFEE
+	;morphs below are ours to revert either way.
+	if SLOVE_Utils.MuteLevel(actorref, ThreadID) < 2
 		;0.1 = near-instant: the default 0.75 makes the reset itself a slow smooth
 		;transition that a concurrently-interpolating apply can win against
 		MfgConsoleFuncExt.resetmfg(actorref, 0.1)
@@ -1972,14 +1973,12 @@ bool Function OnPCThread()
 	return CurrentThread && CurrentThread.HasPlayer()
 endfunction
 
-;True once this actor's scene is over or winding down (thread status is neither
-;SETUP 2 nor INSCENE 3). External mutes expire with the scene - see OnUpdate.
-bool Function ThreadEnding()
-	if SceneEnded || CurrentThread == None || !Sexlab.GetThreadByActor(actorref)
-		return true
-	endif
-	int status = CurrentThread.GetStatus()
-	return status != 2 && status != 3
+;The scene-gone test FullExpressionPass has always made, shared with the yield
+;branch in OnUpdate: the actor is in no scene any more, or - for a PC-scene actor
+;only - the Director is tearing the PC scene down (a PC scene ending must not end
+;an NPC-scene effect, which goes with its own thread).
+bool Function SceneGone()
+	return !Sexlab.GetThreadByActor(actorref) || (OnPCThread() && MasterScript.AnimationisEnding())
 endfunction
 
 Function UpdateLabels(actor char)

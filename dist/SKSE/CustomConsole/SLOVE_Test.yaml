@@ -107,4 +107,4 @@ subs:
   - name: Mutes
     alias: mutes
     func: Mutes
-    help: List the actors currently muted through the SLOVE_Mute_* events, with level and caller
+    help: List the actors with a mute written on them (SLOVE_Mute_* events) - level, caller, and whether it is in force

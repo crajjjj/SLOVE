@@ -74,28 +74,29 @@ Your mod can take an actor's voice away from SLO VE, for the current stage or fo
 
 | Event | Effect | Ends |
 |---|---|---|
-| `SLOVE_Mute_Stage` | The actor makes no SLO VE sound, so no lipsync either | When the stage or animation changes, when the scene ends, or on `SLOVE_Unmute_Stage` |
-| `SLOVE_Mute_Scene` | Same | When the scene ends, or on `SLOVE_Unmute_Scene` |
+| `SLOVE_Mute_Stage` | The actor makes no SLO VE sound, so no lipsync either | When the next stage starts (or the animation changes), with the scene, or on `SLOVE_Unmute_Stage` |
+| `SLOVE_Mute_Scene` | Same | With the scene, or on `SLOVE_Unmute_Scene` |
 | `SLOVE_Unmute_Stage` | Lifts a stage mute early | |
 | `SLOVE_Unmute_Scene` | Lifts a scene mute early | |
 
 ```papyrus
-akActor.SendModEvent("SLOVE_Mute_Stage", "MyMod")        ; quiet until the stage changes
+akActor.SendModEvent("SLOVE_Mute_Stage", "MyMod")        ; quiet until the next stage starts
 akActor.SendModEvent("SLOVE_Mute_Scene", "MyMod", 1.0)   ; quiet for the rest of the scene, face handed over too
 akActor.SendModEvent("SLOVE_Unmute_Scene", "MyMod")      ; give the voice back early
 ```
 
-- **The actor is the sender, the string is your mod's name.** Every event is written to `SLOVE.0.log` with both (`Mute : SLOVE_Mute_Stage actor=Lydia caller='MyMod' ...`), accepted or not, and so is every mute that ends on its own. A silent actor can always be traced back to the mod that asked.
-- **`numArg` of `1.0` also hands over the face.** SLO VE stops writing that actor's expression until the mute ends and leaves the face alone at scene end. Send it when your mod paints the face (MFG phonemes, modifiers, expression) while the actor is muted. With `0`, expressions carry on.
+- **The actor is the sender, the string is your mod's name.** Every event is written to `SLOVE.0.log` with both (`Mute : SLOVE_Mute_Stage actor=Lydia caller='MyMod' ...`), accepted or not. A silent actor can always be traced back to the mod that asked.
+- **It takes effect at once.** The line the actor is in the middle of is cut, not just the next one.
+- **`numArg` of `1.0` also hands over the face.** SLO VE stops writing that actor's expression while the mute is in force and leaves the face alone at scene end. Send it when your mod paints the face (MFG phonemes, modifiers, expression) while the actor is muted. With `0`, expressions carry on.
 - **Per actor.** Everyone else in the scene keeps talking. Works in player scenes and in NPC-only scenes.
-- **Send it once the scene is running** (`AnimationStart` or later). An event for an actor who is not in a scene is logged and ignored.
-- **A stage mute belongs to the stage it was sent on.** Answering `StageStart` with a fresh `SLOVE_Mute_Stage` is the intended pattern, and it does not matter whether your handler or SLO VE's runs first.
-- **You never have to unmute.** Both mutes end on their own; the unmute events only give the voice back early. There is one slot per kind: a second caller's mute replaces the first, and any caller's unmute clears it.
-- **A mute cannot leak.** It never carries over into the actor's next scene, and nothing survives a game load: on every load SLO VE clears all mute state for every actor. If your scene is still running after a mid-scene load and you still need the mute, send it again.
-- **SexLab's own voice.** SLO VE silences SexLab's moan engine for its scenes. If your mod also force-silences an actor there and restores that when it unmutes, SLO VE re-applies its own silence for a few seconds after the mute ends, so SexLab's moans do not come back underneath.
+- **The actor has to be in a SexLab scene.** An event for an actor who is in none is logged and ignored. A scene mute can be sent as soon as the actor has been added to the scene, setup included.
+- **A stage mute lasts until the next stage starts.** Answering `StageStart` with a fresh `SLOVE_Mute_Stage` is the intended pattern, and it does not matter whether your handler or SLO VE's runs first: a stage mute that arrives up to 2 seconds before SLO VE hears that `StageStart` counts for the new stage. The other side of the same rule: a stage mute sent in the last 2 seconds of a stage also covers the one after it. Send it on or after the stage's `StageStart`, not during scene setup.
+- **You never have to unmute.** Both mutes run out on their own; the unmute events only give the voice back early. There is one slot per kind: a second caller's mute replaces the first, and any caller's unmute clears it.
+- **A mute cannot leak.** It never carries over into the actor's next scene, and nothing survives a game load: SLO VE clears all mute state first thing on every load. If your scene is still running after a mid-scene load and you still need the mute, send it again on the next `StageStart`, or when you hear `SLOVE_SceneStart` (SLO VE sends it again once it has picked a player scene back up). Sent straight from your own load handler it can reach SLO VE before that clear and be lost.
+- **SexLab's own voice.** SLO VE silences SexLab's moan engine for the actors of its scenes, and applies that again at every stage start and for a few seconds after any unmute. So if your mod force-silences SexLab's voice for an actor and later restores it, SexLab's moans do not come back underneath SLO VE's. While your mute is in force SLO VE leaves that actor's SexLab voice exactly as you set it.
 - No dependency on SLO VE: without it the events go nowhere.
 
-To try it without writing a mod, aim at an actor (or nobody, for the player) and use the console: `slovetest mute stage`, `slovetest mute scene 1`, `slovetest unmute scene`, `slovetest mutes`.
+To try it without writing a mod, aim at an actor (or nobody, for the player) and use the console: `slovetest mute stage`, `slovetest mute scene 1`, `slovetest unmute scene`. `slovetest mutes` lists every actor with a mute written on them and whether it is in force.
 
 ## StorageUtil state
 

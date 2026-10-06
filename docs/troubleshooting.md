@@ -190,7 +190,7 @@ Causes, most common first:
 ## SFX are wrong or missing
 
 - `sfx.enable = 1`? `sfx.volume` above zero?
-- **On SexLab P+ older than 2.19 there is no contact data at all**: thrust sounds are paced from the scene labels, and the contact one-shots (insertion, kiss, oral) and the contact tongue stay off. `SLOVE.0.log` says so once per load (`has no contact-detection API`), and `slovetest dump` prints `contact detection (SexLab P+ 2.19+)=false`. Updating SexLab P+ is the fix.
+- **On SexLab P+ older than 2.19 there is no contact data at all**: thrust sounds are paced from the scene labels, the insertion / kiss / oral one-shots stay off, and the tongue is timed by the stage tags alone (the pull-out gape and the insertion trauma still work, from the labels). `SLOVE.0.log` says so once per load (`has no contact-detection API`), and `slovetest dump` prints `contact detection (SexLab P+ 2.19+)=false`. Updating SexLab P+ is the fix.
 - Thrust-paced sounds need speed data from SLPP interactions (SexLab P+ 2.19+). A penetration stage where SexLab reports no contact plays **no** thrust sounds while `sfx.usevelocity = 1`; set it to `0` to pace them from the scene labels instead. `sfx.printdebug = 1` shows what it's getting.
 - **Don't** reach for `useadaptivevelocity` first; it's the heaviest path in the mod and needs `timestosearch > 0` as well.
 - Gape one-shots need the Accurate Penetration bridge. The four `gape*` thresholds are unitless — calibrate them from the `printdebug` pull-out line in your own scenes.

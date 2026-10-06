@@ -92,7 +92,6 @@ int milklevelnonintense
 int milkrequirebarechest
 int milkmmeminfullness
 Quest LactisQuest ;OninusLactis.esp 0xD61; cast to OninusLactis at call time
-int MuteResilenceTicks ;OnUpdate ticks left to re-assert SuppressSexLabVoice after an external mute ended
 float NextMilkRollTime ;scene time of the next periodic penetration roll
 
 ;Called first time ever the mod is loaded
@@ -185,32 +184,19 @@ EndFunction
 ;  akActor.SendModEvent("SLOVE_Unmute_Scene", "MyMod")
 ;numArg >= 1 also hands over the face. Every event is written to the SLOVE log
 ;with its actor and caller, accepted or not.
-;The state is two StorageUtil ints on the actor (SLOVE_Utils.MuteLevel), so the
-;voice and expression engines read it per line with no call into this script.
-;What this script owns is the EXPIRY - a mute that outlived its scene would
-;silence that actor for good:
-;  - a stage mute carries the thread|scene|stage it was set on and ends when that
-;    moves on. Compared at the sweep, never cleared on the event: the muting mod
-;    usually reacts to the same StageStart we do, in either order.
-;  - every mute carries its thread and ends with that thread (AnimationEnd, and
-;    our own teardown for the poll path that sees no event)
-;  - a mute on an actor who is in no scene, in another thread's scene, or in a
-;    later run of the same thread (thread ids are reused) is stale. That is the
-;    scene-START clear, done by comparison: a blind clear there would race the
-;    mods that mute in answer to AnimationStart.
-;  - nothing survives a game load: Maintenance bulk-clears every SLOVE_Mute*
-;    value, so a mute with no unmute cannot outlive its session
-;The muted actors sit in a StorageUtil form list, so a sweep - run on every
-;scene start, stage start and scene end of ANY thread - costs one native while
-;nobody is muted.
+;This script only receives the events, finds the actor's thread and logs; what a
+;mute IS, when it has run out, and every StorageUtil key behind it live in
+;SLOVE_Utils (shared by both script variants). The other half of the bookkeeping
+;is the three per-thread marks set from the SexLab events below
+;(SLOVE_Utils.MarkSceneStart / MarkSceneEnd / MarkStageStart).
 Event DirectorOnMute(string eventName, string argString, float argNum, form sender)
 	Actor a = sender as Actor
 	if a == None
 		SLOVE_Log.WriteLog("Mute : " + eventName + " caller='" + argString + "' IGNORED - no actor (send it from the actor: akActor.SendModEvent)", 1)
 		return
 	endif
-	string stamp = ActorStageStamp(a)
-	if stamp == ""
+	int thread = ActorThreadID(a)
+	if thread < 0
 		SLOVE_Log.WriteLog("Mute : " + eventName + " actor=" + a.GetDisplayName() + " caller='" + argString + "' IGNORED - the actor is not in a scene", 1)
 		return
 	endif
@@ -218,19 +204,15 @@ Event DirectorOnMute(string eventName, string argString, float argNum, form send
 	if argNum >= 1.0
 		level = 2
 	endif
-	;bookkeeping first, the level last: a sweep can slip in between these natives,
-	;and it must never find a level whose stamp is not there yet
-	StorageUtil.SetIntValue(a, "SLOVE_MuteThread", StampThread(stamp) + 1)
-	StorageUtil.SetFloatValue(a, "SLOVE_MuteRun", ActorSceneRun(a))
-	StorageUtil.SetStringValue(a, "SLOVE_MuteBy", argString)
-	if eventName == "SLOVE_Mute_Scene"
-		StorageUtil.SetIntValue(a, "SLOVE_MuteScene", level)
-	else
-		StorageUtil.SetStringValue(a, "SLOVE_MuteStageAt", stamp)
-		StorageUtil.SetIntValue(a, "SLOVE_MuteStage", level)
-	endif
-	StorageUtil.FormListAdd(None, "SLOVE_MutedActors", a, false)
-	SLOVE_Log.WriteLog("Mute : " + eventName + " actor=" + a.GetDisplayName() + " caller='" + argString + "' face=" + (level == 2) + " at " + stamp, 0)
+	SLOVE_Utils.SetMute(a, thread, eventName == "SLOVE_Mute_Scene", level, argString)
+	;a mute silences NOW, not from the next line: cut what this actor is in the
+	;middle of saying and let go of the mouth, which would otherwise keep moving
+	;with the clip and then snap shut over whatever the muting mod has posed
+	string channel = SLOVE_Utils.VoiceChannel(a)
+	AudioUtil.StopChannel(channel)
+	AudioUtil.StopChannel(channel + "_orgasm")
+	AudioUtil.StopLipSync(a)
+	SLOVE_Log.WriteLog("Mute : " + eventName + " actor=" + a.GetDisplayName() + " caller='" + argString + "' face=" + (level == 2) + " thread=" + thread, 0)
 EndEvent
 
 Event DirectorOnUnmute(string eventName, string argString, float argNum, form sender)
@@ -240,115 +222,37 @@ Event DirectorOnUnmute(string eventName, string argString, float argNum, form se
 		return
 	endif
 	string mutedBy = SLOVE_Utils.MutedBy(a)
-	if eventName == "SLOVE_Unmute_Scene"
-		StorageUtil.UnsetIntValue(a, "SLOVE_MuteScene")
-	else
-		ClearStageMute(a)
-	endif
-	ForgetMuteIfClear(a)
-	MuteResilenceTicks = 6
-	SLOVE_Log.WriteLog("Mute : " + eventName + " actor=" + a.GetDisplayName() + " caller='" + argString + "' (was muted by '" + mutedBy + "', mute level now " + SLOVE_Utils.MuteLevel(a) + ")", 0)
+	SLOVE_Utils.LiftMute(a, eventName == "SLOVE_Unmute_Scene")
+	SLOVE_Log.WriteLog("Mute : " + eventName + " actor=" + a.GetDisplayName() + " caller='" + argString + "' (was muted by '" + mutedBy + "', mute level now " + SLOVE_Utils.MuteLevel(a, ActorThreadID(a)) + ")", 0)
 EndEvent
 
-;"<thread>|<animation>|<stage>" of the scene this actor is in right now, "" when in none
-string Function ActorStageStamp(Actor a)
+;The id of the SexLab thread this actor is in a scene on, -1 when in none
+int Function ActorThreadID(Actor a)
 	sslThreadController t = Sexlab.GetActorController(a)
 	if !t
-		return ""
-	endif
-	string anim = ""
-	if t.Animation
-		anim = t.Animation.Registry
-	endif
-	return (t.tid as string) + "|" + anim + "|" + (t.Stage as string)
-EndFunction
-
-;classic can swap the animation without a stage change - a stage mute ends there too
-Event DirectorOnAnimationChange(string eventName, string argString, float argNum, form sender)
-	SweepMutes()
-EndEvent
-
-;The start marker of the scene this actor is in (SexLab's StartedAt, written once
-;per thread run), 0 when in none. Thread ids are reused, so this is what tells two
-;scenes on the same id apart.
-float Function ActorSceneRun(Actor a)
-	sslThreadController t = Sexlab.GetActorController(a)
-	if !t
-		return 0.0
-	endif
-	return t.StartedAt
-EndFunction
-
-;True when the actor's scene is a later run of its thread than the one the mute was
-;set in. A mute taken before the thread stamped its start (marker 0) adopts the
-;first real value it sees.
-bool Function SceneRunChanged(Actor a)
-	float runNow = ActorSceneRun(a)
-	if runNow == 0.0
-		return false
-	endif
-	float mutedIn = StorageUtil.GetFloatValue(a, "SLOVE_MuteRun", 0.0)
-	if mutedIn == 0.0
-		StorageUtil.SetFloatValue(a, "SLOVE_MuteRun", runNow)
-		return false
-	endif
-	return mutedIn != runNow
-EndFunction
-
-;the thread id a stage stamp starts with, -1 for an empty stamp
-int Function StampThread(string stamp)
-	int cut = StringUtil.Find(stamp, "|")
-	if cut <= 0
 		return -1
 	endif
-	return StringUtil.Substring(stamp, 0, cut) as int
+	return t.tid
 EndFunction
 
-Function ClearStageMute(Actor a)
-	StorageUtil.UnsetIntValue(a, "SLOVE_MuteStage")
-	StorageUtil.UnsetStringValue(a, "SLOVE_MuteStageAt")
-EndFunction
-
-;drop the bookkeeping once neither mute is left on the actor
-Function ForgetMuteIfClear(Actor a)
-	if SLOVE_Utils.MuteLevel(a) == 0
-		StorageUtil.UnsetIntValue(a, "SLOVE_MuteThread")
-		StorageUtil.UnsetFloatValue(a, "SLOVE_MuteRun")
-		StorageUtil.UnsetStringValue(a, "SLOVE_MuteBy")
-		StorageUtil.FormListRemove(None, "SLOVE_MutedActors", a, true)
-	endif
-EndFunction
-
-;Expire the mutes that have outlived what they were set for - see the block above.
-;aiEndedThread >= 0: that thread just ended.
-Function SweepMutes(int aiEndedThread = -1)
-	int i = StorageUtil.FormListCount(None, "SLOVE_MutedActors")
-	while i > 0
-		i -= 1
-		Actor a = StorageUtil.FormListGet(None, "SLOVE_MutedActors", i) as Actor
-		if a == None
-			StorageUtil.FormListRemoveAt(None, "SLOVE_MutedActors", i)
-		else
-			string stamp = ActorStageStamp(a)
-			int mutedOn = StorageUtil.GetIntValue(a, "SLOVE_MuteThread", 0) - 1
-			if stamp == "" || StampThread(stamp) != mutedOn || mutedOn == aiEndedThread || SceneRunChanged(a)
-				SLOVE_Log.WriteLog("Mute : ended with the scene - actor=" + a.GetDisplayName() + " caller='" + SLOVE_Utils.MutedBy(a) + "'", 0)
-				ClearStageMute(a)
-				StorageUtil.UnsetIntValue(a, "SLOVE_MuteScene")
-				ForgetMuteIfClear(a)
-			elseif StorageUtil.GetIntValue(a, "SLOVE_MuteStage", 0) > 0 && StorageUtil.GetStringValue(a, "SLOVE_MuteStageAt", "") != stamp
-				SLOVE_Log.WriteLog("Mute : stage mute ended (stage changed) - actor=" + a.GetDisplayName() + " caller='" + SLOVE_Utils.MutedBy(a) + "'", 0)
-				ClearStageMute(a)
-				ForgetMuteIfClear(a)
-				MuteResilenceTicks = 6
-			endif
-		endif
-	endwhile
-EndFunction
+;classic can swap the animation without a stage change - for a stage mute that is
+;a stage boundary too
+Event DirectorOnAnimationChange(string eventName, string argString, float argNum, form sender)
+	SLOVE_Utils.MarkStageStart(argString as Int)
+EndEvent
 
 Function Maintenance()
 
 	SLOVE_Log.InitLog()  ; open the SLOVE user log (OnInit + every reload)
+	;external mutes never survive a game load, and they go FIRST - before anything
+	;below can yield to a mute a mod re-sends from its own load handler, which this
+	;would then wipe. One bulk clear takes every SLOVE_Mute* value: the mutes on
+	;every actor and the per-thread time marks they are judged against (real time
+	;restarts with the game, so a mark from the last session means nothing now).
+	int leftovermutes = SLOVE_Utils.ClearMutes()
+	if leftovermutes > 0
+		SLOVE_Log.WriteLog("Mute : game loaded - cleared " + leftovermutes + " leftover mute value(s)", 0)
+	endif
 	;re-probe AudioUtil's API on every load: this script is a ReferenceAlias, so a
 	;cached probe is SAVED, and a player who upgrades AudioUtil mid-save would
 	;otherwise keep the untagged fallback forever with nothing in the log to say so
@@ -356,15 +260,6 @@ Function Maintenance()
 	PerformInitialization()
 	;Other Parameters
 	InitializeDirectorConfigs()
-	;external mutes never survive a game load: one bulk clear takes every
-	;SLOVE_Mute* value off every actor, and the muted-actor list with them, so a
-	;mute whose mod never sent an unmute - or is gone from the load order - cannot
-	;outlive the session it was set in. A mod that still needs one after a
-	;mid-scene load re-sends it.
-	int leftovermutes = StorageUtil.ClearAllPrefix("SLOVE_Mute")
-	if leftovermutes > 0
-		SLOVE_Log.WriteLog("Mute : game loaded - cleared " + leftovermutes + " leftover mute value(s)", 0)
-	endif
 
 	;re-seed the face-owns-mouth marker from SLS's saved ahegao state so a save
 	;made mid-ahegao keeps PC moans off the mouth after the reload (PlaySound
@@ -585,14 +480,18 @@ Function InitializeDirectorConfigs()
 endfunction
 
 Event DirectorStageStart(string eventName, string argString, float argNum, form sender)
+	SLOVE_Utils.MarkStageStart(argString as Int) ;EVERY thread's stage start - what stage mutes are judged against, so before anything that can yield
 	printdebug("Director Stage Start Fired")
-	SweepMutes() ;any thread's stage start: a stage mute whose stage moved on ends here
 	if CurrentThread == none ;SLO VE: guard - stage events from scenes we never adopted
 		return
 	endif
 	if argString as Int == CurrentThread.tid
 		;classic: no GetStatus()==2 registering-wait; the controller is already set up
 		actorlist = currentthread.Positions
+		;re-assert SexLab's own silence every stage: a mod that silenced an actor's
+		;SexLab voice itself for a stage hands it back with ForceSilence off, which
+		;also drops the silence SuppressSexLabVoice set at scene start
+		SuppressSexLabVoice()
 		;SLO VE: re-broadcast for consumers; label refresh happens in OnUpdate via the id comparison
 		SendModEvent("SLOVE_StageStart", argString)
 	endif
@@ -607,6 +506,7 @@ EndEvent
 ;they are NonPlayable, weightless, invisible in menus, and are removed again at
 ;scene end (RemoveTongueItems) so nothing lingers between scenes.
 Event DirectorSceneStarting(string eventName, string argString, float argNum, form sender)
+	SLOVE_Utils.MarkSceneStart(argString as Int) ;EVERY thread's scene start (mute bookkeeping, see SLOVE_Utils)
 	;CLASSIC: tongues are P+-only. Classic SexLab SE 1.63 has no live oral/cunnilingus
 	;detection (no NiType collision detector), so a contact tongue could only be timed
 	;from coarse authored tags - it pops at stage boundaries and misses real contact,
@@ -649,7 +549,7 @@ EndEvent
 
 ;Director reacts when a sexlab scene start
 Event DirectorSceneStart(string eventName, string argString, float argNum, form sender)
-	SweepMutes() ;any thread's start: nothing muted before this scene comes into it
+	SLOVE_Utils.MarkSceneStart(argString as Int) ;EVERY thread; AnimationStarting marked it already unless that event was lost
 	;SLO VE is for handling player scenes only.
 
 	printdebug("Sexlab Scene Detected")
@@ -710,7 +610,6 @@ Function AdoptScene()
 	;Initialize Configs
 	InitializeDirectorConfigs() ;SLO VE: cheap toml-cache reads; keeps live edits + Reload() effective per scene
 	isEnding = false
-	MuteResilenceTicks = 0
 	PCInSex = true
 	CurrentThread = Sexlab.GetPlayerController() ;CURRENT THREAD (classic)
 	CurrentThreadID = CurrentThread.tid
@@ -775,7 +674,7 @@ endevent
 ;stays true and blocks every future scene). Guarded to our thread; DirectorEndScene
 ;is re-entry safe so the poll can't double-fire behind this.
 Event DirectorSceneEnd(string eventName, string argString, float argNum, form sender)
-	SweepMutes(argString as Int) ;any thread's end: its mutes end with it
+	SLOVE_Utils.MarkSceneEnd(argString as Int) ;EVERY thread's end: a mute older than this is not the next scene's
 	if PlayerInScene && argString as Int == CurrentThreadID
 		printdebug("AnimationEnd for tracked scene - ending")
 		DirectorEndScene()
@@ -817,7 +716,7 @@ Function DirectorEndScene()
 	LastLabelUpdateTime = 0
 	LastPhysicsLabelTime = 0
 	int endedThreadID = CurrentThreadID
-	SweepMutes(endedThreadID) ;the poll path gets here without an AnimationEnd event
+	SLOVE_Utils.MarkSceneEnd(endedThreadID) ;the poll path gets here without an AnimationEnd event
 
 	;take the pre-added tongue armors back off - they must not persist between
 	;scenes. RemoveItem is inventory traffic, but at scene end that is harmless
@@ -909,14 +808,9 @@ Event OnUpdate()
 		UpdateNow = false
 	endif
 
-	;=== an external mute ended: re-silence SexLab for a few ticks ===
-	;a mod that mutes an actor here has usually force-silenced SexLab's own voice for
-	;them too, and hands THAT back when it unmutes - with ForceSilence false, which
-	;also drops the force-silence SuppressSexLabVoice set at scene start, so SexLab's
-	;moans would run under ours from then on. Its restore and its unmute reach us in
-	;either order, hence a short window instead of one call.
-	if MuteResilenceTicks > 0
-		MuteResilenceTicks -= 1
+	;=== an external mute was just lifted: keep SexLab's own voice silenced ===
+	;(why, and for how long: SLOVE_Utils.MuteJustLifted)
+	if SLOVE_Utils.MuteJustLifted()
 		SuppressSexLabVoice()
 	endif
 
@@ -1339,9 +1233,13 @@ Function SuppressSexLabVoice()
 	endif
 	int i = 0
 	while i < actorList.length
-		sslActorAlias a = CurrentThread.ActorAlias(actorList[i])
-		if a
-			a.SetVoice(none, true) ;ForceSilence -> SexLab plays no moans for this actor
+		;an actor another mod has muted here (SLOVE_Mute_*) keeps whatever SexLab voice
+		;state that mod gave them - it may have muted us to let SexLab's voice play
+		if SLOVE_Utils.MuteLevel(actorList[i], CurrentThreadID) == 0
+			sslActorAlias a = CurrentThread.ActorAlias(actorList[i])
+			if a
+				a.SetVoice(none, true) ;ForceSilence -> SexLab plays no moans for this actor
+			endif
 		endif
 		i += 1
 	endwhile
@@ -1373,6 +1271,16 @@ Function PlaySound(String theSound, Actor actorMakingSound, Bool waitForCompleti
 	;once and fall back to the untagged Play, which is what PlayTagged reduces to
 	;with empty facts anyway. Papyrus resolves global calls lazily, so the tagged
 	;branch is never touched on an install that cannot supply it.
+	;external mute (SLOVE_Mute_*, see SLOVE_Utils): another mod has taken this actor's
+	;voice for the stage or the scene. This is the one door every voice line leaves
+	;through - the PC engine, its partner and creature ambience, the NPC-scene
+	;driver - so the gate is here; SLOVE_Voice.PlaySound also asks, earlier, only to
+	;spare its own ducking and waits. The actor's thread is looked up only when a
+	;mute is written on them at all.
+	if SLOVE_Utils.MuteWritten(actorMakingSound) && SLOVE_Utils.MuteLevel(actorMakingSound, ActorThreadID(actorMakingSound)) > 0
+		printdebug("Voice line dropped (muted by '" + SLOVE_Utils.MutedBy(actorMakingSound) + "') : " + theSound)
+		return
+	endif
 	bool mouthOwned = FaceOwnsMouth(actorMakingSound)
 	if audioUtilTagAPI == 0
 		if AudioUtil.GetAPIVersion() >= 6

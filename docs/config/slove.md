@@ -153,7 +153,7 @@ The body-SFX engine (`SLOVE_SFX`). Sound names resolve as categories of the [`SF
 | `thruststroke` | `16.0` | *(float)* World units one full thrust (in + out) travels. A beat fires each time the contact has travelled this far. Lower = more beats per thrust. An estimate, **not yet calibrated in game**; `printdebug = 1` logs each beat as a `Thrust beat` line with the speed it saw. |
 | `useadaptivevelocity` | `0` | SOSBend **calibration search** when a scene reports no velocity data. |
 | `timestosearch` | `0` | Max calibration attempts per stage. `0` = never search. |
-| `usecontactsfx` | `1` | One-shots on contact edges: insertion, pull-out gape, kiss, oral. Needs SexLab P+ 2.19+ (no contact data on an older P+ or on classic). |
+| `usecontactsfx` | `1` | One-shots on contact edges: insertion, pull-out gape, kiss, oral. The insertion, kiss and oral one-shots need SexLab P+ 2.19+. On an older P+ and on classic there is no contact data, so only what the labels can stand in for remains: the pull-out gape, and the forced-insertion trauma of `[resistance]`. |
 | `usecontactvictimreactions` | `1` | Suppress tender kiss cues when a victim is involved. |
 | `velocitypoll` | `0.1` | *(float)* Seconds between speed samples for the thrust pacing. A coarser step adds jitter to each beat. |
 | `normalpoll` | `0.5` | *(float)* Seconds between label/tag-driven passes. Raise to cut script load — clip length already paces playback. |

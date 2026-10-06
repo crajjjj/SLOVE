@@ -277,7 +277,7 @@ Function DumpState() Global
 	MiscUtil.PrintConsole("  pcvolume=" + SLOVE_Config.GetInt("voice.pcvolume", -1) + " voiceallactors=" + SLOVE_Config.GetInt("voice.voiceallactors", -1))
 	MiscUtil.PrintConsole("  player slot=" + AudioUtil.GetSlotForActor(Game.GetPlayer()))
 	MiscUtil.PrintConsole("  esp loaded=" + SLOVE_Utils.isDependencyReady("SLOVE.esp"))
-	MiscUtil.PrintConsole("  contact detection (SexLab P+ 2.19+)=" + SLOVE_Utils.HasInteractionAPI() + " - false = stage tags only (physics labels, thrust-paced/contact SFX, contact tongue off)")
+	MiscUtil.PrintConsole("  contact detection (SexLab P+ 2.19+)=" + SLOVE_Utils.HasInteractionAPI() + " - false = stage tags only (no physics labels, thrust-paced SFX, insertion/kiss/oral one-shots or live oral detection)")
 EndFunction
 
 ;Send one of the SLOVE_Mute_* events the way another mod would, to try the external
@@ -316,15 +316,17 @@ Function Unmute(String scope) Global
 	MiscUtil.PrintConsole("SLO VE: sent " + ev + " for " + a.GetDisplayName() + " - 'slovetest mutes' shows the result")
 EndFunction
 
-;List every actor currently muted through the SLOVE_Mute_* events.
+;List every actor that has a mute written on it (SLOVE_Mute_* events), with what
+;is written and whether it is in force - a mute that has run out stays written
+;until it is lifted or the game is loaded.
 Function Mutes() Global
-	int n = StorageUtil.FormListCount(None, "SLOVE_MutedActors")
-	MiscUtil.PrintConsole("SLO VE: " + n + " muted actor(s)")
+	int n = SLOVE_Utils.MutedCount()
+	MiscUtil.PrintConsole("SLO VE: " + n + " actor(s) with a mute written on them")
 	int i = 0
 	while i < n
-		Actor a = StorageUtil.FormListGet(None, "SLOVE_MutedActors", i) as Actor
-		if a
-			MiscUtil.PrintConsole("  " + a.GetDisplayName() + " stage=" + StorageUtil.GetIntValue(a, "SLOVE_MuteStage", 0) + " scene=" + StorageUtil.GetIntValue(a, "SLOVE_MuteScene", 0) + " (1 = voice, 2 = voice + face) by '" + SLOVE_Utils.MutedBy(a) + "'")
+		string line = SLOVE_Utils.DescribeMute(i)
+		if line != ""
+			MiscUtil.PrintConsole("  " + line)
 		endif
 		i += 1
 	endwhile

@@ -9,8 +9,11 @@
 # as long as each of those calls sits behind InteractionsLive() (the version
 # probe, SLOVE_Utils.HasInteractionAPI). Two checks:
 #
-#   1. gate audit      every function that calls one of the three checks
-#                      InteractionsLive() first (two documented exceptions)
+#   1. gate audit      every function that calls one of the three has a
+#                      `!InteractionsLive()` guard above the call (two pinned
+#                      exceptions). A text heuristic, not a control-flow proof:
+#                      it catches a call added without a guard, not a guard
+#                      that no longer dominates the call it used to.
 #   2. stubbed compile the P+ set compiles against each older P+'s headers with
 #                      ONLY those three functions declared on its SexLabThread -
 #                      so nothing ELSE the scripts use is missing there either
@@ -34,14 +37,19 @@ $gated = [ordered]@{
     'GetInteractionVelocity'      = 'float Function GetInteractionVelocity(Actor akPosition, Actor akPartner, int InterTypes)'
 }
 
-# Calls with no InteractionsLive() of their own: both need a FuckingPartner, and
-# only UpdateFuckingPartner - which IS gated - ever sets one.
-$exceptions = @('SLOVE_SFX.psc:CalculateAndPlayVelocitySFX', 'SLOVE_SFX.psc:RunAdaptiveVelocitySFX')
+# Calls with no InteractionsLive() guard of their own: both need a FuckingPartner,
+# and only UpdateFuckingPartner - which IS gated - ever sets one. Pinned to the
+# number of calls each has today, so a NEW call added to either still fails.
+$exceptions = @{
+    'SLOVE_SFX.psc:CalculateAndPlayVelocitySFX' = 1
+    'SLOVE_SFX.psc:RunAdaptiveVelocitySFX'      = 1
+}
 
 # ---------------------------------------------------------------- gate audit ---
 Write-Host '=== Gate audit: P+ 2.19-only calls behind InteractionsLive() ===' -ForegroundColor Cyan
 $apiPattern = '\.(' + ($gated.Keys -join '|') + ')\s*\('
 $calls = 0
+$exceptionCalls = @{}
 foreach ($file in Get-ChildItem (Join-Path $root 'papyrus\Source\*.psc')) {
     $func = $null
     $body = New-Object System.Text.StringBuilder
@@ -56,8 +64,15 @@ foreach ($file in Get-ChildItem (Join-Path $root 'papyrus\Source\*.psc')) {
         if ($func -and $code -match $apiPattern) {
             $calls++
             $key = "$($file.Name):$func"
-            if ($body.ToString() -notmatch 'InteractionsLive\(\)' -and $exceptions -notcontains $key) {
-                Write-Host "UNGATED  $key calls $($Matches[1]) with no InteractionsLive() before it" -ForegroundColor Red
+            $member = $Matches[1]
+            if ($exceptions.ContainsKey($key)) {
+                $exceptionCalls[$key] = 1 + [int]$exceptionCalls[$key]
+                if ($exceptionCalls[$key] -gt $exceptions[$key]) {
+                    Write-Host "UNGATED  $key has more 2.19-only calls ($member) than the $($exceptions[$key]) its partner guard was checked for" -ForegroundColor Red
+                    $failed = $true
+                }
+            } elseif ($body.ToString() -notmatch '!\s*InteractionsLive\(\)') {
+                Write-Host "UNGATED  $key calls $member with no !InteractionsLive() guard above it" -ForegroundColor Red
                 $failed = $true
             }
         }

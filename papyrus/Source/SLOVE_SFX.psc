@@ -241,6 +241,7 @@ String EjacSmallDeep = ""
 String GapeAverage = ""
 String GapeHuge = ""
 
+bool HasInteractions ;SexLab P+ 2.19+ interaction API is there (SLOVE_Utils.HasInteractionAPI), probed once in InitializeConfigandForms
 int usevelocity
 int useadaptivevelocity
 int usecontactsfx
@@ -271,7 +272,8 @@ Function InitializeConfigandForms()
 	volume = SLOVE_Config.GetInt("sfx.volume", 100) as float / 100
 	usevelocity = SLOVE_Config.GetInt("sfx.usevelocity", 0)
 	useadaptivevelocity = SLOVE_Config.GetInt("sfx.useadaptivevelocity", 0)
-	if !SLOVE_Utils.HasInteractionAPI()
+	HasInteractions = SLOVE_Utils.HasInteractionAPI() ;once per scene - it cannot change while the game runs
+	if !HasInteractions
 		;SexLab P+ older than 2.19 has no contact speed to pace thrusts by, and the
 		;velocity loops play nothing without one - hand the pacing to the label/tag
 		;loop (PlaySFX), exactly as sfx.usevelocity = 0 does
@@ -886,12 +888,13 @@ EndFunction
 
 
 ;True when this actor's scene has live contact data this build can read: SexLab P+
-;2.19 or newer AND its detector registered for the thread. The version probe comes
+;2.19 or newer AND its detector registered for the thread. The version answer comes
 ;FIRST - GetInteractionFlags / GetPartnerByInteractionType / GetInteractionVelocity
-;do not exist on an older P+ (see SLOVE_Utils.HasInteractionAPI), so every one of
-;those calls sits behind this or behind a partner only this can find.
+;do not exist on an older P+ (see SLOVE_Utils.HasInteractionAPI; HasInteractions is
+;that probe, taken at init), so every one of those calls sits behind this or behind
+;a partner only this can find.
 bool Function InteractionsLive()
-	return CurrentThread != none && SLOVE_Utils.HasInteractionAPI() && CurrentThread.IsInteractionRegistered()
+	return HasInteractions && CurrentThread != none && CurrentThread.IsInteractionRegistered()
 EndFunction
 
 Bool Function UpdateFuckingPartner()
@@ -977,8 +980,96 @@ Function PlayContactSound(String theSound, Actor actorMakingSound)
 	AudioUtil.PlaySFX(theSound, actorMakingSound, 1.0, "sfx", "sfx_contact_" + position)
 EndFunction
 
+;The gape one-shot on a pull-out. Shared by the two edge detectors:
+;ProcessContactEdges (contact flags) and ProcessLabelEdges (labels).
+Function PlayPullOutGape()
+	;pull-out gape after sustained penetration, measured to the last confirmed
+	;contact so the debounce window doesn't inflate the requirement
+	if LastPenReceiver != none && ContactPenLastSeen - ContactPenStartTime >= 4.0
+		;prefer the actual measured openings from the AudioUtil PPA bridge over
+		;the partner-size guess: right after pull-out the opening is still
+		;elevated, so it reflects what really happened to the receiver. Each
+		;orifice is judged against its own scale (anal rests wider than
+		;vaginal ever stretches), and the stronger result wins
+		float vagopening = 0.0
+		float analopening = 0.0
+		if AudioUtilPPA.IsConnected()
+			vagopening = AudioUtilPPA.GetVaginalOpening(LastPenReceiver)
+			analopening = AudioUtilPPA.GetAnalOpening(LastPenReceiver)
+		endif
+		printdebug("Contact edge: pull-out detected, vagopening=" + vagopening + " analopening=" + analopening)
+		if vagopening > 0.0 || analopening > 0.0
+			if (vagopening >= gapevaginalhuge || analopening >= gapeanalhuge) && GapeHuge != ""
+				PlayContactSound(GapeHuge, LastPenReceiver)
+			elseif (vagopening >= gapevaginalaverage || analopening >= gapeanalaverage) && GapeAverage != ""
+				PlayContactSound(GapeAverage, LastPenReceiver)
+			endif
+			;below both average thresholds: barely stretched, no gape sound
+		elseif IsHugePP && GapeHuge != ""
+			PlayContactSound(GapeHuge, LastPenReceiver)
+		elseif GapeAverage != ""
+			PlayContactSound(GapeAverage, LastPenReceiver)
+		endif
+	endif
+EndFunction
+
+;SexLab P+ older than 2.19 has no contact flags, so there the penetration edge is
+;taken from the LABEL system instead - the classic variant's edge logic, ported.
+;It keeps the two things an edge feeds that need no detector: the forced-insertion
+;trauma deposit, and the pull-out gape (measured by the AudioUtil PPA bridge, which
+;is framework-independent). The insertion / kiss / oral one-shots are NOT here:
+;they exist to catch what the labels miss, and an edge that comes from the labels
+;can never be one of those.
+Function ProcessLabelEdges()
+	float now = CurrentThread.GetTimeTotal()
+	bool pen = IsGivingVaginalPenetration() || IsGivingAnalPenetration()
+	if pen
+		ContactPenLastSeen = now
+		if !PrevContactPenetrating
+			PrevContactPenetrating = true
+			ContactPenStartTime = now
+			LastPenReceiver = ResolvePenetrationReceiver()
+			;resistance system: a forced insertion onto a submissive receiver deposits
+			;trauma their SLOVE_Resistance drains into willpower loss on its next tick
+			if LastPenReceiver != none && victiminsertiontrauma > 0 && MasterScript.IsSubmissive(LastPenReceiver)
+				StorageUtil.AdjustFloatValue(LastPenReceiver, "SLOVE_ResDebt", victiminsertiontrauma as float)
+			endif
+		endif
+	elseif PrevContactPenetrating && now - ContactPenLastSeen >= 0.5
+		PrevContactPenetrating = false
+		PlayPullOutGape()
+	endif
+EndFunction
+
+;The actor this one is penetrating, going by the labels: whichever OTHER position
+;carries a penetration label right now. Exact for the usual single-receiver scene;
+;in a group scene it takes the first such position.
+Actor Function ResolvePenetrationReceiver()
+	Actor[] pos = MasterScript.GetPositions()
+	int z = 0
+	while z < pos.Length
+		if pos[z] != none && pos[z] != actorref
+			string lbl = MasterScript.GetPenetrationLabel(pos[z])
+			if lbl != "" && lbl != "LDI"
+				return pos[z]
+			endif
+		endif
+		z += 1
+	endwhile
+	return none
+EndFunction
+
 Function ProcessContactEdges()
-	if usecontactsfx != 1 || position <= 0 || !InteractionsLive()
+	if usecontactsfx != 1 || position <= 0 || CurrentThread == none
+		return
+	endif
+	if !HasInteractions
+		;SexLab P+ older than 2.19: no contact flags to read - the labels stand in
+		;for the penetration edge, as they do in the classic variant
+		ProcessLabelEdges()
+		return
+	endif
+	if !InteractionsLive()
 		return
 	endif
 	;P+ 2.19 flags (27, InterType order); partners are looked up by actorref's own flag
@@ -1018,34 +1109,7 @@ Function ProcessContactEdges()
 		endif
 	elseif PrevContactPenetrating && now - ContactPenLastSeen >= 0.5
 		PrevContactPenetrating = false
-		;pull-out gape after sustained penetration, measured to the last confirmed
-		;contact so the debounce window doesn't inflate the requirement
-		if LastPenReceiver != none && ContactPenLastSeen - ContactPenStartTime >= 4.0
-			;prefer the actual measured openings from the AudioUtil PPA bridge over
-			;the partner-size guess: right after pull-out the opening is still
-			;elevated, so it reflects what really happened to the receiver. Each
-			;orifice is judged against its own scale (anal rests wider than
-			;vaginal ever stretches), and the stronger result wins
-			float vagopening = 0.0
-			float analopening = 0.0
-			if AudioUtilPPA.IsConnected()
-				vagopening = AudioUtilPPA.GetVaginalOpening(LastPenReceiver)
-				analopening = AudioUtilPPA.GetAnalOpening(LastPenReceiver)
-			endif
-			printdebug("Contact edge: pull-out detected, vagopening=" + vagopening + " analopening=" + analopening)
-			if vagopening > 0.0 || analopening > 0.0
-				if (vagopening >= gapevaginalhuge || analopening >= gapeanalhuge) && GapeHuge != ""
-					PlayContactSound(GapeHuge, LastPenReceiver)
-				elseif (vagopening >= gapevaginalaverage || analopening >= gapeanalaverage) && GapeAverage != ""
-					PlayContactSound(GapeAverage, LastPenReceiver)
-				endif
-				;below both average thresholds: barely stretched, no gape sound
-			elseif IsHugePP && GapeHuge != ""
-				PlayContactSound(GapeHuge, LastPenReceiver)
-			elseif GapeAverage != ""
-				PlayContactSound(GapeAverage, LastPenReceiver)
-			endif
-		endif
+		PlayPullOutGape()
 	endif
 
 	;--- kissing start (fire from the higher position of the pair so it plays once) ---

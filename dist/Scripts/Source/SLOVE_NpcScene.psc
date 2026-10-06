@@ -74,6 +74,8 @@ Function PerformInitialization()
 	; climax cries: SexLab fires this per orgasming actor for EVERY scene; we keep only
 	; our own thread's (the PC engine + each other NpcScene do the same)
 	RegisterForModEvent("SexLabOrgasmSeparate", "NpcSceneOrgasm")
+	; every stage start re-asserts the SexLab-voice silence (see NpcSceneStageStart)
+	RegisterForModEvent("StageStart", "NpcSceneStageStart")
 	InitializeConfig()
 	; NPC scenes ride their OWN volume bus (npc_low/npc_high) so voice.npcscenevolume
 	; tunes them apart from your own scene's partners. Each NpcScene sets it, so it
@@ -153,12 +155,24 @@ Function SuppressSexLabVoice()
 	Actor[] actorList = CurrentThread.GetPositions()
 	int i = 0
 	while i < actorList.length
-		if actorList[i]
+		; an actor another mod has muted here (SLOVE_Mute_*) keeps whatever SexLab voice
+		; state that mod gave them - it may have muted us to let SexLab's voice play
+		if actorList[i] && SLOVE_Utils.MuteLevel(actorList[i], threadId) == 0
 			CurrentThread.SetActorVoice(actorList[i], "", true)
 		endif
 		i += 1
 	endwhile
 EndFunction
+
+; SexLab's own voice is silenced once at scene start, but a mod that silences an
+; actor's SexLab voice itself for a stage hands it back with ForceSilence off, which
+; drops our silence with it - so re-assert on every stage start of this scene, and
+; in the tick for a few seconds after any unmute (SLOVE_Utils.MuteJustLifted).
+Event NpcSceneStageStart(string eventName, string argString, float argNum, form sender)
+	if argString as Int == threadId && CurrentThread != None
+		SuppressSexLabVoice()
+	endif
+EndEvent
 
 ; A scene actor climaxed -> play their orgasm cry (their own pack, partner climax bus,
 ; their own channel so it cuts any in-flight moan). Filtered to THIS scene's thread.
@@ -176,8 +190,7 @@ Event NpcSceneOrgasm(Form actorRef, Int thread)
 		return
 	endif
 	;same hold as OnUpdate - this one is event-driven, so it needs its own gate
-	;...and an actor another mod has muted (SLOVE_Mute_*) makes no sound of their own
-	if SLOVE_Utils.GamePaused() || SLOVE_Utils.MuteLevel(a) > 0
+	if SLOVE_Utils.GamePaused()
 		return
 	endif
 	MasterScript.PlaySound("Orgasm", a, False, "npc_high", "slove_np" + a.GetFormID(), SceneFacts(SceneIsIntense(), "mine"))
@@ -192,6 +205,9 @@ Event OnUpdate()
 	;same hold as the PC engine's OnUpdate: a menu that freezes the scene must not
 	;let ambient voice keep walking over an animation that isn't moving. Lines
 	;already playing ring out; nothing new starts until the menu closes.
+	if SLOVE_Utils.MuteJustLifted()
+		SuppressSexLabVoice()
+	endif
 	if enablevoice == 1 && !SLOVE_Utils.GamePaused()
 		bool intense = SceneIsIntense()
 		PlayMaleMoaning(intense)
@@ -284,9 +300,6 @@ Function PlayCreatureBreathing(bool intense)
 		maxPause = maxPause / 2.0
 	endif
 	creatureBreathCooldown = Utility.RandomFloat(minPause, maxPause)
-	if SLOVE_Utils.MuteLevel(c) > 0 ;muted by another mod (SLOVE_Mute_*)
-		return
-	endif
 	MasterScript.PlaySound("Breathing", c, False, "npc_low", "slove_np" + c.GetFormID(), SceneFacts(intense))
 EndFunction
 
@@ -303,9 +316,6 @@ EndFunction
 ; all-female scene. Males keep the grunt names: on a male slot they ARE the
 ; generic moan categories (PlayMaleMoaning requests the same two).
 Function PlayAmbient(Actor a, bool intense, bool female = false)
-	if SLOVE_Utils.MuteLevel(a) > 0 ;muted by another mod (SLOVE_Mute_*)
-		return
-	endif
 	string cat = "PenetrativeGrunts"
 	string actFacts = ""
 	if female

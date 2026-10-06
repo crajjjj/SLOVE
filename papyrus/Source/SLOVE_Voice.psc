@@ -1647,7 +1647,7 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 	;has taken this actor's voice for the stage or the scene - it is playing their
 	;sounds itself. Skip the line the same way as above (no PlayVoice, so no lipsync
 	;either). Per actor: everyone else in the scene keeps talking.
-	if SLOVE_Utils.MuteLevel(audioActor) > 0
+	if SLOVE_Utils.MuteLevel(audioActor, ThreadID) > 0
 		Printdebug("Voice + lipsync suppressed (muted by '" + SLOVE_Utils.MutedBy(audioActor) + "') : " + debugtext)
 		Return
 	endif
