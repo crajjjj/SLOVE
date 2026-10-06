@@ -13,7 +13,7 @@ reference, troubleshooting.
 
 | Dependency | Why |
 |---|---|
-| SKSE64, SexLab P+ (2.19+) | scene framework. 2.19 support is **beta** since SLO VE 0.6.26; on P+ 2.18 or older use SLO VE 0.6.25 |
+| SKSE64, SexLab P+ (2.17+) | scene framework. The contact-detection features (measured Fast/Slow intensity, thrust-paced and contact SFX, the contact tongue) need **P+ 2.19+** and are **beta** there; on an older P+ SLO VE runs on the scene's stage tags instead |
 | **AudioUtil** | voice playback (folder-based slots), lipsync, TOML config API |
 | PapyrusUtil | JSON preset data (expression faces) |
 | Mfg Fix NG (MfgConsoleFunc/Ext) | all face writes |

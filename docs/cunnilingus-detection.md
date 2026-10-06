@@ -5,7 +5,7 @@ Cunnilingus is the one action SLO VE cannot infer from animation tags alone reli
 This page explains which SexLab settings govern that detection and how to tune them. **These are SexLab settings, not SLO VE settings** — SLO VE has no knob that changes them (see [The SLO VE knobs do nothing](#the-slo-ve-knobs-do-nothing) below).
 
 !!! info "P+ only"
-    Classic SexLab 1.63 has no live collision detector, so `CUN` there can only come from an animation's static tags. Everything on this page applies to **SexLab P+ 2.19 or newer** only (2.19 replaced the detector and moved its settings; older P+ builds are not supported). See [SexLab Flavours](sexlab-flavours.md).
+    Classic SexLab 1.63 has no live collision detector, so `CUN` there can only come from an animation's static tags. Everything on this page applies to **SexLab P+ 2.19 or newer** only (2.19 replaced the detector and moved its settings). On P+ 2.17 / 2.18 SLO VE does not read the detector at all, so `CUN` comes from the static tags there too. See [SexLab Flavours](sexlab-flavours.md).
 
 ## How `CUN` is produced
 

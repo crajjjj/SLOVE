@@ -45,6 +45,39 @@ Bool Function GamePaused() Global
 	return AudioUtil.GetAPIVersion() >= 7 && AudioUtil.IsGamePaused()
 EndFunction
 
+;=== SexLab P+ interaction API (2.19+) ===
+;True on SexLab P+ 2.19 or newer - the first version with the interaction API
+;the physics paths read (GetInteractionFlags, GetPartnerByInteractionType,
+;GetInteractionVelocity). 2.19 replaced its contact detector and renamed and
+;re-indexed all of it, so on an older P+ those members do not exist.
+;
+;Papyrus binds a member call when it is DISPATCHED, not when the script loads:
+;a 2.19-only call that is never reached costs nothing on P+ 2.17 / 2.18, while
+;one that is reached logs "method not found" on every poll. So this probe comes
+;first in front of every one of them (each caller's InteractionsLive), and one
+;build serves every P+ version - below 2.19 the scene simply stays on its
+;authored stage tags.
+;
+;P+ loads an SKSE plugin called "SexLabUtil" and packs its version as
+;major<<24 | minor<<16 | patch<<4 (its own SexLabUtil.GetVersionPack unpacks it
+;that way): 0x02130000 is 2.19.0. -1 = no such plugin.
+Bool Function HasInteractionAPI() Global
+	return SKSE.GetPluginVersion("SexLabUtil") >= 0x02130000
+EndFunction
+
+;The running SexLab P+ version as "major.minor.patch", "" when its plugin is
+;missing. For log lines only - gate on HasInteractionAPI.
+String Function SexLabPPVersion() Global
+	int v = SKSE.GetPluginVersion("SexLabUtil")
+	if v == -1
+		return ""
+	endif
+	int major = Math.LogicalAnd(Math.RightShift(v, 24), 0xFF)
+	int minor = Math.LogicalAnd(Math.RightShift(v, 16), 0xFF)
+	int patch = Math.LogicalAnd(Math.RightShift(v, 4), 0xFFF)
+	return major + "." + minor + "." + patch
+EndFunction
+
 ;=== StorageUtil-backed scene state ===
 ;The string keys ARE the cross-script contract - these accessors are its one
 ;spelling (a hand-typed key already leaked once: scene teardown unset

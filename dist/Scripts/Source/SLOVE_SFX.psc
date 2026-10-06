@@ -271,6 +271,13 @@ Function InitializeConfigandForms()
 	volume = SLOVE_Config.GetInt("sfx.volume", 100) as float / 100
 	usevelocity = SLOVE_Config.GetInt("sfx.usevelocity", 0)
 	useadaptivevelocity = SLOVE_Config.GetInt("sfx.useadaptivevelocity", 0)
+	if !SLOVE_Utils.HasInteractionAPI()
+		;SexLab P+ older than 2.19 has no contact speed to pace thrusts by, and the
+		;velocity loops play nothing without one - hand the pacing to the label/tag
+		;loop (PlaySFX), exactly as sfx.usevelocity = 0 does
+		usevelocity = 0
+		useadaptivevelocity = 0
+	endif
 	usecontactsfx = SLOVE_Config.GetInt("sfx.usecontactsfx", 1)
 	usecontactvictimreactions = SLOVE_Config.GetInt("sfx.usecontactvictimreactions", 1)
 	victiminsertiontrauma = SLOVE_Config.GetInt("resistance.victiminsertiontrauma", 5)
@@ -638,6 +645,8 @@ Function CalculateAndPlayVelocitySFX()
 
 	while Currentthread.getstatus() == 3 && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
 
+		;a P+ 2.19-only call with no gate of its own: only UpdateFuckingPartner sets
+		;FuckingPartner, and it is version-gated (InteractionsLive)
 		velocity = Currentthread.GetInteractionVelocity(Actorref, FuckingPartner, ThrustInterType())
 		if velocity <= 0
 			;no contact tracked, or one that only just (re)started: look again
@@ -845,6 +854,7 @@ Function RunAdaptiveVelocitySFX()
 		int TimesNotFoundVelocity
 		velocity = 0.0
 		if FuckingPartner != none && FuckingPartnerInteractionType != 0
+			;P+ 2.19-only, guarded by the partner like the read in CalculateAndPlayVelocitySFX
 			velocity = Currentthread.GetInteractionVelocity(Actorref, FuckingPartner, ThrustInterType())
 		endif
 
@@ -875,10 +885,19 @@ Function RunAdaptiveVelocitySFX()
 EndFunction
 
 
+;True when this actor's scene has live contact data this build can read: SexLab P+
+;2.19 or newer AND its detector registered for the thread. The version probe comes
+;FIRST - GetInteractionFlags / GetPartnerByInteractionType / GetInteractionVelocity
+;do not exist on an older P+ (see SLOVE_Utils.HasInteractionAPI), so every one of
+;those calls sits behind this or behind a partner only this can find.
+bool Function InteractionsLive()
+	return CurrentThread != none && SLOVE_Utils.HasInteractionAPI() && CurrentThread.IsInteractionRegistered()
+EndFunction
+
 Bool Function UpdateFuckingPartner()
 	PrintDebug(actorname + " UpdateFuckingPartner - Starting partner search.")
 
-	if currentthread == None || !currentthread.IsInteractionRegistered()
+	if !InteractionsLive()
 		PrintDebug(actorname + " UpdateFuckingPartner - Interaction not registered, skipping.")
 		return false
 	endif
@@ -959,7 +978,7 @@ Function PlayContactSound(String theSound, Actor actorMakingSound)
 EndFunction
 
 Function ProcessContactEdges()
-	if usecontactsfx != 1 || position <= 0 || CurrentThread == none || !CurrentThread.IsInteractionRegistered()
+	if usecontactsfx != 1 || position <= 0 || !InteractionsLive()
 		return
 	endif
 	;P+ 2.19 flags (27, InterType order); partners are looked up by actorref's own flag

@@ -277,6 +277,7 @@ Function DumpState() Global
 	MiscUtil.PrintConsole("  pcvolume=" + SLOVE_Config.GetInt("voice.pcvolume", -1) + " voiceallactors=" + SLOVE_Config.GetInt("voice.voiceallactors", -1))
 	MiscUtil.PrintConsole("  player slot=" + AudioUtil.GetSlotForActor(Game.GetPlayer()))
 	MiscUtil.PrintConsole("  esp loaded=" + SLOVE_Utils.isDependencyReady("SLOVE.esp"))
+	MiscUtil.PrintConsole("  contact detection (SexLab P+ 2.19+)=" + SLOVE_Utils.HasInteractionAPI() + " - false = stage tags only (physics labels, thrust-paced/contact SFX, contact tongue off)")
 EndFunction
 
 ;Send one of the SLOVE_Mute_* events the way another mod would, to try the external

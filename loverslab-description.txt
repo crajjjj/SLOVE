@@ -18,7 +18,7 @@ SLO VE watches the running SexLab scene and drives voices, facial expressions, a
 
 REQUIREMENTS (hard)
 
-- SKSE64 + SexLab P+ 2.19+ (or classic SexLab - see the classic build). P+ 2.19 support is beta since SLO VE 0.6.26; on P+ 2.18 or older use SLO VE 0.6.25.
+- SKSE64 + SexLab P+ 2.17+ (or classic SexLab - see the classic build). The contact-detection features (measured Fast/Slow intensity, thrust-paced and contact sounds, the contact tongue) need P+ 2.19+ and are beta there; on P+ 2.17 / 2.18 SLO VE runs on the scene's stage tags instead.
 - AudioUtil 0.9.3+ — the folder-based audio/lipsync/TOML framework SLO VE runs on (update it before updating SLO VE). Please endorse it if you enjoy SLO VE:
   https://www.nexusmods.com/skyrimspecialedition/mods/186249
 - PapyrusUtil, Mfg Fix NG
@@ -33,7 +33,7 @@ INSTALLATION
 
 Use a mod manager (MO2 recommended). SLO VE is mostly loose scripts, sounds, and TOML config plus one small ESL-flagged plugin — there is nothing to build and no MCM to configure.
 
-1. Install the hard requirements first, each per its own instructions: SKSE64, SexLab Framework P+ 2.19+, PapyrusUtil, Mfg Fix NG (MfgConsoleFunc/Ext), and AudioUtil - the folder-based audio / lipsync / TOML framework SLO VE runs on. AudioUtil must be present or SLO VE has no voice engine.
+1. Install the hard requirements first, each per its own instructions: SKSE64, SexLab Framework P+ 2.17+ (2.19+ for the contact-detection features), PapyrusUtil, Mfg Fix NG (MfgConsoleFunc/Ext), and AudioUtil - the folder-based audio / lipsync / TOML framework SLO VE runs on. AudioUtil must be present or SLO VE has no voice engine.
 
 2. (Optional) Add female voice packs. Females already work out of the box on SexLab's stock moans, but a real pack is a drop-in upgrade — grab one of SLO VE's own female voice packs (optional files on this page), or use any Hentairim/IVDT pack (you only need its SOUND FILES/WAVs, not its ESP/scripts). Player voice goes in Sound\fx\SLOVE\F1; for a follower/partner voice, put the same files in F2 (F3, …). Male packs M1–M8 and the full body-SFX library are already bundled.
 

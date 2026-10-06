@@ -56,6 +56,30 @@ this list = firewall breach** — a new OStim-blocking dependency; see
 than the code has ever satisfied; judge new code against this baseline, and
 shrink the baseline when refactoring allows, never grow it.)
 
+## 3a. SexLab P+ version gate (one build for P+ 2.17+)
+
+The P+ script set is compiled against the 2.19 headers but must also run on
+P+ 2.17 / 2.18, where three members do not exist: `GetInteractionFlags`,
+`GetPartnerByInteractionType`, `GetInteractionVelocity`. Papyrus binds a
+member call when it is dispatched, so each of them has to sit behind
+`InteractionsLive()` (version probe first - `SLOVE_Utils.HasInteractionAPI`).
+
+```
+powershell scripts\check-pplus-compat.ps1
+```
+
+It runs two checks. **Gate audit:** every function in `papyrus\Source` that
+calls one of the three checks `InteractionsLive()` before the call; the only
+accepted exceptions are the two velocity reads in `SLOVE_SFX`
+(`CalculateAndPlayVelocitySFX`, `RunAdaptiveVelocitySFX`), which need a
+`FuckingPartner` that only the gated `UpdateFuckingPartner` sets. **Stubbed
+compile:** the P+ set is compiled against each older P+'s headers with ONLY
+those three functions declared on its `SexLabThread`.
+
+**Pass:** audit clean and every script compiles for each header set. A
+compile error names a fourth member an older P+ lacks: gate it the same way
+and add it to the script's stub list. In-game confirmation is use case D6.
+
 ## 4. Channel hygiene (no stacking regressions)
 
 Every AudioUtil play call that can repeat must carry an exclusivity channel:

@@ -25,7 +25,7 @@ Master switches and scene detection.
 | `enablepcexpression` | `1` | Apply the expression effect to the player. |
 | `enablemalenpcexpression` | `1` | Apply it to male NPCs. |
 | `enablefemalenpcexpression` | `1` | Apply it to female NPCs. |
-| `usephysicslabels` | `1` | Derive Slow/Fast intensity from SexLab P+ contact speed, on top of the scene tags. Needs SLPP interactions (P+ 2.19+). |
+| `usephysicslabels` | `1` | Derive Slow/Fast intensity from SexLab P+ contact speed, on top of the scene tags. Needs SLPP interactions (P+ 2.19+); on an older P+ the tags alone decide. |
 | `physicsfastvelocity` | `18.0` | *(float)* Contact speed (world units per second) at or above which a stage reads as **Fast**. P+ 2.19 reports a short average rather than the peak 2.18 gave, so `18` is the old `25` re-based and **not yet calibrated in game**; `printdebug = 1` logs the live values as `Physics speed` lines to tune against. |
 | `physicsslowfactor` | `0.65` | *(float)* Hysteresis: drop back to Slow only below `physicsfastvelocity × this`. Stops rapid flapping between labels. |
 | `soshugeppsize` | `6` | SOS/TNG size counted as "huge" — drives the huge-partner voice scenario, ahegao, and the resistance multiplier. |
@@ -149,11 +149,11 @@ The body-SFX engine (`SLOVE_SFX`). Sound names resolve as categories of the [`SF
 |---|---|---|
 | `enable` | `1` | Master switch — applies the SFX effect to scene actors. |
 | `volume` | `60` | `0–100`, startup level for the `sfx` audio group. |
-| `usevelocity` | `1` | Thrust-paced sounds driven by SLPP contact speed instead of fixed pacing (P+ 2.19+). The sound **rate** follows the animation, including AnimSpeed overrides; the exact moment of impact is not known, so on a slow stage a clap can land between two visible impacts. |
+| `usevelocity` | `1` | Thrust-paced sounds driven by SLPP contact speed instead of fixed pacing (P+ 2.19+; on an older P+ this reads as `0` and the scene labels pace the sounds). The sound **rate** follows the animation, including AnimSpeed overrides; the exact moment of impact is not known, so on a slow stage a clap can land between two visible impacts. |
 | `thruststroke` | `16.0` | *(float)* World units one full thrust (in + out) travels. A beat fires each time the contact has travelled this far. Lower = more beats per thrust. An estimate, **not yet calibrated in game**; `printdebug = 1` logs each beat as a `Thrust beat` line with the speed it saw. |
 | `useadaptivevelocity` | `0` | SOSBend **calibration search** when a scene reports no velocity data. |
 | `timestosearch` | `0` | Max calibration attempts per stage. `0` = never search. |
-| `usecontactsfx` | `1` | One-shots on contact edges: insertion, pull-out gape, kiss, oral. |
+| `usecontactsfx` | `1` | One-shots on contact edges: insertion, pull-out gape, kiss, oral. Needs SexLab P+ 2.19+ (no contact data on an older P+ or on classic). |
 | `usecontactvictimreactions` | `1` | Suppress tender kiss cues when a victim is involved. |
 | `velocitypoll` | `0.1` | *(float)* Seconds between speed samples for the thrust pacing. A coarser step adds jitter to each beat. |
 | `normalpoll` | `0.5` | *(float)* Seconds between label/tag-driven passes. Raise to cut script load — clip length already paces playback. |

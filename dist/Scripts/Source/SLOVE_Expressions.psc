@@ -1305,7 +1305,8 @@ endfunction
 ;            for lick acts the labels missed - but stays gated by
 ;            SceneTagLickScene so a stray flag can't fire in an unrelated scene.
 ;            Indices are SexLab P+ 2.19's InterType order (27 flags).
-;P+ only - classic SexLab has no GetInteractionFlags and stays on the label.
+;P+ 2.19+ only - an older P+ and classic SexLab have no GetInteractionFlags and
+;stay on the label (InteractionsLive).
 Bool Function IsOralTongueActive()
 	if IsCunnilingus()
 		return true
@@ -1326,7 +1327,7 @@ Bool Function IsOralTongueActive()
 	if !SceneTagLickScene
 		return false
 	endif
-	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
+	if !InteractionsLive()
 		return false
 	endif
 	bool[] f = CurrentThread.GetInteractionFlags(actorref)
@@ -1354,10 +1355,18 @@ endfunction
 ;cunnilingus (female) from a blowjob (a penis in the mouth, male), which a scene-level lick
 ;tag cannot when an MF scene carries both "cunnilingus" and "blowjob" tags. None if unresolved.
 Actor Function OralReceiver()
-	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
+	if !InteractionsLive()
 		return none
 	endif
 	return CurrentThread.GetPartnerByInteractionType(actorref, 17) ;aOral: whom actorref licks/sucks
+EndFunction
+
+;True when this actor's scene has live contact data this build can read: SexLab P+
+;2.19 or newer AND its detector registered for the thread. The version probe comes
+;FIRST - the interaction calls above do not exist on an older P+ (see
+;SLOVE_Utils.HasInteractionAPI). False = the tongue stays on the authored labels.
+bool Function InteractionsLive()
+	return CurrentThread != none && SLOVE_Utils.HasInteractionAPI() && CurrentThread.IsInteractionRegistered()
 EndFunction
 
 Function unequipmask(actor char)

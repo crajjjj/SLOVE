@@ -162,7 +162,8 @@ printdebug = 0
 # are patch additions and are not in the shipped Hentairim SFX config.
 enable = 1                     # master switch (applies the SFX effect to scene actors)
 volume = 60                    # 0-100, startup value for the "sfx" audio group
-usevelocity = 1                # thrust-paced sounds from SLPP contact speed (P+ 2.19+)
+usevelocity = 1                # thrust-paced sounds from SLPP contact speed (P+ 2.19+;
+                               # an older P+ paces them from the scene labels)
 # World units one full thrust (in + out) travels. P+ 2.19 reports a speed, not a
 # signed velocity, so a beat fires each time the contact has travelled this far:
 # the sound rate follows the animation, the exact moment of impact is not known.

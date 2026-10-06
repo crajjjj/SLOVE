@@ -393,6 +393,12 @@ Function Maintenance()
 	PerformInitialization()
 	;Other Parameters
 	InitializeDirectorConfigs()
+	;say once per load which contact source this install has - the first thing to
+	;check when "the thrust sounds / contact tongue / Fast labels" are missing
+	if !SLOVE_Utils.HasInteractionAPI()
+		SLOVE_Log.WriteLog("Director : SexLab P+ " + SLOVE_Utils.SexLabPPVersion() + " has no contact-detection API (it arrived in 2.19) - physics labels, thrust-paced and contact SFX and the contact tongue are off; stage tags drive everything", 0)
+	endif
+
 	;external mutes never survive a game load: one bulk clear takes every
 	;SLOVE_Mute* value off every actor, and the muted-actor list with them, so a
 	;mute whose mod never sent an unmute - or is gone from the load order - cannot
@@ -941,7 +947,7 @@ Event OnUpdate()
 
 		LastLabelUpdateTime = CurrentThread.GetTimeTotal()
 		UpdateNow = false
-	elseif usephysicslabels == 1 && CurrentThread.GetStatus() == 3 && CurrentThread.IsInteractionRegistered()
+	elseif usephysicslabels == 1 && CurrentThread.GetStatus() == 3 && InteractionsLive()
 		;contacts and thrust speed change mid-stage - refresh labels from physics and
 		;signal opted-in consumers through the physics-time bump; the stage latch
 		;(LastLabelUpdateTime) must only move on real stage changes
@@ -1496,7 +1502,7 @@ bool Function IsOralGiver(Actor a)
 	if oral == "CUN" || oral == "RIM" || oral == "SBJ" || oral == "FBJ"
 		return true
 	endif
-	if !CurrentThread || !CurrentThread.IsInteractionRegistered()
+	if !InteractionsLive()
 		return false
 	endif
 	bool[] f = CurrentThread.GetInteractionFlags(a)
@@ -1504,6 +1510,15 @@ bool Function IsOralGiver(Actor a)
 		return false
 	endif
 	return f[17] || f[15] ;aOral (licking a crotch) / aLickingShaft
+EndFunction
+
+;True when the current scene has live contact data this build can read: SexLab P+
+;2.19 or newer AND its detector registered for the thread. The version probe comes
+;FIRST - GetInteractionFlags / GetPartnerByInteractionType / GetInteractionVelocity
+;do not exist on an older P+ (see SLOVE_Utils.HasInteractionAPI), so every one of
+;those calls sits behind this. False = stay on the authored stage tags.
+bool Function InteractionsLive()
+	return CurrentThread != none && SLOVE_Utils.HasInteractionAPI() && CurrentThread.IsInteractionRegistered()
 EndFunction
 
 bool function IsMale(actor char)
@@ -1615,7 +1630,7 @@ string[] Function CopyStringArray(string[] src)
 EndFunction
 
 Bool Function ApplyPhysicsLabels()
-	if usephysicslabels != 1 || CurrentThread == none || !CurrentThread.IsInteractionRegistered()
+	if usephysicslabels != 1 || !InteractionsLive()
 		return false
 	endif
 	if BasePenetrationLabelarr.Length != actorlist.Length || PenetrationLabelarr.Length != actorlist.Length
