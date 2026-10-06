@@ -90,6 +90,12 @@ int AhegaoItemCount = 0
 string[] AhegaoStorageKeys
 int AhegaoStorageKeyCount = 0
 bool ExternalAhegaoYieldActive = false
+;SexLab Snuff rides the same yield (see OnUpdate): SLSnuff.esp main quest, or None
+;when the hand-over is inert (SLOVE_Utils.GetSnuffQuest)
+Quest SnuffQuest
+;SLSnuff owned this actor at our last tick - read by resetexpressions at teardown,
+;after SLSnuff has already cleared its per-thread flags
+bool SnuffYieldActive = false
 
 Event OnSLSAhegaoStateChange(string eventName, string argString, float argNum, form sender)
 	;SLS ahegao is a player-only face; ignore for NPC instances
@@ -210,17 +216,28 @@ Event OnUpdate()
 	;this covers any mod that signals ahegao by an item or a per-actor key, on
 	;any actor. Transition once so we drop the tongue / hand back the mouth on
 	;enter and force a fresh pass on exit.
-	bool extAhegao = ExternalAhegaoActive()
+	;SexLab Snuff (SLSnuff.esp) rides the same yield: while it chokes this actor,
+	;holds them "dead" at 1 HP or uses them as a necro corpse, it repaints its own
+	;face every second, so ours would only flicker against it.
+	bool snuffed = SnuffQuest && SLOVE_Utils.IsSnuffSilenced(SnuffQuest, actorref, ThreadID)
+	SnuffYieldActive = snuffed
+	bool extAhegao = snuffed || ExternalAhegaoActive()
 	if extAhegao && !ExternalAhegaoYieldActive
 		ExternalAhegaoYieldActive = true
-		printdebug("External ahegao (worn item or storage key) - pausing expressions")
+		printdebug("External face owner (ahegao item / storage key / SLSnuff) - pausing expressions")
 		RemoveTongue()
+		if snuffed && (HasMFEE || HasMFEEVanillaRace)
+			;its face is MFG only - our painted MFEE ahegao is a morph it never
+			;overwrites, so retract it (an external AHEGAO is left to stack on ours)
+			MFEEAddAhegao = false
+			MuFacialExpressionExtended.SetExpressionByNumber(actorref, 0, 0, 0)
+		endif
 		LipSyncBlockedForFace = false
 		StorageUtil.SetIntValue(actorref, "SLOVE_FaceOwnsMouth_Expr", 0)
 	elseif !extAhegao && ExternalAhegaoYieldActive
 		ExternalAhegaoYieldActive = false
 		CachedLabelGroup = ""
-		printdebug("External ahegao ended - resuming expressions")
+		printdebug("External face owner released - resuming expressions")
 	endif
 
 	if SLSAhegaoActive || extAhegao
@@ -928,6 +945,7 @@ Function InitializeConfigandForms()
 
 	LoadAhegaoItems()
 	LoadAhegaoStorageKeys()
+	SnuffQuest = SLOVE_Utils.GetSnuffQuest()
 	InitializeAddNPCTongue()
 	printdebug("------------------Initialize Hentai Expressions Configs and Forms END-------------------------")
 endfunction
@@ -1494,9 +1512,16 @@ function resetexpressions()
 		return
 	endif
 
-	;0.1 = near-instant: the default 0.75 makes the reset itself a slow smooth
-	;transition that a concurrently-interpolating apply can win against
-	MfgConsoleFuncExt.resetmfg(actorref, 0.1)
+	;SexLab Snuff kills its marked victim as the scene ends and re-applies its death
+	;face on the corpse - a reset from us would land after that and wipe it. So an
+	;actor it owned at our last tick who is now dead or pinned at 1 HP keeps the MFG
+	;channels it set; a survivor is reset as usual. The MFEE morphs below are ours
+	;to revert either way.
+	if !(SnuffYieldActive && SLOVE_Utils.IsNearDeath(actorref))
+		;0.1 = near-instant: the default 0.75 makes the reset itself a slow smooth
+		;transition that a concurrently-interpolating apply can win against
+		MfgConsoleFuncExt.resetmfg(actorref, 0.1)
+	endif
 	if hasmfee || HasMFEEVanillaRace
 		MuFacialExpressionExtended.RevertExpression(actorref)
 	endif

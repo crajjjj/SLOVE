@@ -21,6 +21,7 @@ SLO VE is mostly loose scripts, sounds and TOML config plus one small ESL-flagge
 - **Devious Devices** — gag detection for the [muffled gagged voice](packs/slots.md#the-gag-slot-f1gag)
 - **SexLab Survival** — SLO VE yields the mouth to its ahegao state
 - **SOS / TNG** — huge-partner detection (the huge-partner voice + face scenario)
+- **SexLab Snuff** - an actor it is choking, or holding dead, goes quiet and keeps the face that mod gives them (`director.slsnuffyield`)
 - **Accurate Penetration** (via the AudioUtilPPA bridge) — measured penetration depth and gape, used by SFX and expressions instead of authored labels
 - **Oninus Lactis NG** (+ **Milk Mod Economy**) — the optional `[milk]` nipple-squirt system
 

@@ -92,6 +92,8 @@ int milklevelnonintense
 int milkrequirebarechest
 int milkmmeminfullness
 Quest LactisQuest ;OninusLactis.esp 0xD61; cast to OninusLactis at call time
+Quest SnuffQuest ;SLSnuff.esp main quest; None = SexLab Snuff hand-over inert (SLOVE_Utils.GetSnuffQuest)
+bool SnuffVoiceMuted ;SLSnuff's VoiceMuted flag for our thread as last polled in OnUpdate
 float NextMilkRollTime ;scene time of the next periodic penetration roll
 
 ;Called first time ever the mod is loaded
@@ -368,6 +370,11 @@ Function InitializeDirectorConfigs()
 	printdebug(" physicsfastvelocity :" + physicsfastvelocity)
 	printdebug(" physicsslowfactor :" + physicsslowfactor)
 
+	;SexLab Snuff hand-over (optional; None unless SLSnuff.esp is loaded AND
+	;director.slsnuffyield = 1). Voice / Expressions / NpcScene resolve their own copy.
+	SnuffQuest = SLOVE_Utils.GetSnuffQuest()
+	printdebug(" slsnuffyield :" + (SnuffQuest != none))
+
 	;[milk] - Oninus Lactis NG nipple squirts (optional; off unless the mod is
 	;present AND milk.enable = 1). MME is a further optional layer inside Lactate().
 	milkenable = SLOVE_Config.GetInt("milk.enable", 0)
@@ -521,6 +528,7 @@ Function AdoptScene()
 	;Initialize Configs
 	InitializeDirectorConfigs() ;SLO VE: cheap toml-cache reads; keeps live edits + Reload() effective per scene
 	isEnding = false
+	SnuffVoiceMuted = false
 	PCInSex = true
 	CurrentThread = Sexlab.GetPlayerController() ;CURRENT THREAD (classic)
 	CurrentThreadID = CurrentThread.tid
@@ -715,6 +723,21 @@ Event OnUpdate()
 
 		LastLabelUpdateTime = CurrentThread.TotalTime
 		UpdateNow = false
+	endif
+
+	;=== SexLab Snuff: re-silence SexLab once it hands the victim's voice back ===
+	;SLSnuff mutes its victim through SexLab's voice and restores it when the choke
+	;stage ends - with ForceSilence false, which also drops the force-silence
+	;SuppressSexLabVoice set at scene start, so SexLab's own moans would run under
+	;ours for the rest of the scene. Its VoiceMuted flag clears right after that
+	;restore, so the 1 -> 0 edge is the safe moment to re-assert.
+	if SnuffQuest
+		bool snuffmuted = SLOVE_Utils.IsSnuffVoiceMuted(SnuffQuest, CurrentThreadID)
+		if SnuffVoiceMuted && !snuffmuted
+			printdebug("SLSnuff released the victim's voice - re-silencing SexLab")
+			SuppressSexLabVoice()
+		endif
+		SnuffVoiceMuted = snuffmuted
 	endif
 
 	;=== milk: periodic lactation roll while the PC is being penetrated ===

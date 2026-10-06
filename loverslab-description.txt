@@ -23,7 +23,7 @@ REQUIREMENTS (hard)
   https://www.nexusmods.com/skyrimspecialedition/mods/186249
 - PapyrusUtil, Mfg Fix NG
 
-Soft deps (auto-detected): MFEE, sr_fillherup, Devious Devices, SexLab Survival, SOS/TNG, Accurate Penetration, Oninus Lactis NG + Milk Mod Economy.
+Soft deps (auto-detected): MFEE, sr_fillherup, Devious Devices, SexLab Survival, SOS/TNG, Accurate Penetration, Oninus Lactis NG + Milk Mod Economy, SexLab Snuff.
 
 Optional: ConsoleUtil — for the in-game console test/reload commands.
   https://www.nexusmods.com/skyrimspecialedition/mods/133569

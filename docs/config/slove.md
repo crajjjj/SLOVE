@@ -21,6 +21,7 @@ Master switches and scene detection.
 |---|---|---|
 | `enablevoice` | `1` | Master switch for scene voices. |
 | `suppresssexlabvoice` | `1` | Silence SexLab's own moan engine for every actor in a player scene, so AudioUtil is the sole voice source (no doubled moans). Auto-restores when the scene ends. Set `0` to let SexLab moan alongside SLO VE. Only acts while `enablevoice = 1`. |
+| `slsnuffyield` | `1` | Hand an actor over to **SexLab Snuff** (`SLSnuff.esp`) while it is choking them, holding them "dead" at 1 HP, or using them as the corpse of a necro scene: that actor makes no SLO VE sound and keeps the face SLSnuff gives them, while everyone else in the scene carries on. Does nothing unless SLSnuff is installed. `0` = ignore SLSnuff. |
 | `enableexpressions` | `1` | Master switch for facial expressions. |
 | `enablepcexpression` | `1` | Apply the expression effect to the player. |
 | `enablemalenpcexpression` | `1` | Apply it to male NPCs. |
