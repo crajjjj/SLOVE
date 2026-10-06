@@ -192,10 +192,15 @@ EndFunction
 ;    usually reacts to the same StageStart we do, in either order.
 ;  - every mute carries its thread and ends with that thread (AnimationEnd, and
 ;    our own teardown for the poll path that sees no event)
-;  - a mute on an actor who is in no scene, or in another thread's scene, is stale
-;The muted actors sit in a StorageUtil form list, so a sweep - run on every stage
-;start and scene end of ANY thread and on every game load - costs one native
-;while nobody is muted.
+;  - a mute on an actor who is in no scene, in another thread's scene, or in a
+;    later run of the same thread (thread ids are reused) is stale. That is the
+;    scene-START clear, done by comparison: a blind clear there would race the
+;    mods that mute in answer to AnimationStart.
+;  - nothing survives a game load: Maintenance bulk-clears every SLOVE_Mute*
+;    value, so a mute with no unmute cannot outlive its session
+;The muted actors sit in a StorageUtil form list, so a sweep - run on every
+;scene start, stage start and scene end of ANY thread - costs one native while
+;nobody is muted.
 Event DirectorOnMute(string eventName, string argString, float argNum, form sender)
 	Actor a = sender as Actor
 	if a == None
@@ -214,6 +219,7 @@ Event DirectorOnMute(string eventName, string argString, float argNum, form send
 	;bookkeeping first, the level last: a sweep can slip in between these natives,
 	;and it must never find a level whose stamp is not there yet
 	StorageUtil.SetIntValue(a, "SLOVE_MuteThread", StampThread(stamp) + 1)
+	StorageUtil.SetFloatValue(a, "SLOVE_MuteRun", ActorSceneRun(a))
 	StorageUtil.SetStringValue(a, "SLOVE_MuteBy", argString)
 	if eventName == "SLOVE_Mute_Scene"
 		StorageUtil.SetIntValue(a, "SLOVE_MuteScene", level)
@@ -251,6 +257,33 @@ string Function ActorStageStamp(Actor a)
 	return (t.GetThreadID() as string) + "|" + t.GetActiveScene() + "|" + t.GetActiveStage()
 EndFunction
 
+;The start marker of the scene this actor is in (SexLab's StartedAt, written once
+;per thread run), 0 when in none. Thread ids are reused, so this is what tells two
+;scenes on the same id apart.
+float Function ActorSceneRun(Actor a)
+	sslThreadModel t = Sexlab.GetThreadByActor(a) as sslThreadModel
+	if !t
+		return 0.0
+	endif
+	return t.StartedAt
+EndFunction
+
+;True when the actor's scene is a later run of its thread than the one the mute was
+;set in. A mute taken before the thread stamped its start (marker 0) adopts the
+;first real value it sees.
+bool Function SceneRunChanged(Actor a)
+	float runNow = ActorSceneRun(a)
+	if runNow == 0.0
+		return false
+	endif
+	float mutedIn = StorageUtil.GetFloatValue(a, "SLOVE_MuteRun", 0.0)
+	if mutedIn == 0.0
+		StorageUtil.SetFloatValue(a, "SLOVE_MuteRun", runNow)
+		return false
+	endif
+	return mutedIn != runNow
+EndFunction
+
 ;the thread id a stage stamp starts with, -1 for an empty stamp
 int Function StampThread(string stamp)
 	int cut = StringUtil.Find(stamp, "|")
@@ -269,6 +302,7 @@ EndFunction
 Function ForgetMuteIfClear(Actor a)
 	if SLOVE_Utils.MuteLevel(a) == 0
 		StorageUtil.UnsetIntValue(a, "SLOVE_MuteThread")
+		StorageUtil.UnsetFloatValue(a, "SLOVE_MuteRun")
 		StorageUtil.UnsetStringValue(a, "SLOVE_MuteBy")
 		StorageUtil.FormListRemove(None, "SLOVE_MutedActors", a, true)
 	endif
@@ -286,7 +320,7 @@ Function SweepMutes(int aiEndedThread = -1)
 		else
 			string stamp = ActorStageStamp(a)
 			int mutedOn = StorageUtil.GetIntValue(a, "SLOVE_MuteThread", 0) - 1
-			if stamp == "" || StampThread(stamp) != mutedOn || mutedOn == aiEndedThread
+			if stamp == "" || StampThread(stamp) != mutedOn || mutedOn == aiEndedThread || SceneRunChanged(a)
 				SLOVE_Log.WriteLog("Mute : ended with the scene - actor=" + a.GetDisplayName() + " caller='" + SLOVE_Utils.MutedBy(a) + "'", 0)
 				ClearStageMute(a)
 				StorageUtil.UnsetIntValue(a, "SLOVE_MuteScene")
@@ -359,9 +393,15 @@ Function Maintenance()
 	PerformInitialization()
 	;Other Parameters
 	InitializeDirectorConfigs()
-	;external mutes that outlived their scene across the save (crash / quit
-	;mid-scene): an actor who is in no scene now cannot be muted
-	SweepMutes()
+	;external mutes never survive a game load: one bulk clear takes every
+	;SLOVE_Mute* value off every actor, and the muted-actor list with them, so a
+	;mute whose mod never sent an unmute - or is gone from the load order - cannot
+	;outlive the session it was set in. A mod that still needs one after a
+	;mid-scene load re-sends it.
+	int leftovermutes = StorageUtil.ClearAllPrefix("SLOVE_Mute")
+	if leftovermutes > 0
+		SLOVE_Log.WriteLog("Mute : game loaded - cleared " + leftovermutes + " leftover mute value(s)", 0)
+	endif
 
 	;re-seed the face-owns-mouth marker from SLS's saved ahegao state so a save
 	;made mid-ahegao keeps PC moans off the mouth after the reload (PlaySound
@@ -637,6 +677,7 @@ EndFunction
 
 ;Director reacts when a sexlab scene start
 Event DirectorSceneStart(string eventName, string argString, float argNum, form sender)
+	SweepMutes() ;any thread's start: nothing muted before this scene comes into it
 	;SLO VE is for handling player scenes only.
 
 	printdebug("Sexlab Scene Detected")

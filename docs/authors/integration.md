@@ -91,6 +91,7 @@ akActor.SendModEvent("SLOVE_Unmute_Scene", "MyMod")      ; give the voice back e
 - **Send it once the scene is running** (`AnimationStart` or later). An event for an actor who is not in a scene is logged and ignored.
 - **A stage mute belongs to the stage it was sent on.** Answering `StageStart` with a fresh `SLOVE_Mute_Stage` is the intended pattern, and it does not matter whether your handler or SLO VE's runs first.
 - **You never have to unmute.** Both mutes end on their own; the unmute events only give the voice back early. There is one slot per kind: a second caller's mute replaces the first, and any caller's unmute clears it.
+- **A mute cannot leak.** It never carries over into the actor's next scene, and nothing survives a game load: on every load SLO VE clears all mute state for every actor. If your scene is still running after a mid-scene load and you still need the mute, send it again.
 - **SexLab's own voice.** SLO VE silences SexLab's moan engine for its scenes. If your mod also force-silences an actor there and restores that when it unmutes, SLO VE re-applies its own silence for a few seconds after the mute ends, so SexLab's moans do not come back underneath.
 - No dependency on SLO VE: without it the events go nowhere.
 
