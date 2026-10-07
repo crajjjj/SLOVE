@@ -155,7 +155,7 @@ Facial expression engine. All face writes go through Mfg Fix NG.
     3. Drag the tongue sliders in the panel on the right; the tongue moves against the head. Note the values.
     4. Close Outfit Studio **without saving** (saving would write the head into the project), set the same values in BodySlide and build.
 
-    The head is shown with its mouth closed, and the game opens the mouth when a tongue is out, so judge against the lips and the chin. The tongue is drawn where the game will put it relative to the head, including the Khajiit and Argonian fit; a mouth or teeth mesh imported the same way lands on the floor, which is how those files are stored and can be ignored.
+    The head is shown with its mouth closed, and the game opens the mouth when a tongue is out, so judge against the lips and the chin. The tongue is drawn where the game will put it relative to the head, including the Khajiit and Argonian fit; a mouth or teeth mesh imported the same way lands on the floor, which is how those files are stored and can be ignored. A **head** that lands on the floor, far below the tongue, is a head file saved without its height (some replacers do this; the vanilla files carry it): select it in the mesh list and use *Shape > Move...* with Y `-1.55` and Z `120.34`, or import the vanilla head instead.
 
     The BodySlide projects that exist for the original tongues (*HALOS Human HDT Tongueslide*, and the one in Fill Her Up) build into another folder and do not reach SLO VE's copies.
 
