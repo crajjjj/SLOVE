@@ -297,6 +297,23 @@ function Build-Fomod {
     # never ship stray backups
     Get-ChildItem $core -Recurse -Filter '*.bak-*' -ErrorAction SilentlyContinue | Remove-Item -Force
 
+    # Every tongue mesh SLOVE.esp names must ship: an addon without its mesh is an
+    # invisible tongue on that addon's races. The Khajiit and Argonian copies are
+    # generated (tools\tonguefit\fit_tongues.py), which makes them easy to forget.
+    $baseEsp = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes((Join-Path $core 'SLOVE.esp')))
+    $tongues = @([regex]::Matches($baseEsp, 'SLOVE\\tongues\\[\x20-\x7e]+?\.nif') | ForEach-Object { $_.Value } | Sort-Object -Unique)
+    $lost = @($tongues | Where-Object { -not (Test-Path -LiteralPath (Join-Path $core "meshes\$_")) })
+    if ($lost.Count) { throw "SLOVE.esp names tongue meshes that dist\meshes does not hold: $($lost -join ', ') - run tools\tonguefit\fit_tongues.py" }
+    if ($tongues.Count -lt 30) { throw "SLOVE.esp names $($tongues.Count) tongue meshes, expected 30 (ten each: standard, Khajiit, Argonian)" }
+    $python = Get-Command python -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($python) {
+        & $python.Source (Join-Path $root 'tools\tonguefit\fit_tongues.py') --check
+        if ($LASTEXITCODE -ne 0) { throw 'the beast-race tongue meshes are not what tools\tonguefit\fit_tongues.py produces - rerun it without arguments' }
+    } else {
+        Write-Warning 'python not found - skipped the beast-race tongue mesh check (tools\tonguefit\fit_tongues.py --check)'
+    }
+    Write-Host "tongue meshes: $($tongues.Count) named by SLOVE.esp, all staged" -ForegroundColor Cyan
+
     # ClassicScripts = the classic overrides
     $classicDist = Join-Path $root 'dist-classic\Scripts'
     if (Test-Path $classicDist) {

@@ -166,6 +166,11 @@ shipped fabricated:
   a full path is given) and voice-pack roots: verify the folders exist in
   `SLO VE/dist` (or the installed mods dir) where they are expected to ship.
 
+- Tongue meshes: `python tools\tonguefit\fit_tongues.py --check` (the Khajiit and
+  Argonian copies under `dist\meshes\SLOVE\tongues` are what the offsets in that
+  script produce from the standard ten). `build.ps1` also fails when `SLOVE.esp`
+  names a tongue mesh that `dist\meshes` does not hold.
+
 **Pass:** zero missing paths. Any miss = silent in-game silence, exactly like
 the original silent-dog bug.
 

@@ -18,17 +18,22 @@ game from the wearer's race:
 | Piece | Content |
 |---|---|
 | `meshes\!UBE\SLOVE\tongues\linga1..10.nif` | The ten tongues fitted to the UBE head. `!UBE\<same path>` is the UBE mesh convention. |
-| `SLOVE_UBE_Support.esp` (ESL) | Ten new Armor Addons `SLOVE_TongueAA1_UBE`..`10_UBE` (`000800`-`000809`): slot 44, races = the 18 UBE races only, model = the mesh above, priority 10. Ten overrides of `SLOVE_Tongue1Armor`..`10Armor` (`SLOVE.esp` `000813`-`00081C`) that append the UBE addon after the standard one. |
+| `SLOVE_UBE_Support.esp` (ESL) | Ten new Armor Addons `SLOVE_TongueAA1_UBE`..`10_UBE` (`000800`-`000809`): slot 44, races = the 18 UBE races only, model = the mesh above, priority 10. Ten overrides of `SLOVE_Tongue1Armor`..`10Armor` (`SLOVE.esp` `000813`-`00081C`) that append the UBE addon after the addons `SLOVE.esp` gives the armor. |
 
-Each tongue armor therefore carries two addons: the standard one (vanilla and DLC
-races) and the UBE one (UBE races). An actor matches exactly one, so no script
-has to know about UBE and `SLOVE_Expressions` equips the same ten armors as
-before.
+Each tongue armor therefore carries four addons: the three `SLOVE.esp` gives it
+since 0.7.1 (standard for the human and mer races, Khajiit, Argonian) and the UBE
+one (UBE races). An actor matches exactly one, so no script has to know about UBE
+and `SLOVE_Expressions` equips the same ten armors as before.
 
-Masters: `Skyrim.esm`, `Update.esm`, `UBE_AllRace.esp`, `SLOVE.esp`.
+Masters: `Skyrim.esm`, `UBE_AllRace.esp`, `SLOVE.esp`.
 
 ## Rules that keep it working
 
+- **The armor overrides must repeat every addon `SLOVE.esp` lists.** An override
+  replaces the whole Armature list, so each one holds the base list plus the UBE
+  addon (standard, Khajiit, Argonian, UBE). When `SLOVE.esp` gains or loses a
+  tongue addon, change the ten overrides here in the same commit, or the races of
+  the missing addon lose their tongue for everyone who installs this option.
 - **Never add UBE races to the standard addons** (`SLOVE_TongueAA1`..`10`). That
   is what this patch did up to 0.6.27 (override-only, standard mesh on UBE heads).
   Doing both makes a UBE actor match two addons of the same armor.
@@ -64,9 +69,10 @@ The shipped file was written with houseCARL (Mutagen); xEdit works as well:
    `UBE_AllRace.esp` race, additional races = the rest, male and female world
    model `!UBE\SLOVE\tongues\linga{N}.nif`.
 3. Copy `SLOVE_Tongue{N}Armor` as an override and append the new addon to its
-   Armature list, after the standard one.
+   Armature list, after the addons it already has.
 4. Save it here as `SLOVE_UBE_Support.esp` and run `scripts\build.ps1`, which
    fails if the esp names a mesh that is not under `meshes\`.
 
 Sanity check without the game: the file holds 20 records (10 `ARMO` overrides,
-10 new `ARMA`) and no override of `SLOVE_TongueAA*`.
+10 new `ARMA`), no override of `SLOVE_TongueAA*`, and each `ARMO` override lists
+the same addons as its record in `SLOVE.esp` plus one `_UBE` addon.
