@@ -5,5 +5,13 @@ dist/Sound/
 .vscode/
 
 dist/SLOVE.esp.bak-preresist
+# the SKSE plugin (skse\): build outputs, and the DLL + generated defaults that
+# scripts\build.ps1 puts into dist for packaging
+skse/build/
+skse/.xmake/
+skse/compile_commands.json
+dist/SKSE/Plugins/SLOVE.dll
+dist/SKSE/Plugins/SLOVE.pdb
+dist/SKSE/Plugins/SLOVE/SLOVE.defaults.toml
 *.ppj
 site/

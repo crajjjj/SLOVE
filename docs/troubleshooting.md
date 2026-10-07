@@ -4,12 +4,13 @@ Two log files and a handful of console commands answer almost everything.
 
 ## Where the logs are
 
-Both live under `Documents\My Games\Skyrim Special Edition\`:
+They live under `Documents\My Games\Skyrim Special Edition\`:
 
 | Log | Path | What it tells you |
 |---|---|---|
 | **SLO VE script log** | `Logs\Script\User\SLOVE.0.log` | Script and dependency errors: a missing mod, an unresolvable spell, a sound that didn't play. Written by SLO VE itself — **not** the general Papyrus log, and it needs no INI changes. |
 | **AudioUtil log** | `SKSE\AudioUtil.log` | Everything audio: which slot an actor resolved to, which category resolved to which folder, TOML parse errors and overlay warnings. **This is the file for any voice problem.** |
+| **Settings menu log** | `SKSE\SLOVE.log` | Only the [in-game settings menu](config/menu.md): whether SKSE Menu Framework was found, and why the menu is off when it is. A different file from the script log above, despite the name. |
 
 !!! note "Mod Organizer 2 users"
     Logs go to the real `Documents\My Games\...` folder, **not** into MO2's virtual file system or the Overwrite folder.
@@ -21,7 +22,7 @@ For more detail, raise AudioUtil's verbosity in the base `AudioUtil.toml`:
 log_level = "debug"     # trace | debug | info | warn | error
 ```
 
-and turn on the play-by-play with `printdebug = 1` in the relevant [`SLOVE.toml`](config/slove.md) section (`[director]`, `[voice]`, `[expressions]`, `[sfx]`) — it is written to `SLOVE.log`, not the console. For voice specifically, see [Checking Your Pack](packs/checking.md#watching-it-happen-in-game).
+and turn on the play-by-play with `printdebug = 1` in the relevant [`SLOVE.toml`](config/slove.md) section (`[director]`, `[voice]`, `[expressions]`, `[sfx]`). It is written to `SLOVE.0.log`, not the console. For voice specifically, see [Checking Your Pack](packs/checking.md#watching-it-happen-in-game).
 
 ## Enabling Papyrus logging
 
@@ -195,6 +196,10 @@ Causes, most common first:
 - **Two sets of thrust sounds at once?** Accurate Penetration plays its own, and SLO VE times its own off PPA's depth. Keep one: see [Hentairim & PPA](hentairim-and-ppa.md#thrust-sounds).
 - **Don't** reach for `useadaptivevelocity` first; it's the heaviest path in the mod and needs `timestosearch > 0` as well.
 - Gape one-shots need the Accurate Penetration bridge. The four `gape*` thresholds are unitless — calibrate them from the `printdebug` pull-out line in your own scenes.
+
+## The in-game settings menu is missing or does not save
+
+The **SLO VE** pages in the Mod Control Panel need SKSE Menu Framework. If the entry is not there, or a change does not stick, `SKSE\SLOVE.log` says why. The menu's own page lists every message and what to do: [In-game settings menu](config/menu.md#if-something-is-wrong). The rest of SLO VE does not depend on the menu.
 
 ## Reporting a problem
 

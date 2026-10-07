@@ -2,12 +2,13 @@
 <fomod>
   <Name>SLO VE</Name>
   <Author>crajjjj</Author>
-  <Version MachineVersion="0.6.28">0.6.28</Version>
+  <Version MachineVersion="0.6.29">0.6.29</Version>
   <Website>https://github.com/crajjjj/SLOVE</Website>
   <Description>
     Scene voices, facial expressions, body SFX and an optional willpower/resistance
-    system for SexLab. Configured entirely in TOML - no MCM. Runs on AudioUtil for
-    folder-based voice playback and lipsync.
+    system for SexLab. Configured in TOML, with an optional in-game settings menu
+    (needs SKSE Menu Framework). Runs on AudioUtil for folder-based voice playback
+    and lipsync.
 
     The installer asks which SexLab flavour you run: SexLab Framework P+ (2.x) or
     classic SexLab Framework SE 1.63 (which additionally requires SexLab Separate

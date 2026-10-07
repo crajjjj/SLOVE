@@ -2,8 +2,9 @@
 
 Standalone scene **voices**, **facial expressions**, **body SFX**
 (slushing/impacts/claps, optionally thrust-paced) and an optional
-**willpower / resistance** system for SexLab P+ scenes. No MCM — all
-configuration lives in TOML files.
+**willpower / resistance** system for SexLab P+ scenes. All configuration
+lives in TOML files; an optional in-game menu (SKSE Menu Framework) edits the
+main one for you.
 "SLO" = SexLab / OStim (OStim backend planned; v1 is SexLab P+ only).
 
 **📖 Full documentation: <https://crajjjj.github.io/SLOVE/>** — voice packs, TOML
@@ -18,7 +19,8 @@ reference, troubleshooting.
 | PapyrusUtil | JSON preset data (expression faces) |
 | Mfg Fix NG (MfgConsoleFunc/Ext) | all face writes |
 
-Soft (auto-detected, optional): MFEE, sr_fillherup (tongue), Devious Devices
+Soft (auto-detected, optional): SKSE Menu Framework (the in-game settings
+menu), MFEE, sr_fillherup (tongue), Devious Devices
 (gag), SexLab Survival (ahegao yield), SOS/TNG (huge-partner detection),
 Accurate Penetration via AudioUtilPPA (measured penetration/gape),
 Oninus Lactis NG (nipple squirts during scenes, `[milk]` in SLOVE.toml;
@@ -75,9 +77,12 @@ Full reference: <https://crajjjj.github.io/SLOVE/config/>
 
 ## Build (dev)
 
-`powershell scripts\build.ps1` — mirrors `papyrus\Source` into `dist`, compiles
-via Pyro, writes `Release\SLO VE.zip`. ESP authored via houseCARL (see repo
-history).
+`powershell scripts\build.ps1` checks that the settings are in step
+(`scripts\check-config.ps1`), builds `SLOVE.dll` (the in-game settings menu,
+`skse\`: xmake 3.0+, VS 2022; run `git submodule update --init --recursive`
+once) and tests it, compiles both script sets via Pyro and writes the FOMOD
+`Release\SLO_VE_v<version>.zip`. `-NoFomod -NoPlugin` builds the scripts alone.
+ESP authored via houseCARL (see repo history).
 
 ## Architecture
 

@@ -1,0 +1,1000 @@
+# How the SLO VE in-game menu (SKSE Menu Framework) presents each SLOVE.toml key.
+# Presentation only: this file holds no values and no defaults, and the menu
+# works without it (every key then shows as a plain field under "Other").
+#
+# [[page]]     one per [section] of SLOVE.toml, in the order the pages appear.
+# [[setting]]  one per key. Rows appear in this file's order, under "group".
+#   control    flag (int 0/1 as a checkbox) | int | percent (int 0-100 slider)
+#              | float | text
+#   min, max   both given = a slider; otherwise a number field (still clamped)
+#   step       step of a number field's + / - buttons
+#   unit       shown after the label, e.g. "s"
+#   requires   pplus | pplus219: the setting only does something on SexLab P+ /
+#              P+ 2.19 or newer. The menu dims the row elsewhere, it never locks it.
+#   tip        one line; never state the default here, the menu adds it.
+# ASCII only (the menu font has no long dashes), and no "##" in a label.
+# scripts\check-config.ps1 keeps this file, SLOVE.toml, the scripts and
+# docs\config\slove.md in step: add a key to all of them together.
+
+schema = 1
+
+# ------------------------------------------------------------------ director
+
+[[page]]
+section = "director"
+title = "Director"
+note = "Master switches, intensity from physics, and NPC-only scenes."
+
+[[setting]]
+key = "director.enablevoice"
+group = "Master switches"
+label = "Scene voices"
+control = "flag"
+tip = "Master switch for all scene voices."
+
+[[setting]]
+key = "director.suppresssexlabvoice"
+group = "Master switches"
+label = "Silence SexLab's own moans"
+control = "flag"
+tip = "Silences SexLab's moan engine for everyone in a player scene so SLO VE is the only voice, and gives it back when the scene ends. Off lets SexLab moan alongside. Only acts while scene voices are on."
+
+[[setting]]
+key = "director.enableexpressions"
+group = "Master switches"
+label = "Facial expressions"
+control = "flag"
+tip = "Master switch for all facial expressions."
+
+[[setting]]
+key = "director.enablepcexpression"
+group = "Master switches"
+label = "Expressions on the player"
+control = "flag"
+tip = "Drive the player's face during scenes."
+
+[[setting]]
+key = "director.enablemalenpcexpression"
+group = "Master switches"
+label = "Expressions on male NPCs"
+control = "flag"
+tip = "Drive male NPCs' faces during scenes."
+
+[[setting]]
+key = "director.enablefemalenpcexpression"
+group = "Master switches"
+label = "Expressions on female NPCs"
+control = "flag"
+tip = "Drive female NPCs' faces during scenes."
+
+[[setting]]
+key = "director.usephysicslabels"
+group = "Intensity from contact speed"
+label = "Measure Slow / Fast"
+control = "flag"
+requires = "pplus219"
+tip = "Decide Slow or Fast from the contact speed SexLab P+ measures, on top of the scene tags. Without it the tags alone decide."
+
+[[setting]]
+key = "director.physicsfastvelocity"
+group = "Intensity from contact speed"
+label = "Fast threshold"
+control = "float"
+min = 1.0
+max = 60.0
+requires = "pplus219"
+tip = "Contact speed, in world units per second, at or above which a stage counts as Fast. An estimate not yet calibrated in game: with Director debug logging on, the log shows the live values as Physics speed lines."
+
+[[setting]]
+key = "director.physicsslowfactor"
+group = "Intensity from contact speed"
+label = "Back-to-Slow factor"
+control = "float"
+min = 0.1
+max = 1.0
+requires = "pplus219"
+tip = "A Fast stage drops back to Slow only below the fast threshold times this. Lower means it stays Fast longer, which stops the label flapping."
+
+[[setting]]
+key = "director.soshugeppsize"
+group = "Huge partner"
+label = "Huge from size"
+control = "int"
+min = 1
+max = 20
+tip = "SOS or TNG size counted as huge. Drives the huge-partner voice lines, the ahegao face and the willpower multiplier."
+
+[[setting]]
+key = "director.enablenpcscenes"
+group = "NPC-only scenes"
+label = "Process NPC-only scenes"
+control = "flag"
+tip = "Scenes the player is not in also get ambient voices, expressions, body sounds and willpower. Dirty talk, milk and notifications stay player-only."
+
+[[setting]]
+key = "director.npcscenedistance"
+group = "NPC-only scenes"
+label = "Max distance"
+control = "float"
+min = 0.0
+step = 128.0
+tip = "How far from the player, in game units, an NPC-only scene may be and still be picked up. About hearing range."
+
+[[setting]]
+key = "director.maxnpcscenes"
+group = "NPC-only scenes"
+label = "Max scenes at once"
+control = "int"
+min = 1
+max = 10
+tip = "How many NPC-only scenes are processed at the same time. A cap that protects script performance in busy places."
+
+[[setting]]
+key = "director.printdebug"
+group = "Debug"
+label = "Debug log"
+control = "flag"
+tip = "Write the Director's decisions to the SLOVE script log, including one line per voice line with the exact file that played. Leave off for normal play."
+
+# --------------------------------------------------------------------- voice
+
+[[page]]
+section = "voice"
+title = "Voice"
+note = "Chances are percent rolls, made each time the moment comes up."
+
+[[setting]]
+key = "voice.pcvolume"
+group = "Volume"
+label = "Player voice"
+control = "percent"
+tip = "Volume of the player's own moans and lines. Applies at once."
+
+[[setting]]
+key = "voice.partnervolume"
+group = "Volume"
+label = "Partners in your scene"
+control = "percent"
+tip = "Volume of the partners in the player's own scene. Applies at once."
+
+[[setting]]
+key = "voice.orgasmvolume"
+group = "Volume"
+label = "Player orgasm cries"
+control = "percent"
+tip = "Volume of the player's climax cries only, on their own bus, so they can be louder or quieter than ordinary moans. Applies at once."
+
+[[setting]]
+key = "voice.npcscenevolume"
+group = "Volume"
+label = "NPC-only scenes"
+control = "percent"
+tip = "Volume of scenes the player is not in, moans and orgasm cries alike. Distance falloff still applies on top. Applies at once."
+
+[[setting]]
+key = "voice.chancetocommentonleadinstage"
+group = "How often she speaks"
+label = "Lead-in stages"
+control = "percent"
+tip = "Chance of a spoken line during lead-in stages."
+
+[[setting]]
+key = "voice.chancetocommentonnonintensestage"
+group = "How often she speaks"
+label = "Soft stages"
+control = "percent"
+tip = "Chance of a spoken line during a soft stage."
+
+[[setting]]
+key = "voice.chancetocommentonintensestage"
+group = "How often she speaks"
+label = "Intense stages"
+control = "percent"
+tip = "Chance of a spoken line during an intense stage."
+
+[[setting]]
+key = "voice.chancetocommentononattackingstage"
+group = "How often she speaks"
+label = "When she leads"
+control = "percent"
+tip = "Chance of a spoken line during a stage where she is the one on the attack."
+
+[[setting]]
+key = "voice.chancetocommentonblowjobstage"
+group = "How often she speaks"
+label = "Oral stages"
+control = "percent"
+tip = "Chance of a spoken line during oral."
+
+[[setting]]
+key = "voice.chancetocommentwhenclosetoorgasm"
+group = "How often she speaks"
+label = "Close to her orgasm"
+control = "percent"
+tip = "Chance of a spoken line when she is close to orgasm."
+
+[[setting]]
+key = "voice.chancetocommentwhenmaleclosetoorgasm"
+group = "How often she speaks"
+label = "Close to his orgasm"
+control = "percent"
+tip = "Chance of a spoken line when her partner is close to orgasm."
+
+[[setting]]
+key = "voice.chancetocommentunamused"
+group = "How often she speaks"
+label = "Unamused lines"
+control = "percent"
+tip = "Chance of an unamused or bored line where one applies."
+
+[[setting]]
+key = "voice.intenseenjoyment"
+group = "Intensity and orgasm"
+label = "Intense from enjoyment"
+control = "int"
+min = 0
+max = 100
+tip = "Player enjoyment at or above which her voice switches to the intense set. With the option below on, this bar alone decides, so keep it reachable within a scene. 0 turns it off."
+
+[[setting]]
+key = "voice.intense_from_bar_only"
+group = "Intensity and orgasm"
+label = "Enjoyment bar alone decides"
+control = "flag"
+tip = "On: only the enjoyment bar makes her voice intense. Off: an authored fast or intense stage does too, which helps when the enjoyment bar never climbs. Voice only; faces always follow the stage."
+
+[[setting]]
+key = "voice.femaleorgasmhypeenjoyment"
+group = "Intensity and orgasm"
+label = "Her near-orgasm lines from"
+control = "int"
+min = 0
+max = 100
+tip = "Enjoyment above which her near-orgasm lines start."
+
+[[setting]]
+key = "voice.maleorgasmhypeenjoyment"
+group = "Intensity and orgasm"
+label = "His near-orgasm lines from"
+control = "int"
+min = 0
+max = 100
+tip = "Enjoyment above which the lines about his coming orgasm start."
+
+[[setting]]
+key = "voice.moanonly"
+group = "Scenarios and content"
+label = "Moans only"
+control = "flag"
+tip = "No spoken lines at all, only moans. Males then moan through the ambient male moaning below."
+
+[[setting]]
+key = "voice.enablehugeppscenario"
+group = "Scenarios and content"
+label = "Huge-partner lines"
+control = "flag"
+tip = "A special set of lines when the partner is huge. Needs SOS or TNG; the size is set on the Director page."
+
+[[setting]]
+key = "voice.enablevictimscenario"
+group = "Scenarios and content"
+label = "Victim lines"
+control = "flag"
+tip = "A special set of lines when she is the victim or submissive of the scene."
+
+[[setting]]
+key = "voice.useblowjobsoundforkissing"
+group = "Scenarios and content"
+label = "Oral sounds for kissing"
+control = "flag"
+tip = "Reuse the oral action sounds during kissing stages."
+
+[[setting]]
+key = "voice.enableddgagvoice"
+group = "Scenarios and content"
+label = "Gagged voice"
+control = "flag"
+tip = "A speaker wearing a Devious Devices gag uses the muffled gag voice."
+
+[[setting]]
+key = "voice.hypebeforeorgasm"
+group = "Scenarios and content"
+label = "Hype before orgasm (retired)"
+control = "flag"
+tip = "Retired and ignored. It used to hold the orgasm back and froze the enjoyment bar at full. Leave it off."
+
+[[setting]]
+key = "voice.enablemalevoice"
+group = "Who speaks"
+label = "Male voices"
+control = "flag"
+tip = "Master switch for everything males say or moan."
+
+[[setting]]
+key = "voice.chanceformaletocomment"
+group = "Who speaks"
+label = "Male line chance"
+control = "percent"
+tip = "Chance that a male speaks when his turn comes up."
+
+[[setting]]
+key = "voice.voiceallactors"
+group = "Who speaks"
+label = "Everyone is voiced"
+control = "flag"
+tip = "On: every participant has a voice. Off: only the player and the lead partner."
+
+[[setting]]
+key = "voice.malemoaning"
+group = "Who speaks"
+label = "Ambient male moaning"
+control = "flag"
+tip = "Male partners moan on a cadence between their lines. Needs male voices on."
+
+[[setting]]
+key = "voice.malemoanmininterval"
+group = "Who speaks"
+label = "Male moan gap, shortest"
+control = "int"
+min = 1
+max = 60
+unit = "s"
+tip = "Shortest pause between a male's moans, in seconds. Halved on intense stages."
+
+[[setting]]
+key = "voice.malemoanmaxinterval"
+group = "Who speaks"
+label = "Male moan gap, longest"
+control = "int"
+min = 1
+max = 60
+unit = "s"
+tip = "Longest pause between a male's moans, in seconds. Halved on intense stages."
+
+[[setting]]
+key = "voice.creaturebreathing"
+group = "Who speaks"
+label = "Creature breathing"
+control = "flag"
+tip = "Creature partners pant or growl through the scene."
+
+[[setting]]
+key = "voice.creaturebreathmininterval"
+group = "Who speaks"
+label = "Creature breath gap, shortest"
+control = "int"
+min = 1
+max = 60
+unit = "s"
+tip = "Shortest pause between a creature's breaths, in seconds. Halved on intense stages."
+
+[[setting]]
+key = "voice.creaturebreathmaxinterval"
+group = "Who speaks"
+label = "Creature breath gap, longest"
+control = "int"
+min = 1
+max = 60
+unit = "s"
+tip = "Longest pause between a creature's breaths, in seconds. Halved on intense stages."
+
+[[setting]]
+key = "voice.npcdepthintense"
+group = "Who speaks"
+label = "NPC intense from depth"
+control = "float"
+min = 0.0
+max = 10.0
+tip = "With Accurate Penetration: an NPC's own measured depth at or above this plays her intense sounds. Its depth runs from about 2, shallow, to 10, deep. 0 turns it off and the scene's intensity decides."
+
+[[setting]]
+key = "voice.npccommentchance"
+group = "Who speaks"
+label = "NPC spoken share"
+control = "float"
+min = 0.0
+max = 1.0
+tip = "Share of an NPC's voice beats, from 0 to 1, that may be full spoken lines instead of moans. A failed roll plays the moan, never silence. 0 means NPCs only moan."
+
+[[setting]]
+key = "voice.printdebug"
+group = "Debug"
+label = "Debug log"
+control = "flag"
+tip = "Write the voice engine's reasoning to the SLOVE script log: the beat chosen each time, and lines dropped with the reason. Leave off for normal play."
+
+# --------------------------------------------------------------- expressions
+
+[[page]]
+section = "expressions"
+title = "Expressions"
+note = "Faces, tongues, and yielding the face to other mods."
+
+[[setting]]
+key = "expressions.enablebreathing"
+group = "Updates"
+label = "Breathing motion"
+control = "flag"
+tip = "A light breathing pass on the face between the main expression updates."
+
+[[setting]]
+key = "expressions.breathingupdateinseconds"
+group = "Updates"
+label = "Breathing step"
+control = "float"
+min = 0.2
+max = 3.0
+unit = "s"
+tip = "Seconds between breathing passes."
+
+[[setting]]
+key = "expressions.pcnonintenseexpressionupdateinseconds"
+group = "Updates"
+label = "Player face, soft stages"
+control = "float"
+min = 0.5
+max = 10.0
+unit = "s"
+tip = "Seconds between updates of the player's face on soft stages."
+
+[[setting]]
+key = "expressions.pcintenseexpressionupdateinseconds"
+group = "Updates"
+label = "Player face, intense stages"
+control = "float"
+min = 0.5
+max = 10.0
+unit = "s"
+tip = "Seconds between updates of the player's face on intense stages."
+
+[[setting]]
+key = "expressions.npcnonintenseexpressionupdateinseconds"
+group = "Updates"
+label = "NPC face, soft stages"
+control = "float"
+min = 0.5
+max = 10.0
+unit = "s"
+tip = "Seconds between updates of an NPC's face on soft stages."
+
+[[setting]]
+key = "expressions.npcintenseexpressionupdateinseconds"
+group = "Updates"
+label = "NPC face, intense stages"
+control = "float"
+min = 0.5
+max = 10.0
+unit = "s"
+tip = "Seconds between updates of an NPC's face on intense stages."
+
+[[setting]]
+key = "expressions.enabletongue"
+group = "Tongue"
+label = "Contact tongue"
+control = "flag"
+requires = "pplus"
+tip = "Show a tongue during licking and oral. Classic SexLab has no oral contact detection, so it never shows this tongue; ahegao and its tongue are not affected."
+
+[[setting]]
+key = "expressions.tonguetype"
+group = "Tongue"
+label = "Tongue model"
+control = "int"
+min = 0
+max = 10
+tip = "Which tongue model to use, 1 to 10. 0 picks one at random per actor."
+
+[[setting]]
+key = "expressions.removetongueonblowjob"
+group = "Tongue"
+label = "No tongue during blowjobs"
+control = "flag"
+tip = "Take the tongue away during oral on a penis, where it would clip."
+
+[[setting]]
+key = "expressions.cunusetongue"
+group = "Tongue"
+label = "Tongue when licking"
+control = "flag"
+tip = "Use the tongue during cunnilingus, and during rimjob scenes."
+
+[[setting]]
+key = "expressions.chancetostickouttongueduringintense"
+group = "Tongue"
+label = "Tongue out, intense stages"
+control = "percent"
+tip = "Chance per face update that the tongue comes out on an intense stage."
+
+[[setting]]
+key = "expressions.chancetostickouttongueduringattacking"
+group = "Tongue"
+label = "Tongue out, when leading"
+control = "percent"
+tip = "Chance per face update that the tongue comes out for the one on the attack."
+
+[[setting]]
+key = "expressions.tonguemouthopenthreshold"
+group = "Tongue"
+label = "Mouth-open gate"
+control = "float"
+min = 0.0
+max = 1.0
+tip = "How far the mouth must measure open before a tongue may show, so it never pokes through closed lips. The mouth shape held while the tongue is out is set in the expression JSON files, not here."
+
+[[setting]]
+key = "expressions.tongueretractgraceseconds"
+group = "Tongue"
+label = "Retract grace"
+control = "float"
+min = 0.0
+max = 10.0
+unit = "s"
+requires = "pplus"
+tip = "Seconds the tongue stays out after its trigger drops, since contact flickers as the head moves. 0 retracts at once."
+
+[[setting]]
+key = "expressions.enableahegao"
+group = "Ahegao"
+label = "Ahegao from huge partners"
+control = "flag"
+tip = "A huge partner brings on the ahegao face while penetrating."
+
+[[setting]]
+key = "expressions.ahegaoitems"
+group = "Yielding to other mods"
+label = "Yield while wearing"
+control = "text"
+tip = "While an actor wears any item listed here, SLO VE stops writing that actor's face, for mods that drive an ahegao face of their own. Comma-separated Plugin.esp|FormID, hex, up to 16. Leave empty for none."
+
+[[setting]]
+key = "expressions.ahegaostoragekeys"
+group = "Yielding to other mods"
+label = "Yield on StorageUtil keys"
+control = "text"
+tip = "The same yield, keyed on StorageUtil int keys: while any listed key reads above 0 on an actor, SLO VE stops writing that face. Comma-separated key names, up to 16."
+
+[[setting]]
+key = "expressions.printdebug"
+group = "Debug"
+label = "Debug log"
+control = "flag"
+tip = "Write expression decisions to the SLOVE script log. Leave off for normal play."
+
+# ----------------------------------------------------------------------- sfx
+
+[[page]]
+section = "sfx"
+title = "SFX"
+note = "Body sounds: slushing, impacts, claps, kissing and oral."
+
+[[setting]]
+key = "sfx.enable"
+group = "Main"
+label = "Body sounds"
+control = "flag"
+tip = "Master switch for all body sounds."
+
+[[setting]]
+key = "sfx.volume"
+group = "Main"
+label = "Volume"
+control = "percent"
+tip = "Volume of all body sounds. Applies at once."
+
+[[setting]]
+key = "sfx.usevelocity"
+group = "Thrust timing"
+label = "Time thrusts from motion"
+control = "flag"
+tip = "Time thrust sounds from measured motion instead of a fixed pace. The sources, best first: Accurate Penetration's depth, then SexLab P+ 2.19 contact speed. With neither, the scene labels set the pace."
+
+[[setting]]
+key = "sfx.useppathrust"
+group = "Thrust timing"
+label = "Use Accurate Penetration"
+control = "flag"
+tip = "With Accurate Penetration installed, the clap lands as its measured depth turns at the deepest point. Works on every SexLab build. It plays thrust sounds of its own, so silence one set or you hear both."
+
+[[setting]]
+key = "sfx.ppathrustturn"
+group = "Thrust timing"
+label = "Turn distance"
+control = "float"
+min = 0.1
+max = 5.0
+tip = "How far the measured depth must come back before it counts as the thrust turning around. Lower reacts sooner but can clap on jitter; higher ignores shallow strokes. An estimate not yet calibrated in game."
+
+[[setting]]
+key = "sfx.thruststroke"
+group = "Thrust timing"
+label = "Stroke length"
+control = "float"
+min = 4.0
+max = 40.0
+requires = "pplus219"
+tip = "World units one full thrust travels, in and out. Without Accurate Penetration a beat plays each time the contact has moved this far. Lower gives more beats per thrust. An estimate not yet calibrated in game."
+
+[[setting]]
+key = "sfx.velocitypoll"
+group = "Thrust timing"
+label = "Sampling step"
+control = "float"
+min = 0.05
+max = 1.0
+unit = "s"
+tip = "Seconds between motion samples for the thrust timing. A coarser step makes each beat less exact."
+
+[[setting]]
+key = "sfx.normalpoll"
+group = "Thrust timing"
+label = "Label pacing step"
+control = "float"
+min = 0.1
+max = 3.0
+unit = "s"
+tip = "Seconds between passes of the label-paced sounds. Raising it lowers script load; the clip's own length already paces playback."
+
+[[setting]]
+key = "sfx.usecontactsfx"
+group = "Contact one-shots"
+label = "Contact one-shots"
+control = "flag"
+tip = "Single sounds at the moment of contact: insertion, pull-out gape, kiss, oral. Insertion, kiss and oral need SexLab P+ 2.19; elsewhere only the gape remains."
+
+[[setting]]
+key = "sfx.usecontactvictimreactions"
+group = "Contact one-shots"
+label = "No tender kiss with a victim"
+control = "flag"
+tip = "Skip the tender kiss sound when either side is a victim."
+
+[[setting]]
+key = "sfx.gapevaginalaverage"
+group = "Pull-out gape (Accurate Penetration)"
+label = "Vaginal, average from"
+control = "float"
+min = 0.0
+max = 10.0
+tip = "Measured opening at or above which the average gape sound plays on pull-out. The scale has no unit: with SFX debug logging on, the log shows the measured value at each pull-out."
+
+[[setting]]
+key = "sfx.gapevaginalhuge"
+group = "Pull-out gape (Accurate Penetration)"
+label = "Vaginal, huge from"
+control = "float"
+min = 0.0
+max = 10.0
+tip = "Measured opening at or above which the huge gape sound plays instead."
+
+[[setting]]
+key = "sfx.gapeanalaverage"
+group = "Pull-out gape (Accurate Penetration)"
+label = "Anal, average from"
+control = "float"
+min = 0.0
+max = 10.0
+tip = "The same for anal, which rests wider than vaginal ever stretches, so it has its own scale."
+
+[[setting]]
+key = "sfx.gapeanalhuge"
+group = "Pull-out gape (Accurate Penetration)"
+label = "Anal, huge from"
+control = "float"
+min = 0.0
+max = 10.0
+tip = "Measured anal opening at or above which the huge gape sound plays instead."
+
+[[setting]]
+key = "sfx.useadaptivevelocity"
+group = "Calibration search"
+label = "Search for contact"
+control = "flag"
+requires = "pplus219"
+tip = "When a stage reports no contact, bend the schlong step by step looking for one. The heaviest path in the mod: turn it on only if scenes report no motion, and set the attempts below as well."
+
+[[setting]]
+key = "sfx.timestosearch"
+group = "Calibration search"
+label = "Search attempts per stage"
+control = "int"
+min = 0
+max = 10
+requires = "pplus219"
+tip = "How many times the search above may run per stage. 0 never searches."
+
+[[setting]]
+key = "sfx.printdebug"
+group = "Debug"
+label = "Debug log"
+control = "flag"
+tip = "Write SFX decisions to the SLOVE script log, including each thrust beat and the measured opening at pull-out. Leave off for normal play."
+
+# ---------------------------------------------------------------- resistance
+
+[[page]]
+section = "resistance"
+title = "Resistance"
+note = "Willpower drains while penetrated. At zero the actor breaks."
+
+[[setting]]
+key = "resistance.enable"
+group = "Who loses willpower"
+label = "Willpower system"
+control = "flag"
+tip = "Master switch for willpower and breaking. Off also drops any broken state."
+
+[[setting]]
+key = "resistance.enablepc"
+group = "Who loses willpower"
+label = "Player"
+control = "flag"
+tip = "The player loses willpower."
+
+[[setting]]
+key = "resistance.enablemalenpc"
+group = "Who loses willpower"
+label = "Male NPCs"
+control = "flag"
+tip = "Male NPCs lose willpower."
+
+[[setting]]
+key = "resistance.enablefemalenpc"
+group = "Who loses willpower"
+label = "Female NPCs"
+control = "flag"
+tip = "Female NPCs lose willpower."
+
+[[setting]]
+key = "resistance.enablecreaturenpc"
+group = "Who loses willpower"
+label = "Creatures"
+control = "flag"
+tip = "Creatures lose willpower."
+
+[[setting]]
+key = "resistance.pcmaxresistance"
+group = "Drain"
+label = "Player toughness"
+control = "int"
+min = 1
+step = 50
+tip = "What the player's drain is divided by: higher means willpower drains more slowly. NPCs use a table by race instead."
+
+[[setting]]
+key = "resistance.pcnonvictimmult"
+group = "Drain"
+label = "Player, willing"
+control = "int"
+min = 0
+max = 500
+unit = "%"
+tip = "Percent of the base drain applied to a willing player."
+
+[[setting]]
+key = "resistance.npcnonvictimmult"
+group = "Drain"
+label = "NPC, willing"
+control = "int"
+min = 0
+max = 500
+unit = "%"
+tip = "Percent of the base drain applied to a willing NPC."
+
+[[setting]]
+key = "resistance.pcvictimmult"
+group = "Drain"
+label = "Player, victim"
+control = "int"
+min = 0
+max = 500
+unit = "%"
+tip = "Percent of the base drain applied when the player is the victim or submissive."
+
+[[setting]]
+key = "resistance.npcvictimmult"
+group = "Drain"
+label = "NPC, victim"
+control = "int"
+min = 0
+max = 500
+unit = "%"
+tip = "Percent of the base drain applied when an NPC is the victim or submissive."
+
+[[setting]]
+key = "resistance.hugeppmult"
+group = "Drain"
+label = "Huge partner"
+control = "int"
+min = 0
+max = 500
+unit = "%"
+tip = "Extra percent applied when the player's partner is huge."
+
+[[setting]]
+key = "resistance.victiminsertiontrauma"
+group = "Drain"
+label = "Forced-entry hit"
+control = "int"
+min = 0
+max = 50
+tip = "Extra willpower lost when a submissive is forcibly entered. 0 turns it off."
+
+[[setting]]
+key = "resistance.pcrecoverperhour"
+group = "Recovery and breaking"
+label = "Player recovery per hour"
+control = "int"
+min = 0
+max = 100
+unit = "%"
+tip = "Percent of willpower the player regains per game hour without sex."
+
+[[setting]]
+key = "resistance.npcrecoverperhour"
+group = "Recovery and breaking"
+label = "NPC recovery per hour"
+control = "int"
+min = 0
+max = 100
+unit = "%"
+tip = "Percent of willpower an NPC regains per game hour without sex."
+
+[[setting]]
+key = "resistance.pcbrokenpoints"
+group = "Recovery and breaking"
+label = "Player break lasts"
+control = "int"
+min = 0
+max = 127
+unit = "h"
+tip = "Game hours without sex the player needs to recover from a break."
+
+[[setting]]
+key = "resistance.npcbrokenpoints"
+group = "Recovery and breaking"
+label = "NPC break lasts"
+control = "int"
+min = 0
+max = 127
+unit = "h"
+tip = "Game hours without sex an NPC needs to recover from a break."
+
+[[setting]]
+key = "resistance.enablebrokenstatus"
+group = "While broken"
+label = "Broken voice lines"
+control = "flag"
+tip = "Play broken and begging lines while broken. Off keeps the broken face without the voice."
+
+[[setting]]
+key = "resistance.brokenblockenjkeys"
+group = "While broken"
+label = "Block enjoyment keys"
+control = "flag"
+requires = "pplus"
+tip = "While the player is broken, SexLab P+'s enjoyment-game hotkeys are off, and its requirement to play that game at high enjoyment is lifted so she can still reach orgasm. P+'s own settings are put back at scene end."
+
+[[setting]]
+key = "resistance.brokenpartnerenjmult"
+group = "While broken"
+label = "Partner enjoyment bonus"
+control = "int"
+min = 0
+max = 100
+unit = "%"
+requires = "pplus"
+tip = "While an actor is broken, every partner's enjoyment grows this much faster. Player scenes only. 0 turns it off."
+
+[[setting]]
+key = "resistance.pcnotifyinterval"
+group = "Notifications"
+label = "Weakening notice every"
+control = "int"
+min = 0
+max = 50
+unit = "%"
+tip = "A notification each time the player's willpower drains down through this percent band, once per band per scene. 0 turns it off."
+
+[[setting]]
+key = "resistance.scenestartnotification"
+group = "Notifications"
+label = "Break status at scene start"
+control = "flag"
+tip = "At the start of a scene, say whether the player has recovered or is still broken."
+
+# ---------------------------------------------------------------------- milk
+
+[[page]]
+section = "milk"
+title = "Milk"
+note = "Needs Oninus Lactis NG. Player only."
+
+[[setting]]
+key = "milk.enable"
+group = "Main"
+label = "Milk squirts"
+control = "flag"
+tip = "Nipple squirts during scenes. Needs Oninus Lactis NG installed; without it this does nothing."
+
+[[setting]]
+key = "milk.requirebarechest"
+group = "Main"
+label = "Bare chest only"
+control = "flag"
+tip = "Skip squirts while the body slot is covered."
+
+[[setting]]
+key = "milk.mmeminfullness"
+group = "Main"
+label = "Milk Mod Economy: minimum fullness"
+control = "percent"
+tip = "With Milk Mod Economy installed, squirts need milk in the reserve and drain it. No squirt at or below this fullness."
+
+[[setting]]
+key = "milk.chanceonorgasm"
+group = "Chances"
+label = "On any orgasm"
+control = "percent"
+tip = "Chance of an intense squirt on any orgasm in the scene."
+
+[[setting]]
+key = "milk.chanceintense"
+group = "Chances"
+label = "Per roll, intense stage"
+control = "percent"
+tip = "Chance per roll while penetrated on an intense stage."
+
+[[setting]]
+key = "milk.chancenonintense"
+group = "Chances"
+label = "Per roll, soft stage"
+control = "percent"
+tip = "Chance per roll while penetrated on a soft stage."
+
+[[setting]]
+key = "milk.rollinterval"
+group = "Chances"
+label = "Roll every"
+control = "int"
+min = 1
+max = 120
+unit = "s"
+tip = "Seconds between the rolls made while penetrated."
+
+[[setting]]
+key = "milk.mintime"
+group = "Squirt"
+label = "Shortest squirt"
+control = "int"
+min = 1
+max = 18
+unit = "s"
+tip = "Shortest squirt, in seconds."
+
+[[setting]]
+key = "milk.maxtime"
+group = "Squirt"
+label = "Longest squirt"
+control = "int"
+min = 1
+max = 18
+unit = "s"
+tip = "Longest squirt, in seconds. Oninus Lactis caps it at 18."
+
+[[setting]]
+key = "milk.levelintense"
+group = "Squirt"
+label = "Strength, intense stage"
+control = "int"
+min = 0
+max = 2
+tip = "Oninus Lactis squirt level on an intense stage, 0 to 2."
+
+[[setting]]
+key = "milk.levelnonintense"
+group = "Squirt"
+label = "Strength, soft stage"
+control = "int"
+min = 0
+max = 2
+tip = "Oninus Lactis squirt level on a soft stage, 0 to 2."

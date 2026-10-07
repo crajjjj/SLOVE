@@ -1,9 +1,18 @@
 # SLO VE build.
 #
-#   .\scripts\build.ps1                   # build both script sets + assemble the FOMOD
+#   .\scripts\build.ps1                   # SLOVE.dll + both script sets + the FOMOD
 #   .\scripts\build.ps1 -Variant PPlus    # P+ scripts only
 #   .\scripts\build.ps1 -Variant Classic  # classic-SexLab scripts only
 #   .\scripts\build.ps1 -NoFomod          # skip FOMOD packaging
+#   .\scripts\build.ps1 -NoFomod -NoPlugin   # both script sets, no C++ toolchain needed
+#
+# Every run starts with scripts\check-config.ps1 (settings in step across the
+# scripts, SLOVE.toml, the menu schema and the docs), which also writes the
+# generated SLOVE.defaults.toml.
+#
+# The full build also compiles skse\ (SLOVE.dll, the in-game settings menu:
+# xmake 3.0+, VS 2022, the CommonLibSSE-NG submodule) and runs its core-tests
+# against the shipped SLOVE.toml. A FOMOD is never packaged without it.
 #
 # SLO VE ships two script sets that differ only in the framework-facing scripts
 # (Director, SFX, Expressions, Resistance, Hentairim_Tags, NpcScene, ThreadHook):
@@ -14,15 +23,28 @@
 # through SLOVE_Director's adapter API, so ONE compiled pex (in the FOMOD Core)
 # serves both variants. Assert-VariantTypes enforces that it stays that way.
 #
-# Overrides: PYRO_EXE, SKYRIM_GAME_PATH, SLOVE_BUILD_FOLDER.
+# Overrides: PYRO_EXE, SKYRIM_GAME_PATH, SLOVE_BUILD_FOLDER, XMAKE_EXE.
 param(
     [ValidateSet('Both', 'PPlus', 'Classic')]
     [string]$Variant = 'Both',
-    [switch]$NoFomod
+    [switch]$NoFomod,
+    [switch]$NoPlugin
 )
 
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
+
+$packaging = (-not $NoFomod -and $Variant -eq 'Both')
+if ($NoPlugin -and $packaging) {
+    throw '-NoPlugin cannot package the FOMOD: a release carries the SLOVE.dll built from this tree. Add -NoFomod, or drop -NoPlugin.'
+}
+
+# The mod has ONE version, fomod\info.xml: the archive name and the file version
+# stamped into SLOVE.dll both come from it, so neither can drift from what the
+# installer reports.
+[xml]$info = Get-Content (Join-Path $root 'fomod\info.xml') -Raw
+$version = $info.fomod.Version.InnerText.Trim()
+if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "fomod\info.xml <Version> is '$version' - expected major.minor.patch" }
 
 $pyro = $env:PYRO_EXE
 if (-not $pyro -or -not (Test-Path $pyro)) {
@@ -36,6 +58,85 @@ if (-not $game) { $game = 'C:\SteamLibrary\steamapps\common\Skyrim Special Editi
 
 $basePpj = Join-Path $root 'SLOVE.ppj'
 if (-not (Test-Path $basePpj)) { throw "SLOVE.ppj not found at $basePpj (it is git-ignored; see README)" }
+
+# --------------------------------------------------------------- SLOVE.dll ---
+function Assert-PluginDll([string]$path) {
+    $have = (Get-Item $path).VersionInfo.FileVersion
+    if ($have -ne "$version.0") {
+        throw "$path is version '$have' but fomod\info.xml says $version - a DLL from another build. Rebuild with this script."
+    }
+    $bytes = [System.IO.File]::ReadAllBytes($path)
+    $machine = [BitConverter]::ToUInt16($bytes, [BitConverter]::ToInt32($bytes, 0x3C) + 4)
+    if ($machine -ne 0x8664) { throw "$path is not an x64 image (machine 0x$($machine.ToString('X4')))" }
+}
+
+# The in-game settings menu (skse\: xmake + CommonLibSSE-NG). skse\xmake.lua
+# copies the DLL, and only the DLL, to dist\SKSE\Plugins; Build-Fomod then ships
+# it in Core like everything else under dist.
+function Build-Plugin {
+    Write-Host '=== Building SLOVE.dll (in-game settings menu) -> dist\SKSE\Plugins ===' -ForegroundColor Cyan
+    $skse = Join-Path $root 'skse'
+
+    $xmake = $env:XMAKE_EXE
+    if (-not $xmake) {
+        $found = Get-Command xmake -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($found) { $xmake = $found.Source }
+    }
+    if (-not $xmake -or -not (Test-Path $xmake)) {
+        throw 'xmake not found - install xmake 3.0 or newer (https://xmake.io) or set XMAKE_EXE. For the scripts alone: -NoFomod -NoPlugin'
+    }
+    foreach ($p in @('lib\commonlibsse-ng\xmake.lua', 'lib\commonlibsse-ng\extern\openvr\headers\openvr.h')) {
+        if (-not (Test-Path (Join-Path $skse $p))) {
+            throw "skse\$p is missing - run: git submodule update --init --recursive"
+        }
+    }
+
+    # The install trap (see skse\xmake.lua): the CommonLib plugin rule runs
+    # `xmake install` after every build, into %XSE_TES5_MODS_PATH%\<target> - a
+    # stray "SLOVE" folder in the live Mod Organizer mods directory. xmake.lua
+    # disarms it twice; here the child never sees the variables, and the folder
+    # appearing anyway fails the build.
+    $stray = $null
+    if ($env:XSE_TES5_MODS_PATH) { $stray = Join-Path $env:XSE_TES5_MODS_PATH 'SLOVE' }
+    $strayBefore = ($null -ne $stray) -and (Test-Path $stray)
+    $savedMods = $env:XSE_TES5_MODS_PATH
+    $savedGame = $env:XSE_TES5_GAME_PATH
+    $env:XSE_TES5_MODS_PATH = $null
+    $env:XSE_TES5_GAME_PATH = $null
+    Push-Location $skse
+    try {
+        & $xmake f -y -m release "--slove_version=$version"
+        if ($LASTEXITCODE -ne 0) { throw "xmake configure failed (exit $LASTEXITCODE)" }
+        & $xmake build -y SLOVE
+        if ($LASTEXITCODE -ne 0) { throw "SLOVE.dll failed to build (exit $LASTEXITCODE)" }
+        & $xmake build -y core-tests
+        if ($LASTEXITCODE -ne 0) { throw "core-tests failed to build (exit $LASTEXITCODE)" }
+    } finally {
+        Pop-Location
+        $env:XSE_TES5_MODS_PATH = $savedMods
+        $env:XSE_TES5_GAME_PATH = $savedGame
+    }
+    if (($null -ne $stray) -and -not $strayBefore -and (Test-Path $stray)) {
+        throw "the plugin build created $stray - the install guards in skse\xmake.lua no longer hold. Delete that folder and fix them before building again."
+    }
+
+    # The pure core against the file that ships: the writer must leave every key
+    # it does not change byte-identical, and the schema must describe every key.
+    $out = Join-Path $skse 'build\windows\x64\release'
+    & (Join-Path $out 'core-tests.exe') (Join-Path $root 'dist\SKSE\Plugins\SLOVE')
+    if ($LASTEXITCODE -ne 0) { throw "core-tests FAILED (exit $LASTEXITCODE) - the menu's config writer or its schema is broken" }
+
+    $built = Join-Path $out 'SLOVE.dll'
+    $dll = Join-Path $root 'dist\SKSE\Plugins\SLOVE.dll'
+    foreach ($p in @($built, $dll)) {
+        if (-not (Test-Path $p)) { throw "expected $p after the plugin build" }
+    }
+    if ((Get-FileHash $built).Hash -ne (Get-FileHash $dll).Hash) {
+        throw 'dist\SKSE\Plugins\SLOVE.dll is not the DLL just built - the after_build copy in skse\xmake.lua did not run'
+    }
+    Assert-PluginDll $dll
+    Write-Host "SLOVE.dll $version OK (x64, core-tests passed)" -ForegroundColor Green
+}
 
 # ---------------------------------------------------------------- P+ build ---
 function Build-PPlus {
@@ -269,20 +370,29 @@ function Build-Fomod {
         Write-Warning "UBESupport: optional\UBESupport\SLOVE_UBE_Support.esp not found - FOMOD's UBE option will install nothing. Author it with UBE loaded (optional\UBESupport\README.md)."
     }
 
-    # Release archives are named SLO_VE_v<version>.zip. The version is read from
-    # fomod\info.xml so there is a single source of truth and the archive name can
-    # never drift from what the installer reports.
-    [xml]$info = Get-Content (Join-Path $root 'fomod\info.xml') -Raw
-    $ver = $info.fomod.Version.InnerText.Trim()
-    if (-not $ver) { throw 'could not read <Version> from fomod\info.xml' }
+    # The in-game menu ships in Core for both variants: the DLL built by this run,
+    # its schema, and the generated defaults. Checked on the staging tree, before
+    # an archive exists that could be uploaded without them.
+    $plugins = Join-Path $core 'SKSE\Plugins'
+    foreach ($f in @('SLOVE.dll', 'SLOVE\SLOVE.toml', 'SLOVE\SLOVE_Menu.toml', 'SLOVE\SLOVE.defaults.toml')) {
+        if (-not (Test-Path (Join-Path $plugins $f))) { throw "release check FAILED: Core\SKSE\Plugins\$f is missing" }
+    }
+    Assert-PluginDll (Join-Path $plugins 'SLOVE.dll')
+    $pdbs = @(Get-ChildItem $stage -Recurse -Filter '*.pdb')
+    if ($pdbs.Count) { throw "release check FAILED: debug symbols staged for release: $($pdbs.FullName -join ', ')" }
+    Write-Host "release check OK (SLOVE.dll $version, menu schema and defaults in Core; no pdb)" -ForegroundColor Green
 
-    $zip = Join-Path $root "Release\SLO_VE_v$ver.zip"
+    # Release archives are named SLO_VE_v<version>.zip, from fomod\info.xml (read
+    # once, at the top).
+    $zip = Join-Path $root "Release\SLO_VE_v$version.zip"
     if (Test-Path $zip) { Remove-Item $zip -Force }
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -CompressionLevel Optimal
     Write-Host "FOMOD archive: $zip" -ForegroundColor Green
 }
 
+& (Join-Path $PSScriptRoot 'check-config.ps1') -WriteDefaults
+if ($Variant -eq 'Both' -and -not $NoPlugin)        { Build-Plugin }
 if ($Variant -eq 'Both' -or $Variant -eq 'PPlus')   { Build-PPlus }
 if ($Variant -eq 'Both' -or $Variant -eq 'Classic') { Build-Classic }
 Assert-VariantTypes
-if (-not $NoFomod -and $Variant -eq 'Both')         { Build-Fomod }
+if ($packaging)                                     { Build-Fomod }

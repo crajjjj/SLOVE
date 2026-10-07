@@ -45,7 +45,8 @@ Most rows split into two kinds of evidence:
 Logs to watch: `Documents\My Games\Skyrim Special Edition\SKSE\AudioUtil.log`
 (all audio: slot/category resolution, parse errors) and
 `…\Logs\Script\User\SLOVE.0.log` (script/dependency errors). Console diagnostics
-(`SLOVE_Test …`, `au reload`) need **ConsoleUtil Extended**.
+(`SLOVE_Test …`, `au reload`) need **ConsoleUtil Extended**. The settings-menu
+plugin writes a third, short one: `…\SKSE\SLOVE.log` (section G).
 
 **Baseline scenes to have ready** (most rows reuse these):
 - **H-scene** — PC female + one male human NPC.
@@ -146,6 +147,27 @@ Logs to watch: `Documents\My Games\Skyrim Special Edition\SKSE\AudioUtil.log`
 | F3 | **Live TOML reload** | Edit `SLOVE.toml` + `SLOVE_female.toml`, run `SLOVE_Config Reload` + `au reload` | New values take effect **without** a game restart | reload lines in both logs; changed behaviour = user |
 | F4 | **SexLab voice/expression suppression** | Any SLO VE scene | No doubled voices; no face jitter (SLO VE silences SexLab's own moans per-scene) | `director.suppresssexlabvoice=1`; single voice = user |
 | F5 | **Log hygiene** | After a full multi-scene session | `AudioUtil.log` free of `no slot resolvable` / `unknown slot` / `no readable PCM wav` spam; `SLOVE.0.log` free of errors | grep both logs |
+
+## G. In-game settings menu (SKSE Menu Framework, optional)
+
+`SLOVE.dll` + `SLOVE_Menu.toml`. The file writer and the schema are tested at
+build time (`core-tests`, `check-config.ps1`); what only the game can show is
+below. The plugin's log is `SKSE\SLOVE.log`.
+
+| # | Use case | Setup / trigger | Expected | Evidence |
+|---|---|---|---|---|
+| G1 | **Inert without the framework** | Disable SKSE Menu Framework, start the game, run a scene | No error dialog at start; the scene behaves as before | `SLOVE.log`: `Menu disabled: SKSE Menu Framework is not installed`; scene = user |
+| G2 | **Pages appear** | Framework enabled, open the Mod Control Panel (F1) | Section **SLO VE** with six pages (Director, Voice, Expressions, SFX, Resistance, Milk); grouped rows; a tooltip with the text, a `Default:` line and the key name | `SLOVE.log`: `115 settings on 6 page(s). Schema: loaded. Defaults: loaded.` and `Menu registered`; layout and wrapping = user |
+| G3 | **A change is saved and reaches the scripts** | Untick *Scene voices*, drag *Player voice*, close the menu | Exactly those two lines of `SLOVE.toml` change, comments and neighbours untouched; one write per slider release | file diff; a new `Parsed ...SLOVE.toml` line in `AudioUtil.log` per write; `slovetest dump` prints the new `enablevoice` / `pcvolume` |
+| G4 | **Volumes apply at once** | Mid-scene, drag *Player voice* (Voice) and *Volume* (SFX) | Loudness follows while the slider is held, without a new scene | user |
+| G5 | **Reset** | Change three settings on one page; press **reset** on one, then **Reset this page to defaults** and confirm | Defaults are back, and the file equals the shipped one again byte for byte | compare `SLOVE.toml` with `SLOVE.defaults.toml` minus its 3-line note; user |
+| G6 | **Typed values and text** | Type a number into a number field; edit *Yield on StorageUtil keys*; once leave the field, once close the menu while still typing | Saved in both cases | file; user |
+| G7 | **A hand edit is seen** | Game running: change `SLOVE.toml` in an editor, reopen the menu | The page shows the edited value, and it applies at the next scene with no console reload | `SLOVE.log`: `changed on disk`; user |
+| G8 | **A broken file is never overwritten** | Break the file's syntax by hand, reopen the menu | A red message names the problem, no settings are shown, nothing is written. Fix the file, **Reload from disk**: the pages return | file unchanged; user |
+| G9 | **Variant hints** | Classic SexLab profile, or P+ older than 2.19 | The P+-only (or 2.19-only) settings are dimmed, the tooltip says why, and they can still be changed | `SLOVE.log` `SexLab:` line; user |
+| G10 | **Survives a load** | Change a value, load a save without quitting | The new value is live in the loaded game | `slovetest dump` |
+| G11 | **NPC-only scenes follow the menu** | No scene of your own running: untick *Process NPC-only scenes*, let NPCs start a scene nearby; tick it again, next NPC scene | Ignored while off, adopted again when on, with no game load or player scene in between | `director.printdebug`: `Adopting NPC scene` present / absent |
+| G12 | **A setting missing from the file** | Delete one key line from `SLOVE.toml`, reopen the menu | The row is marked *not in your file*; **add** writes it back under its section | file; user |
 
 ---
 

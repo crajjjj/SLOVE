@@ -1148,6 +1148,15 @@ EndFunction
 ;actors (they self-terminate with their own thread) and puts the SLOVE_NpcScene
 ;ambient-voice ability on one anchor actor. No PC voice engine, no milk, no notifications.
 Function TryAdoptNpcScene(int tid)
+	;An NPC-only scene is a scene start too: re-read the cached settings, or the
+	;gates below and the module switches ApplyModuleSpellsToNpcList reads stay as
+	;they were at the last game load or player scene, and a change made in the
+	;in-game menu (or a hand edit + reload) never reaches NPC-only scenes. Not
+	;while a player scene runs: that scene refreshed them when it started, and
+	;its update loop is reading them (the refresh writes milkenable twice).
+	if !PlayerInScene
+		InitializeDirectorConfigs()
+	endif
 	if enablenpcscenes != 1
 		return
 	endif

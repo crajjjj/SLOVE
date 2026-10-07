@@ -25,6 +25,14 @@ pwsh -NoProfile -File "SLO VE/scripts/build.ps1"
 `papyrus/Source`. If AudioUtil C++ changed: `xmake` + `xmake build papyrus`
 there first (also delete its `dist/Scripts/*.pex` if AudioUtil.psc changed).
 
+The same run checks the settings (section 6), builds the settings-menu plugin
+(`skse\` -> `dist\SKSE\Plugins\SLOVE.dll`) and runs its `core-tests` against the
+shipped `SLOVE.toml`. **Pass, in addition:** `settings sync check OK`,
+`SLOVE.dll <version> OK (x64, core-tests passed)` and, when the FOMOD is
+packaged, `release check OK`. The build fails by itself if a folder named
+`SLOVE` appears in the live mods directory (`%XSE_TES5_MODS_PATH%`): see the
+install trap in `CLAUDE.md`.
+
 ## 2. Native API sync (when AudioUtil changed)
 
 Every native declared in `AudioUtil/papyrus/Source/AudioUtil.psc` must have a
@@ -117,14 +125,33 @@ contains the creature hints incl. `Husky`; and the `SFX0` slot is present in
 replaces the whole slot), and no `[[slot]]` may lack both `path` and
 `[slot.categories]` (AudioUtil skips those outright).
 
-## 6. Config-key sync (scripts ↔ SLOVE.toml)
+## 6. Settings sync (scripts ↔ SLOVE.toml ↔ menu ↔ docs)
 
-Extract every `SLOVE_Config.Get*("<key>", ...)` string from the scripts and
-check each dotted key exists in `SLOVE.toml`. Getters are fail-open (missing
-key = silent default), so drift here is invisible in-game.
+```
+powershell -NoProfile -ExecutionPolicy Bypass -File "SLO VE/scripts/check-config.ps1"
+```
 
-**Pass:** every script key present in the TOML (or consciously documented as
-default-only). Flag keys present in TOML but read by no script (dead config).
+`build.ps1` runs it first, so a green section 1 includes it; run it alone after
+touching a setting, the menu schema or the settings docs. Getters are fail-open
+(a missing key = the script's fallback literal, silently), so drift is invisible
+in game. It fails when:
+
+- the keys the scripts read (`SLOVE_Config.Get*`, both trees), the keys in
+  `SLOVE.toml` and the `[[setting]]` entries of `SLOVE_Menu.toml` are not the
+  same set, or a key is read with a getter of another type than its TOML value;
+- a menu control cannot edit its key's type, a shipped value is outside its
+  `min`/`max`, or the schema is not plain ASCII;
+- a key has no row in `docs\config\slove.md`, or the row's Default is not the
+  shipped value;
+- the volume buses the scripts set differ from the table in
+  `skse\src\Bridge.cpp`, or a tooltip says "Applies at once" for a key that
+  table does not hold (or the other way round);
+- the SKSE Menu Framework exports `skse\src\Env.cpp` probes differ from the
+  ones the menu code calls, or the vendored framework header was edited.
+
+**Pass:** `settings sync check OK`. A warning that `TomlEdit.h` differs from
+AudioUtil's means: copy AudioUtil's over the one in `skse\src\core` again
+(never edit the copy) and rerun the build, which reruns `core-tests`.
 
 ## 7. Asset-path verification (the dog lesson)
 
@@ -188,6 +215,9 @@ SLOVE.toml (back to 0 afterwards). Static probes need ConsoleUtil.
    `resistance.enable=0` + reload drops any broken state.
 8. **Log sweep:** `AudioUtil.log` free of `no slot resolvable` / `unknown slot`
    / `no readable PCM wav` spam.
+9. **Settings menu** (with SKSE Menu Framework): section G of
+   [`use-cases.md`](use-cases.md), at least G1 to G4. `SKSE\SLOVE.log` is the
+   plugin's own log (not the script log `SLOVE.0.log`).
 
 ---
 

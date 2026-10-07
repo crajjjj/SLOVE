@@ -134,14 +134,14 @@ scene.
 
 | File | Holds |
 |---|---|
-| `Documents\My Games\Skyrim Special Edition\Logs\Script\User\SLOVE.log` | SLO VE's side — the beat, the scene, and the wav that played |
+| `Documents\My Games\Skyrim Special Edition\Logs\Script\User\SLOVE.0.log` | SLO VE's side: the beat, the scene, and the wav that played |
 | `Documents\My Games\Skyrim Special Edition\SKSE\AudioUtil_Voices.log` | AudioUtil's side — the tag pool, and why nothing played |
 
 Not the console. Both go to files, so they survive past the scene.
 
 ### Reading them
 
-Start with **SLOVE.log**. One line per voice line, ending in the file that played:
+Start with **SLOVE.0.log**. One line per voice line, ending in the file that played:
 
 ```
 Voice : Play 'PenetrativeCommentsIntense' actor=Lily slot=F2 facts=[rcv vaginal intense]

@@ -1,6 +1,6 @@
 # Configuration Overview - the three layers
 
-SLO VE has **no MCM**. Everything is TOML, and all of it reloads live from the console.
+Everything is TOML, and all of it reloads live from the console. There is no MCM; the optional [in-game settings menu](menu.md) edits `SLOVE.toml`, the first file below, and nothing else.
 
 There are three layers, in two different systems. Knowing which file owns what saves a lot of confusion:
 
@@ -88,6 +88,7 @@ These are PapyrusUtil JSON, read at runtime. See [Willpower / Resistance](../res
 ## Reference pages
 
 - [**SLOVE.toml**](slove.md) — every behaviour key: `[director]`, `[voice]`, `[expressions]`, `[sfx]`, `[resistance]`, `[milk]`
+- [**In-game settings menu**](menu.md) - the `SLOVE.toml` keys again, changed in game
 - [**Voice overlays**](voices.md) - every slot and routing table
 - [**AudioUtil.toml**](audioutil.md) — the engine globals SLO VE sets
 - AudioUtil's own [config documentation](https://crajjjj.github.io/AudioUtil/config/) for the engine-level detail behind all of it

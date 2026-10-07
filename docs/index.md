@@ -2,7 +2,7 @@
 
 **SLO VE** ("SexLab / OStim — Voices and Expressions") is a standalone enhancement layer for **SexLab** scenes — it supports both **SexLab P+** and **classic SexLab 1.63** (the installer picks the right script set; see [SexLab Flavours](sexlab-flavours.md)). It watches the running animation and drives four things in sync with what is happening on screen: **voices**, **facial expressions**, **body SFX**, and an optional **willpower / resistance** system.
 
-Everything is configured in plain **TOML** files that reload live from the console. **There is no MCM.**
+Everything is configured in plain **TOML** files that reload live from the console. There is no MCM; with SKSE Menu Framework installed, an optional [in-game settings menu](config/menu.md) edits the main file for you.
 
 !!! warning "Adult mod — reference documentation"
     SLO VE is a mature (18+) Skyrim mod that adds voices, facial expressions and sound effects to adult animation scenes. **These pages are reference documentation:** they describe the mod's audio slot model, configuration file format, and mod compatibility so players can configure it and authors can integrate with it. They contain no pornographic media and exist to document software behaviour. Install and use the mod only where appropriate for your age and local laws.
@@ -31,6 +31,7 @@ Everything is configured in plain **TOML** files that reload live from the conso
 - [Category Reference](packs/categories.md) — every category name the engines request, its on-disk folder, and what it falls back to
 - [Configuration Overview](config/index.md) — the three TOML files, which one owns what, and how they merge
 - [SLOVE.toml Reference](config/slove.md) — every behaviour key: voice, expressions, sfx, resistance, milk
+- [In-Game Settings Menu](config/menu.md) - the same settings, changed in game (optional, needs SKSE Menu Framework)
 - [Voice Overlays Reference](config/voices.md) - every slot and routing table
 - [AudioUtil.toml Reference](config/audioutil.md) — the engine globals SLO VE sets: lipsync, gag, PPA
 - [Willpower / Resistance](resistance.md) — how the optional break system works and how to tune it

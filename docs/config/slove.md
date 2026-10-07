@@ -11,6 +11,8 @@ SLOVE_Config Reload
 !!! note "Fail-open"
     If the AudioUtil DLL is missing or too old, **every getter returns its default** — SLO VE degrades instead of erroring. That also means a typo'd key silently uses the default; check `AudioUtil.log` after an edit.
 
+Every key on this page can also be changed in game, through the optional [settings menu](menu.md).
+
 Values are integers unless noted. `1` / `0` are on / off; percentages are `0–100`.
 
 ## `[director]`
@@ -32,7 +34,7 @@ Master switches and scene detection.
 | `enablenpcscenes` | `1` | Process **NPC-only** SexLab scenes (no player) — see [NPC-only scenes](#npc-only-scenes) below. `0` = the pre-0.5.x behavior (player scenes only). |
 | `npcscenedistance` | `2048.0` | *(float)* Max distance (game units, ≈ hearing range) from the player to adopt an NPC scene. |
 | `maxnpcscenes` | `3` | Cap on concurrent NPC scenes processed at once (protects the Papyrus VM in busy areas). |
-| `printdebug` | `0` | Log director decisions to `SLOVE.log`, **including the per-line voice trace** — category, facts, animation, stage, and the exact wav that played. See [Checking Your Pack](../packs/checking.md#watching-it-happen-in-game). |
+| `printdebug` | `0` | Log director decisions to `SLOVE.0.log`, **including the per-line voice trace**: category, facts, animation, stage, and the exact wav that played. See [Checking Your Pack](../packs/checking.md#watching-it-happen-in-game). |
 
 ### NPC-only scenes
 
@@ -87,13 +89,13 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 | Key | Default | Meaning |
 |---|---|---|
 | `enablemalevoice` | `1` | Males speak at all. |
-| `chanceformaletocomment` | `20` | Percent chance a male line fires when his turn comes up. |
+| `chanceformaletocomment` | `30` | Percent chance a male line fires when his turn comes up. |
 | `voiceallactors` | `1` | `1` = **every** participant is voiced (male rotation + female NPC bystanders); `0` = only the PC and the lead partner. A **female** lead partner keeps her voice at `0` — she *is* the lead partner. |
 | `npcdepthintense` | `6.0` | With **Accurate Penetration**: an NPC's *own* measured penetration depth at/above this plays her intense pools instead of tracking the scene-wide (PC-driven) intensity. PPA's working range is roughly 2 (shallow) – 10 (deep). `0` = off. |
 | `npccommentchance` | `0.35` | `0–1`: fraction of NPC voice beats allowed to be full **spoken** lines (femdom / anal / DP / foreplay comments) rather than non-verbal sounds. A failed roll falls back to the grunt/breath, never silence. `0` = NPCs never speak, moans only. |
 | `creaturebreathing` | `1` | Creature partners pant/growl through the scene (the `Breathing` category on `C*` slots). |
-| `creaturebreathmininterval` | `5` | Seconds between creature breaths, minimum. **Halved on intense stages.** |
-| `creaturebreathmaxinterval` | `12` | …maximum. |
+| `creaturebreathmininterval` | `3` | Seconds between creature breaths, minimum. **Halved on intense stages.** |
+| `creaturebreathmaxinterval` | `8` | Seconds between creature breaths, maximum. **Halved on intense stages.** |
 | `malemoaning` | `1` | Ambient male-partner moaning — the male mirror of `creaturebreathing`. Non-PC males moan on a cadence in **every** scene (between dirty-talk lines, and the only male sound under `moanonly`). Male packs are spoken-only, so this uses SexLab's stock male moans (`vMaleMoan01`–`04`, four distinct voices) via the `M0`–`M0D` slot fallback. Needs `enablemalevoice = 1`. |
 | `malemoanmininterval` | `5` | Seconds between a male's moans, minimum. **Halved on intense stages.** |
 | `malemoanmaxinterval` | `12` | …maximum. |
@@ -102,11 +104,11 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `pcvolume` | `100` | `0–100`, applied to the `pc_low`/`pc_high` audio groups (moans + comments). |
-| `orgasmvolume` | `100` | `0–100`, applied to the dedicated `pc_orgasm` group — the PC's climax/orgasm cries only. Independent of `pcvolume`, so you can raise or lower orgasm cries without touching ordinary moans/comments. (If the key is removed entirely it falls back to `pcvolume`.) |
-| `partnervolume` | `100` | `0–100`, applied to the `partner_low`/`partner_high` groups — partners **in your own scene**. |
-| `npcscenevolume` | `100` | `0–100`, applied to the dedicated `npc_low`/`npc_high` groups — **NPC-only scenes** (moans/breathing/reactions *and* their orgasm cries). Lets you make nearby NPC scenes quieter than your own without touching `partnervolume`. Falls back to `partnervolume` if the key is removed. AudioUtil's distance `voice_attenuation` still applies on top. |
-| `printdebug` | `0` | Log the voice engine's own reasoning to `SLOVE.log` — the beat chosen for each cadence, and lines dropped (busy speaker, scene ended, game frozen behind a menu) with the reason. The played-file trace is `[director] printdebug`, above. |
+| `pcvolume` | `60` | `0` to `100`, applied to the `pc_low`/`pc_high` audio groups (moans + comments). |
+| `orgasmvolume` | `70` | `0` to `100`, applied to the dedicated `pc_orgasm` group: the PC's climax/orgasm cries only. Independent of `pcvolume`, so you can raise or lower orgasm cries without touching ordinary moans/comments. (If the key is removed entirely it falls back to `pcvolume`.) |
+| `partnervolume` | `60` | `0` to `100`, applied to the `partner_low`/`partner_high` groups: partners **in your own scene**. |
+| `npcscenevolume` | `60` | `0` to `100`, applied to the dedicated `npc_low`/`npc_high` groups: **NPC-only scenes** (moans/breathing/reactions *and* their orgasm cries). Lets you make nearby NPC scenes quieter than your own without touching `partnervolume`. Falls back to `partnervolume` if the key is removed. AudioUtil's distance `voice_attenuation` still applies on top. |
+| `printdebug` | `0` | Log the voice engine's own reasoning to `SLOVE.0.log`: the beat chosen for each cadence, and lines dropped (busy speaker, scene ended, game frozen behind a menu) with the reason. The played-file trace is `[director] printdebug`, above. |
 
 ## `[expressions]`
 
@@ -120,7 +122,7 @@ Facial expression engine. All face writes go through Mfg Fix NG.
 | `pcintenseexpressionupdateinseconds` | `1.6` | *(float)* PC face refresh on intense stages. |
 | `npcnonintenseexpressionupdateinseconds` | `2.1` | *(float)* NPC face refresh, soft. |
 | `npcintenseexpressionupdateinseconds` | `1.6` | *(float)* NPC face refresh, intense. |
-| `enabletongue` | `1` | sr_fillherup tongue armors. |
+| `enabletongue` | `1` | **P+ variant only.** The contact tongue, shown during cunnilingus and blowjobs. It needs SexLab P+'s oral contact detection; classic SexLab has none, so the classic variant never shows this tongue whatever the setting. Ahegao and its tongue are not affected. |
 | `tonguetype` | `1` | HALO HDT tongue model `1–10`; `0` = random per actor. |
 | `removetongueonblowjob` | `1` | Unequip the tongue during oral stages. |
 | `cunusetongue` | `1` | Use the tongue during cunnilingus stages — and (P+) during **rimjob** scenes: in a scene tagged `rimjob`/`rimming`/`anilingus` the licker shows the tongue too (there is no collision signal for a rim lick, so this rides the scene tags; in mixed scenes only a female licker is inferred). |
@@ -130,6 +132,7 @@ Facial expression engine. All face writes go through Mfg Fix NG.
 | `chancetostickouttongueduringintense` | `30` | Percent roll per update, intense stages. |
 | `chancetostickouttongueduringattacking` | `10` | Percent roll per update, attacking stages (givers incl. male partners, cowgirl riders). |
 | `tonguemouthopenthreshold` | `0.4` | *(float)* **Jaw gate** - minimum measured mouth-open before a tongue is allowed to show, so it never clips through a closed mouth. The shape the mouth is *held* in while the tongue is out is not a TOML key - see the note below. |
+| `tongueretractgraceseconds` | `2.0` | *(float)* **P+ variant only.** Seconds the tongue stays out after its trigger drops. Oral contact flickers as the head moves, and without the grace the tongue would pop in and out. Raise it to hold the tongue through longer gaps; `0` retracts at once. |
 | `printdebug` | `0` | Print expression decisions. |
 
 !!! note "Tongue open-mouth shape"
@@ -205,7 +208,7 @@ Optional nipple squirts during scenes via **Oninus Lactis NG** (player only, dri
 
 | Key | Default | Meaning |
 |---|---|---|
-| `enable` | `0` | Master switch (and Oninus Lactis NG must be installed). |
+| `enable` | `1` | Master switch. Does nothing unless Oninus Lactis NG is installed. |
 | `chanceonorgasm` | `50` | Percent roll on any orgasm in the scene — always the intense squirt. |
 | `chanceintense` | `20` | Percent per roll while penetrated on an intense stage. |
 | `chancenonintense` | `8` | …on a soft stage. |

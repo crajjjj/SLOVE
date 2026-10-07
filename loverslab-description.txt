@@ -1,12 +1,12 @@
 SLO VE — Voices and Expressions
 Dynamic scene voices, facial expressions, and body SFX for SexLab P+ (and classic SexLab).
 
-Your actors moan, react, and make a mess — driven live by the scene, configured entirely in text files. No MCM.
+Your actors moan, react, and make a mess, driven live by the scene. Configured in text files, with an optional in-game menu.
 
 
 WHAT IT DOES
 
-SLO VE watches the running SexLab scene and drives voices, facial expressions, and body SFX in sync with stage, intensity, position tags, partner size, and measured penetration — for the player, NPCs, and creatures alike. Everything is TOML, live-reloadable, no MCM.
+SLO VE watches the running SexLab scene and drives voices, facial expressions, and body SFX in sync with stage, intensity, position tags, partner size, and measured penetration, for the player, NPCs, and creatures alike. Everything is TOML and live-reloadable; with SKSE Menu Framework installed you can also change the settings in game.
 
 - Scene voices — moans and lines picked per stage/tag, shuffled, with orgasm hype, huge-partner and victim scenarios, and moans-only mode. Every partner in a group scene is voiced — the player, male partners, and female NPCs each speak with their own voice, kept consistent across scenes.
 - Female voices — default to SexLab's moan sets out of the box; add one of SLO VE's own female voice packs (optional downloads on this page) or any Hentairim/IVDT pack for a drop-in upgrade. Female NPC partners are voiced too, auto-mapped across your installed packs deterministically (same NPC, same voice).
@@ -23,7 +23,7 @@ REQUIREMENTS (hard)
   https://www.nexusmods.com/skyrimspecialedition/mods/186249
 - PapyrusUtil, Mfg Fix NG
 
-Soft deps (auto-detected): MFEE, sr_fillherup, Devious Devices, SexLab Survival, SOS/TNG, Accurate Penetration, Oninus Lactis NG + Milk Mod Economy.
+Soft deps (auto-detected): SKSE Menu Framework (in-game settings menu), MFEE, sr_fillherup, Devious Devices, SexLab Survival, SOS/TNG, Accurate Penetration, Oninus Lactis NG + Milk Mod Economy.
 
 Optional: ConsoleUtil — for the in-game console test/reload commands.
   https://www.nexusmods.com/skyrimspecialedition/mods/133569
@@ -31,7 +31,7 @@ Optional: ConsoleUtil — for the in-game console test/reload commands.
 
 INSTALLATION
 
-Use a mod manager (MO2 recommended). SLO VE is mostly loose scripts, sounds, and TOML config plus one small ESL-flagged plugin — there is nothing to build and no MCM to configure.
+Use a mod manager (MO2 recommended). SLO VE is loose scripts, sounds, and TOML config, plus one small ESL-flagged plugin and one small SKSE plugin (the optional settings menu). There is nothing to build and nothing you have to configure first.
 
 1. Install the hard requirements first, each per its own instructions: SKSE64, SexLab Framework P+ 2.17+ (2.19+ for the contact-detection features), PapyrusUtil, Mfg Fix NG (MfgConsoleFunc/Ext), and AudioUtil - the folder-based audio / lipsync / TOML framework SLO VE runs on. AudioUtil must be present or SLO VE has no voice engine.
 

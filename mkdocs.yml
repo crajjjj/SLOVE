@@ -1,5 +1,5 @@
 site_name: SLO VE
-site_description: Scene voices, facial expressions, body SFX and an optional willpower system for SexLab P+ and classic SexLab — configured entirely in TOML, no MCM. Voice-pack and configuration reference.
+site_description: Scene voices, facial expressions, body SFX and an optional willpower system for SexLab P+ and classic SexLab, configured in TOML with an optional in-game menu. Voice-pack and configuration reference.
 site_url: https://crajjjj.github.io/SLOVE/
 repo_name: crajjjj/SLOVE
 repo_url: https://github.com/crajjjj/SLOVE
@@ -49,6 +49,7 @@ nav:
   - TOML Configuration:
     - Overview — the three files: config/index.md
     - SLOVE.toml — behaviour: config/slove.md
+    - In-Game Settings Menu: config/menu.md
     - Voice overlays - slots & routing: config/voices.md
     - AudioUtil.toml — engine globals: config/audioutil.md
   - Willpower / Resistance: resistance.md

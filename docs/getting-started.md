@@ -1,6 +1,6 @@
 # Getting Started
 
-SLO VE is mostly loose scripts, sounds and TOML config plus one small ESL-flagged plugin. There is nothing to build and no MCM to configure.
+SLO VE is loose scripts, sounds and TOML config, plus one small ESL-flagged plugin and one small SKSE plugin (the optional settings menu). There is nothing to build, and nothing you have to configure before the first scene.
 
 ## Requirements
 
@@ -14,8 +14,9 @@ SLO VE is mostly loose scripts, sounds and TOML config plus one small ESL-flagge
 | **PapyrusUtil** | JSON preset data (expression faces) and per-actor state storage |
 | **Mfg Fix NG** (MfgConsoleFunc/Ext) | every facial-expression write goes through it |
 
-**Soft requirements** — all auto-detected, all optional, missing ones are simply skipped:
+**Soft requirements.** All auto-detected, all optional; missing ones are simply skipped:
 
+- **SKSE Menu Framework** (version 3) for the [in-game settings menu](config/menu.md)
 - **MFEE** (Mu Facial Expression Extended) — extended ahegao / tongue faces
 - **sr_fillherup** — tongue armors
 - **Devious Devices** — gag detection for the [muffled gagged voice](packs/slots.md#the-gag-slot-f1gag)
@@ -94,9 +95,12 @@ Install the new version over the old one and let it overwrite. **No clean save i
 
 If you edited one of the `config\SLOVE_*.toml` overlays or `AudioUtil.toml` in place, an update overwrites your edits. To keep customisations across updates, put them in **your own overlay file** instead — see [Keeping your edits across updates](packs/female.md#keeping-your-edits-across-updates).
 
+`SLOVE.toml` is replaced by an update too, whether you changed it in a text editor or through the in-game menu. Keep a copy of your file; the [menu page](config/menu.md#good-to-know) has a way around it for Mod Organizer 2.
+
 ## Where to next
 
 - Want a better female voice? → [Installing & Routing Female Packs](packs/female.md)
 - Want to understand what picks which voice? → [How Voices Work](packs/index.md)
 - Want every toggle in one place? → [SLOVE.toml Reference](config/slove.md)
+- Rather change them in game? → [In-Game Settings Menu](config/menu.md)
 - Something not working? → [Troubleshooting & Logs](troubleshooting.md)
