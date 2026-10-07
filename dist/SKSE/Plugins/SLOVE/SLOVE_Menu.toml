@@ -485,6 +485,24 @@ max = 10
 tip = "Which tongue model to use, 1 to 10. 0 picks one at random per actor."
 
 [[setting]]
+key = "expressions.tonguetypekhajiit"
+group = "Tongue"
+label = "Tongue model, Khajiit"
+control = "int"
+min = -1
+max = 10
+tip = "Which tongue model Khajiit wear, on their own copies fitted to the muzzle. -1 uses the Tongue model setting above, 0 picks one at random per actor, 1 to 10 is that model."
+
+[[setting]]
+key = "expressions.tonguetypeargonian"
+group = "Tongue"
+label = "Tongue model, Argonian"
+control = "int"
+min = -1
+max = 10
+tip = "Which tongue model Argonians wear, on their own copies fitted to the muzzle. -1 uses the Tongue model setting above, 0 picks one at random per actor, 1 to 10 is that model."
+
+[[setting]]
 key = "expressions.removetongueonblowjob"
 group = "Tongue"
 label = "No tongue during blowjobs"

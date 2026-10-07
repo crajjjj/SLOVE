@@ -1790,6 +1790,13 @@ bool FHUTongueShown = false   ;we equipped the rolled tongue and it is currently
 
 Armor function GetTongueType()
 
+	;Khajiit and Argonians have a model setting of their own (they wear copies fitted
+	;to the muzzle, where another length may suit better): -1, or the key missing,
+	;follows expressions.tonguetype; 0 rolls; 1-10 picks
+	int beasttype = BeastTongueType()
+	if beasttype >= 0
+		FHUTongueType = beasttype
+	endif
 	if FHUTongueType == 0
 		FHUTongueType = Utility.RandomInt(1, 10)
 	endif
@@ -1815,9 +1822,52 @@ Armor function GetTongueType()
 		Tongue = Game.GetFormFromFile(0x000812 + TongueType, "SLOVE.esp") as Armor
 	endif
 
+	;An actor who already has one of our tongues keeps THAT one for the scene. This
+	;function runs again when the effect re-initializes mid-scene (a stale-save reload
+	;of the config, a re-adopted scene), and with tonguetype = 0 it then rolls another
+	;model: the variant worn or carried from the first roll would no longer be the one
+	;RemoveTongue knows, and the player would be handed a second armor. The tongues
+	;are stripped at scene end, so a new scene always starts from a fresh choice.
+	if Tongue
+		Armor carried = CarriedTongue()
+		if carried
+			Tongue = carried
+		endif
+	endif
+
 	FHUTongueTypeArmor = Tongue
 	return Tongue
 endfunction
+
+;-1 = this actor's race has no tongue model setting of its own (or it is set to -1)
+int Function BeastTongueType()
+	Race actorrace = actorref.GetRace()
+	if !actorrace
+		return -1
+	endif
+	;the four races the fitted armor addons list (SLOVE_TongueAA{N}_Khajiit / _Argonian)
+	int raceid = actorrace.GetFormID()
+	if raceid == 0x00013745 || raceid == 0x00088845 ;KhajiitRace, KhajiitRaceVampire
+		return SLOVE_Config.GetInt("expressions.tonguetypekhajiit", -1)
+	elseif raceid == 0x00013740 || raceid == 0x0008883A ;ArgonianRace, ArgonianRaceVampire
+		return SLOVE_Config.GetInt("expressions.tonguetypeargonian", -1)
+	endif
+	return -1
+EndFunction
+
+;the tongue variant this actor already has in inventory (worn or not), if any
+Armor Function CarriedTongue()
+	int ci = 0
+	while ci < 10
+		;SLOVE_Tongue{ci+1}Armor = 0x000813 + ci
+		Form variant = Game.GetFormFromFile(0x000813 + ci, "SLOVE.esp")
+		if variant && actorref.GetItemCount(variant) > 0
+			return variant as Armor
+		endif
+		ci += 1
+	endwhile
+	return none
+EndFunction
 
 ;all ten tongue variants and their shared biped slot mask, cached once so
 ;EquippedTongue can also spot a tongue another mod equipped (e.g. FHU's own
