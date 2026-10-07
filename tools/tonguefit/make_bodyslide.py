@@ -16,12 +16,22 @@ What is written (all of it generated; never hand-edit, rerun this instead):
     ShapeData\\SLOVE Tongues\\           the base nif of every set + one .osd per model
   optional\\UBESupport\\CalienteTools\\BodySlide\\   the same for the ten UBE-fitted meshes
 
-Each base nif is a byte copy of the mesh the game loads without BodySlide, so a build with
-every slider at 0 gives the shipped geometry and rig again (BodySlide writes the blocks in
-another order, nothing else differs), and --check fails when a mesh changed and this was
-not rerun. The Khajiit and Argonian copies differ from the human mesh in bone and
-bind data only (fit_tongues.py), not in a single vertex, so the three sets of a model share
-one .osd.
+Each base nif is the mesh the game loads without BodySlide plus one thing only tools read
+(the preview transform, below), so a build with every slider at 0 gives the shipped
+geometry and rig again (BodySlide also writes the blocks in another order), and --check
+fails when a mesh changed and this was not rerun. The Khajiit and Argonian copies differ
+from the human mesh in bone and bind data only (fit_tongues.py), not in a single vertex, so
+the three sets of a model share one .osd.
+
+The preview transform. To judge a fit one loads the set in Outfit Studio and imports a head
+beside it (File > Import > From NIF). OS places every skinned shape by the transform at the
+top of its NiSkinData ("global to skin"). The game ignores that transform - a vanilla head
+carries (0, 1.55, -120.34) there, the mouth part beside it carries none, and both render on
+the same head bone - and the tongue meshes carry none, so OS would draw the tongue from its
+raw coordinates: about 1.5 units lower against the head than the game puts it, and with
+none of the Khajiit / Argonian shift, which lives in the bones. The base nifs therefore get
+the transform that draws the tongue where the game will: its place in head-bone
+coordinates (from its own head bind) plus where a head mesh is drawn (HEAD_AT).
 
 The sliders are our own data, computed here from the vertices (no third-party slider files
 are shipped). A BodySlide slider is a per-vertex offset scaled by the slider value, in the
@@ -51,6 +61,12 @@ ROOT = ft.ROOT
 MOVE = 3.0     # game units at 100%
 SCALE = 0.30   # fraction at 100%
 TILT = 15.0    # degrees at 100%
+
+# Where Outfit Studio draws the origin of the head bone for a head mesh: vanilla-style heads
+# (raw vertices around the bone, the offset in their global-to-skin transform) and the UBE /
+# High Poly Head style (raw vertices at head height, the offset in the head bind) agree to
+# about 0.15 of a unit.
+HEAD_AT = {"": (0.0, -1.55, 120.34), "UBE": (0.16, -1.66, 120.34)}
 
 SLIDERS = ("Tongue Forward", "Tongue Back", "Tongue Up", "Tongue Down",
            "Tongue Bigger", "Tongue Smaller", "Tongue Longer", "Tongue Shorter",
@@ -170,6 +186,24 @@ def slider_data(nif):
     return out, len(verts)
 
 
+def with_preview(mesh, head_at):
+    """The mesh with the global-to-skin transform that shows it where the game draws it."""
+    nif = ft.Nif(mesh)
+    skin_block = nif.shape()[1]
+    bones, _partition = nif.skin(skin_block)
+    t_at = next(b for b in bones if b[0] == ft.HEAD)[4]
+    rot = struct.unpack_from("<9f", mesh, t_at - 36)
+    t = struct.unpack_from("<3f", mesh, t_at)
+    scale, = struct.unpack_from("<f", mesh, t_at + 12)
+    # drawn at: scale * rot * v + t + head_at. The file stores the inverse of that.
+    inverse = [rot[c * 3 + r] for r in range(3) for c in range(3)]
+    offset = scaled(ft.apply(inverse, ft.add(t, head_at)), -1.0 / scale)
+    data_block, = struct.unpack_from("<i", mesh, nif.offsets[skin_block])
+    out = bytearray(mesh)
+    struct.pack_into("<13f", out, nif.offsets[data_block], *inverse, *offset, 1.0 / scale)
+    return bytes(out)
+
+
 def shape_name(nif):
     shapes = [b for b in range(nif.num_blocks) if nif.kind(b) == "BSTriShape"]
     return nif.av_object(shapes[0])[0]
@@ -238,7 +272,7 @@ def plan():
             if subdir and ft.Nif(mesh).vertices(ft.Nif(mesh).skin(ft.Nif(mesh).shape()[1])[1]) != nif.vertices(nif.skin(nif.shape()[1])[1]):
                 raise ValueError("%s\\linga%d.nif no longer shares its vertices with the standard mesh" % (subdir, n))
             name = "SLOVE Tongue %02d%s" % (n, suffix)
-            files[os.path.join(core, "ShapeData", folder, name + ".nif")] = mesh
+            files[os.path.join(core, "ShapeData", folder, name + ".nif")] = with_preview(mesh, HEAD_AT[""])
             sets.append((name, folder, name + ".nif", out_path, "linga%d" % n, shape, osd))
             groups[g][1].append(name)
     sets.sort(key=lambda s: (s[3], s[0]))
@@ -255,7 +289,7 @@ def plan():
         shape = shape_name(nif)
         data, count = slider_data(nif)
         name = "SLOVE Tongue %02d UBE" % n
-        files[os.path.join(ube, "ShapeData", folder, name + ".nif")] = base
+        files[os.path.join(ube, "ShapeData", folder, name + ".nif")] = with_preview(base, HEAD_AT["UBE"])
         files[os.path.join(ube, "ShapeData", folder, name + ".osd")] = osd_bytes(shape, data)
         sets.append((name, folder, name + ".nif", "meshes\\!UBE\\SLOVE\\tongues", "linga%d" % n, shape, name + ".osd"))
         members.append(name)

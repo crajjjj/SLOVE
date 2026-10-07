@@ -148,6 +148,15 @@ Facial expression engine. All face writes go through Mfg Fix NG.
 
     Three things to know. The built mesh has to **win over SLO VE's own file** in your mod manager, like any BodySlide output. An update of SLO VE that changes the tongue meshes needs a **rebuild**, or your older build keeps overriding it. And the sliders move the mesh but not its physics bones, so use them for a nudge of a unit or two; if BodySlide reports that a folder could not be created during a batch build, build once more.
 
+    **Seeing the fit against a head.** BodySlide's own preview shows the tongue alone. To see it on a head, use Outfit Studio (the button at the bottom right of BodySlide):
+
+    1. *File > Load Project...*, open `SliderSets\SLOVE Tongues.osp` (or `SLOVE Tongues UBE.osp`) and pick the set, for example *SLOVE Tongue 01*.
+    2. *File > Import > From NIF...* and pick a head: `meshes\actors\character\character assets\femalehead.nif` for a human or mer, `femaleheadkhajiit.nif` / `femaleheadargonian.nif` in the same folder for the beast sets (the vanilla ones sit inside `Skyrim - Meshes0.bsa`, so extract them first unless a head replacer ships them loose), `meshes\!UBE\Head\FemaleHead_tangent.nif` for UBE, or your own character's head from RaceMenu (*Sculpt > Export Head*).
+    3. Drag the tongue sliders in the panel on the right; the tongue moves against the head. Note the values.
+    4. Close Outfit Studio **without saving** (saving would write the head into the project), set the same values in BodySlide and build.
+
+    The head is shown with its mouth closed, and the game opens the mouth when a tongue is out, so judge against the lips and the chin. The tongue is drawn where the game will put it relative to the head, including the Khajiit and Argonian fit; a mouth or teeth mesh imported the same way lands on the floor, which is how those files are stored and can be ignored.
+
     The BodySlide projects that exist for the original tongues (*HALOS Human HDT Tongueslide*, and the one in Fill Her Up) build into another folder and do not reach SLO VE's copies.
 
 !!! note "UBE bodies (custom races)"
