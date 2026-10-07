@@ -14,7 +14,7 @@ reference, troubleshooting.
 
 | Dependency | Why |
 |---|---|
-| SKSE64, SexLab P+ (2.17+) | scene framework. The contact-detection features (measured Fast/Slow intensity, thrust-paced sounds, the insertion / kiss / oral one-shots, live oral detection for the tongue) need **P+ 2.19+** and are **beta** there; on an older P+ SLO VE runs on the scene's stage tags instead |
+| SKSE64, SexLab P+ (2.17+) | scene framework. The contact-detection features (measured Fast/Slow intensity, thrust-paced sounds, the insertion / kiss / oral one-shots, live oral detection for the tongue) need **P+ 2.19+**; on an older P+ SLO VE runs on the scene's stage tags instead |
 | **AudioUtil** | voice playback (folder-based slots), lipsync, TOML config API |
 | PapyrusUtil | JSON preset data (expression faces) |
 | Mfg Fix NG (MfgConsoleFunc/Ext) | all face writes |

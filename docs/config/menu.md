@@ -1,6 +1,6 @@
 # In-game settings menu
 
-From 0.6.29 on, every setting in [`SLOVE.toml`](slove.md) can be changed in game, on pages in the **Mod Control Panel** of [SKSE Menu Framework](https://www.nexusmods.com/skyrimspecialedition/mods/120352).
+From 0.7.0 on, every setting in [`SLOVE.toml`](slove.md) can be changed in game, on pages in the **Mod Control Panel** of [SKSE Menu Framework](https://www.nexusmods.com/skyrimspecialedition/mods/120352).
 
 The menu is a front end for the file, not a second place where settings live: each change is written to `SLOVE.toml` as you make it, and editing the file by hand keeps working exactly as before.
 
