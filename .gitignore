@@ -15,3 +15,7 @@ dist/SKSE/Plugins/SLOVE.pdb
 dist/SKSE/Plugins/SLOVE/SLOVE.defaults.toml
 *.ppj
 site/
+
+# python bytecode (tools/tonguefit, tools/packcheck)
+__pycache__/
+*.pyc

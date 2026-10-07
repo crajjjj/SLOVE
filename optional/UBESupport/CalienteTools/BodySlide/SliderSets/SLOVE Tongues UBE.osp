@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SliderSetInfo version="1">
+    <SliderSet name="SLOVE Tongue 01 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 01 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga1</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 01 UBE.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 02 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 02 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga2</OutputFile>
+        <Shape target="Tongue_2">Tongue_2</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_2Tongue Forward" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_2Tongue Back" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_2Tongue Up" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_2Tongue Down" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_2Tongue Bigger" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_2Tongue Smaller" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_2Tongue Longer" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_2Tongue Shorter" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_2Tongue Wider" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_2Tongue Narrower" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_2Tongue Thicker" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_2Tongue Thinner" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_2Tongue Tilt Up" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_2Tongue Tilt Down" target="Tongue_2" local="true">SLOVE Tongue 02 UBE.osd\Tongue_2Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 03 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 03 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga3</OutputFile>
+        <Shape target="Tongue_3">Tongue_3</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_3Tongue Forward" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_3Tongue Back" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_3Tongue Up" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_3Tongue Down" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_3Tongue Bigger" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_3Tongue Smaller" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_3Tongue Longer" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_3Tongue Shorter" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_3Tongue Wider" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_3Tongue Narrower" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_3Tongue Thicker" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_3Tongue Thinner" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_3Tongue Tilt Up" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_3Tongue Tilt Down" target="Tongue_3" local="true">SLOVE Tongue 03 UBE.osd\Tongue_3Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 04 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 04 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga4</OutputFile>
+        <Shape target="Tongue_4">Tongue_4</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_4Tongue Forward" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_4Tongue Back" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_4Tongue Up" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_4Tongue Down" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_4Tongue Bigger" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_4Tongue Smaller" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_4Tongue Longer" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_4Tongue Shorter" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_4Tongue Wider" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_4Tongue Narrower" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_4Tongue Thicker" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_4Tongue Thinner" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_4Tongue Tilt Up" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_4Tongue Tilt Down" target="Tongue_4" local="true">SLOVE Tongue 04 UBE.osd\Tongue_4Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 05 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 05 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga5</OutputFile>
+        <Shape target="Tongue_5">Tongue_5</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_5Tongue Forward" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_5Tongue Back" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_5Tongue Up" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_5Tongue Down" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_5Tongue Bigger" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_5Tongue Smaller" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_5Tongue Longer" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_5Tongue Shorter" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_5Tongue Wider" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_5Tongue Narrower" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_5Tongue Thicker" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_5Tongue Thinner" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_5Tongue Tilt Up" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_5Tongue Tilt Down" target="Tongue_5" local="true">SLOVE Tongue 05 UBE.osd\Tongue_5Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 06 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 06 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga6</OutputFile>
+        <Shape target="Tongue_6">Tongue_6</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_6Tongue Forward" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_6Tongue Back" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_6Tongue Up" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_6Tongue Down" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_6Tongue Bigger" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_6Tongue Smaller" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_6Tongue Longer" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_6Tongue Shorter" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_6Tongue Wider" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_6Tongue Narrower" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_6Tongue Thicker" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_6Tongue Thinner" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_6Tongue Tilt Up" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_6Tongue Tilt Down" target="Tongue_6" local="true">SLOVE Tongue 06 UBE.osd\Tongue_6Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 07 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 07 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga7</OutputFile>
+        <Shape target="Tongue_7">Tongue_7</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_7Tongue Forward" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_7Tongue Back" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_7Tongue Up" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_7Tongue Down" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_7Tongue Bigger" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_7Tongue Smaller" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_7Tongue Longer" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_7Tongue Shorter" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_7Tongue Wider" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_7Tongue Narrower" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_7Tongue Thicker" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_7Tongue Thinner" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_7Tongue Tilt Up" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_7Tongue Tilt Down" target="Tongue_7" local="true">SLOVE Tongue 07 UBE.osd\Tongue_7Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 08 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 08 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga8</OutputFile>
+        <Shape target="Tongue_8">Tongue_8</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_8Tongue Forward" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_8Tongue Back" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_8Tongue Up" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_8Tongue Down" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_8Tongue Bigger" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_8Tongue Smaller" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_8Tongue Longer" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_8Tongue Shorter" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_8Tongue Wider" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_8Tongue Narrower" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_8Tongue Thicker" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_8Tongue Thinner" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_8Tongue Tilt Up" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_8Tongue Tilt Down" target="Tongue_8" local="true">SLOVE Tongue 08 UBE.osd\Tongue_8Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 09 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 09 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga9</OutputFile>
+        <Shape target="Tongue_9">Tongue_9</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_9Tongue Forward" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_9Tongue Back" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_9Tongue Up" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_9Tongue Down" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_9Tongue Bigger" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_9Tongue Smaller" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_9Tongue Longer" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_9Tongue Shorter" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_9Tongue Wider" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_9Tongue Narrower" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_9Tongue Thicker" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_9Tongue Thinner" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_9Tongue Tilt Up" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_9Tongue Tilt Down" target="Tongue_9" local="true">SLOVE Tongue 09 UBE.osd\Tongue_9Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 10 UBE">
+        <DataFolder>SLOVE Tongues UBE</DataFolder>
+        <SourceFile>SLOVE Tongue 10 UBE.nif</SourceFile>
+        <OutputPath>meshes\!UBE\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga10</OutputFile>
+        <Shape target="Tongue_10">Tongue_10</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="Tongue_10Tongue Forward" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="Tongue_10Tongue Back" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="Tongue_10Tongue Up" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="Tongue_10Tongue Down" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="Tongue_10Tongue Bigger" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="Tongue_10Tongue Smaller" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="Tongue_10Tongue Longer" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="Tongue_10Tongue Shorter" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="Tongue_10Tongue Wider" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="Tongue_10Tongue Narrower" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="Tongue_10Tongue Thicker" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="Tongue_10Tongue Thinner" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="Tongue_10Tongue Tilt Up" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="Tongue_10Tongue Tilt Down" target="Tongue_10" local="true">SLOVE Tongue 10 UBE.osd\Tongue_10Tongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+</SliderSetInfo>

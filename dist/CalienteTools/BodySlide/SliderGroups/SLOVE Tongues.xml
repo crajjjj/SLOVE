@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SliderGroups>
+    <Group name="SLOVE Tongues">
+        <Member name="SLOVE Tongue 01"/>
+        <Member name="SLOVE Tongue 02"/>
+        <Member name="SLOVE Tongue 03"/>
+        <Member name="SLOVE Tongue 04"/>
+        <Member name="SLOVE Tongue 05"/>
+        <Member name="SLOVE Tongue 06"/>
+        <Member name="SLOVE Tongue 07"/>
+        <Member name="SLOVE Tongue 08"/>
+        <Member name="SLOVE Tongue 09"/>
+        <Member name="SLOVE Tongue 10"/>
+    </Group>
+    <Group name="SLOVE Tongues Khajiit">
+        <Member name="SLOVE Tongue 01 Khajiit"/>
+        <Member name="SLOVE Tongue 02 Khajiit"/>
+        <Member name="SLOVE Tongue 03 Khajiit"/>
+        <Member name="SLOVE Tongue 04 Khajiit"/>
+        <Member name="SLOVE Tongue 05 Khajiit"/>
+        <Member name="SLOVE Tongue 06 Khajiit"/>
+        <Member name="SLOVE Tongue 07 Khajiit"/>
+        <Member name="SLOVE Tongue 08 Khajiit"/>
+        <Member name="SLOVE Tongue 09 Khajiit"/>
+        <Member name="SLOVE Tongue 10 Khajiit"/>
+    </Group>
+    <Group name="SLOVE Tongues Argonian">
+        <Member name="SLOVE Tongue 01 Argonian"/>
+        <Member name="SLOVE Tongue 02 Argonian"/>
+        <Member name="SLOVE Tongue 03 Argonian"/>
+        <Member name="SLOVE Tongue 04 Argonian"/>
+        <Member name="SLOVE Tongue 05 Argonian"/>
+        <Member name="SLOVE Tongue 06 Argonian"/>
+        <Member name="SLOVE Tongue 07 Argonian"/>
+        <Member name="SLOVE Tongue 08 Argonian"/>
+        <Member name="SLOVE Tongue 09 Argonian"/>
+        <Member name="SLOVE Tongue 10 Argonian"/>
+    </Group>
+</SliderGroups>

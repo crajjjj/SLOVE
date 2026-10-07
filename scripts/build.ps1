@@ -309,8 +309,12 @@ function Build-Fomod {
     if ($python) {
         & $python.Source (Join-Path $root 'tools\tonguefit\fit_tongues.py') --check
         if ($LASTEXITCODE -ne 0) { throw 'the beast-race tongue meshes are not what tools\tonguefit\fit_tongues.py produces - rerun it without arguments' }
+        # the BodySlide projects hold a copy of every tongue mesh: stale copies would
+        # build yesterday's fit
+        & $python.Source (Join-Path $root 'tools\tonguefit\make_bodyslide.py') --check
+        if ($LASTEXITCODE -ne 0) { throw 'the BodySlide tongue projects are stale - run tools\tonguefit\make_bodyslide.py' }
     } else {
-        Write-Warning 'python not found - skipped the beast-race tongue mesh check (tools\tonguefit\fit_tongues.py --check)'
+        Write-Warning 'python not found - skipped the tongue mesh and BodySlide project checks (tools\tonguefit\*.py --check)'
     }
     Write-Host "tongue meshes: $($tongues.Count) named by SLOVE.esp, all staged" -ForegroundColor Cyan
 
@@ -377,6 +381,9 @@ function Build-Fomod {
         Copy-Item $ubeEsp $ubeStage -Force
         $ubeMeshes = Join-Path $ubeSrc 'meshes'
         if (Test-Path $ubeMeshes) { Copy-Item $ubeMeshes $ubeStage -Recurse -Force }
+        # the BodySlide project for the UBE-fitted tongues (tools\tonguefit\make_bodyslide.py)
+        $ubeBodySlide = Join-Path $ubeSrc 'CalienteTools'
+        if (Test-Path $ubeBodySlide) { Copy-Item $ubeBodySlide $ubeStage -Recurse -Force }
         $espText = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes($ubeEsp))
         $named = @([regex]::Matches($espText, '!UBE\\[\x20-\x7e]+?\.nif') | ForEach-Object { $_.Value } | Sort-Object -Unique)
         $missing = @($named | Where-Object { -not (Test-Path -LiteralPath (Join-Path $ubeStage "meshes\$_")) })

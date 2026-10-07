@@ -1,0 +1,1473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SliderSetInfo version="1">
+    <SliderSet name="SLOVE Tongue 01">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 01.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga1</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 02">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 02.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga2</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 03">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 03.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga3</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 04">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 04.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga4</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 05">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 05.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga5</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 06">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 06.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga6</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 07">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 07.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga7</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 08">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 08.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga8</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 09">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 09.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga9</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 10">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 10.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues</OutputPath>
+        <OutputFile GenWeights="false">linga10</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 01 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 01 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga1</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 02 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 02 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga2</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 03 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 03 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga3</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 04 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 04 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga4</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 05 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 05 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga5</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 06 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 06 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga6</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 07 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 07 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga7</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 08 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 08 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga8</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 09 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 09 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga9</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 10 Argonian">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 10 Argonian.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\argonian</OutputPath>
+        <OutputFile GenWeights="false">linga10</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 01 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 01 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga1</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 01.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 02 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 02 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga2</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 02.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 03 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 03 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga3</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 03.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 04 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 04 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga4</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 04.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 05 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 05 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga5</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 05.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 06 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 06 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga6</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 06.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 07 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 07 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga7</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 07.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 08 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 08 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga8</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 08.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 09 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 09 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga9</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 09.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+    <SliderSet name="SLOVE Tongue 10 Khajiit">
+        <DataFolder>SLOVE Tongues</DataFolder>
+        <SourceFile>SLOVE Tongue 10 Khajiit.nif</SourceFile>
+        <OutputPath>meshes\SLOVE\tongues\khajiit</OutputPath>
+        <OutputFile GenWeights="false">linga10</OutputFile>
+        <Shape target="Tongue">Tongue</Shape>
+        <Slider name="Tongue Forward" invert="false" default="0">
+            <Data name="TongueTongue Forward" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Forward</Data>
+        </Slider>
+        <Slider name="Tongue Back" invert="false" default="0">
+            <Data name="TongueTongue Back" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Back</Data>
+        </Slider>
+        <Slider name="Tongue Up" invert="false" default="0">
+            <Data name="TongueTongue Up" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Up</Data>
+        </Slider>
+        <Slider name="Tongue Down" invert="false" default="0">
+            <Data name="TongueTongue Down" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Down</Data>
+        </Slider>
+        <Slider name="Tongue Bigger" invert="false" default="0">
+            <Data name="TongueTongue Bigger" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Bigger</Data>
+        </Slider>
+        <Slider name="Tongue Smaller" invert="false" default="0">
+            <Data name="TongueTongue Smaller" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Smaller</Data>
+        </Slider>
+        <Slider name="Tongue Longer" invert="false" default="0">
+            <Data name="TongueTongue Longer" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Longer</Data>
+        </Slider>
+        <Slider name="Tongue Shorter" invert="false" default="0">
+            <Data name="TongueTongue Shorter" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Shorter</Data>
+        </Slider>
+        <Slider name="Tongue Wider" invert="false" default="0">
+            <Data name="TongueTongue Wider" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Wider</Data>
+        </Slider>
+        <Slider name="Tongue Narrower" invert="false" default="0">
+            <Data name="TongueTongue Narrower" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Narrower</Data>
+        </Slider>
+        <Slider name="Tongue Thicker" invert="false" default="0">
+            <Data name="TongueTongue Thicker" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Thicker</Data>
+        </Slider>
+        <Slider name="Tongue Thinner" invert="false" default="0">
+            <Data name="TongueTongue Thinner" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Thinner</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Up" invert="false" default="0">
+            <Data name="TongueTongue Tilt Up" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Tilt Up</Data>
+        </Slider>
+        <Slider name="Tongue Tilt Down" invert="false" default="0">
+            <Data name="TongueTongue Tilt Down" target="Tongue" local="true">SLOVE Tongue 10.osd\TongueTongue Tilt Down</Data>
+        </Slider>
+    </SliderSet>
+</SliderSetInfo>

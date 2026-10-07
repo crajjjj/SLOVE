@@ -170,6 +170,9 @@ shipped fabricated:
   Argonian copies under `dist\meshes\SLOVE\tongues` are what the offsets in that
   script produce from the standard ten). `build.ps1` also fails when `SLOVE.esp`
   names a tongue mesh that `dist\meshes` does not hold.
+- BodySlide tongue projects: `python tools\tonguefit\make_bodyslide.py --check`
+  (the base shapes under `CalienteTools\BodySlide\ShapeData` are the current
+  meshes and the slider data is what the script computes from them).
 
 **Pass:** zero missing paths. Any miss = silent in-game silence, exactly like
 the original silent-dog bug.
