@@ -147,7 +147,10 @@ Event OnUpdate()
 		;Velocity paths poll tight (they integrate the thrust speed); the label/tag
 		;path polls at normalpoll - it was needlessly churning GetInteractionFlags
 		;at 10Hz for a sound whose own clip length already paces it.
-		if (IsGivingAnalPenetration() || IsGivingVaginalPenetration() || (EndingLabel != "LDI" && PrevIsGivingAnalOrVaginalPenetration()) ) && useadaptivevelocity == 1 && usevelocity == 1 && !HasCreature() && !isEnding()
+		if (IsGivingAnalPenetration() || IsGivingVaginalPenetration()) && !isEnding() && RunPPAThrustSFX()
+			;timed off Accurate Penetration's measured depth, which outranks every other
+			;pacing: it is the only source that sees the moment of impact
+		elseif (IsGivingAnalPenetration() || IsGivingVaginalPenetration() || (EndingLabel != "LDI" && PrevIsGivingAnalOrVaginalPenetration()) ) && useadaptivevelocity == 1 && usevelocity == 1 && !HasCreature() && !isEnding()
 			printdebug("Running Adaptive Velocity SFX")
 			updateRate = velocitypoll
 			RunAdaptiveVelocitySFX()
@@ -272,6 +275,18 @@ Function InitializeConfigandForms()
 	volume = SLOVE_Config.GetInt("sfx.volume", 100) as float / 100
 	usevelocity = SLOVE_Config.GetInt("sfx.usevelocity", 0)
 	useadaptivevelocity = SLOVE_Config.GetInt("sfx.useadaptivevelocity", 0)
+	;thrust sounds timed off Accurate Penetration's measured depth (RunPPAThrustSFX).
+	;sfx.usevelocity is the user's switch for measured thrust timing as a whole;
+	;sfx.useppathrust turns off this source alone. It reads no SexLab contact data,
+	;so the bridge being connected is all it needs.
+	useppathrust = 0
+	if SLOVE_Config.GetInt("sfx.usevelocity", 0) == 1 && SLOVE_Config.GetInt("sfx.useppathrust", 1) == 1 && AudioUtilPPA.IsConnected()
+		useppathrust = 1
+	endif
+	ppathrustturn = SLOVE_Config.GetFloat("sfx.ppathrustturn", 1.0)
+	if ppathrustturn < 0.1
+		ppathrustturn = 0.1
+	endif
 	HasInteractions = SLOVE_Utils.HasInteractionAPI() ;once per scene - it cannot change while the game runs
 	if !HasInteractions
 		;SexLab P+ older than 2.19 has no contact speed to pace thrusts by, and the
@@ -619,16 +634,132 @@ Function AdvanceThrust(float speed)
 	;stroke; at this speed that is half a stroke's travel time
 	float timetothrust = 0.5 * thruststroke / speed
 	PrintDebug("Thrust beat=" + beat + " | speed=" + speed + " | TimetoThrust=" + timetothrust)
-	if beat && StageShouldplayClap
-		String ImpactVelocitySFX = GetImpactSoundToPlay(timetothrust)
+	PlayThrustBeat(FuckingPartner, FuckingPartnerInteractionType, timetothrust, beat)
+EndFunction
+
+;------------------------------ thrust sync from PPA depth ------------------------------
+;Accurate Penetration reports, through AudioUtil's bridge, how deep the receiver is
+;penetrated right now. Depth rising is the thrust going in, depth falling is the
+;pull-out, and the turn between the two is the moment of impact - the reversal
+;SexLab P+ 2.19's unsigned speed can no longer show. No SexLab contact data is read,
+;so this block is the same in both script variants and works on every P+ version.
+;A turn counts once the depth has come back by ppathrustturn from its extreme. That
+;hysteresis keeps jitter around a held-deep pose from firing claps, at the price of
+;hearing each turn that much late. GetDepth is the receiver's DEEPEST partner, so
+;two partners on one receiver share one signal and both play its beats.
+int useppathrust ;sfx.usevelocity and sfx.useppathrust are on and the PPA bridge is connected
+float ppathrustturn
+bool PPAThrustNoData ;PPA measured nothing on this stage - not asked again until the next one
+bool PPAThrustRising
+float PPAThrustPeak
+float PPAThrustTrough
+float PPAThrustPeakAt ;real time the current extreme was reached
+float PPAThrustTroughAt
+float PPAThrustLastTime ;how long the last inward stroke took
+
+;One thrust beat on akOn: the impact (when asked for and the stage calls for claps)
+;and the slush, both picked by how long the inward stroke took.
+Function PlayThrustBeat(Actor akOn, int aiType, float afTimeToThrust, bool abImpact)
+	if abImpact && StageShouldplayClap
+		String ImpactVelocitySFX = GetImpactSoundToPlay(afTimeToThrust)
 		if ImpactVelocitySFX != ""
-			AudioUtil.PlaySFX(ImpactVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_impact_" + position)
+			AudioUtil.PlaySFX(ImpactVelocitySFX, akOn, 1.0, "sfx", "sfx_impact_" + position)
 		endif
 	endif
-	String SlushVelocitySFX = GetSlushSoundToPlay(FuckingPartnerInteractionType, timetothrust)
+	String SlushVelocitySFX = GetSlushSoundToPlay(aiType, afTimeToThrust)
 	if SlushVelocitySFX != ""
-		AudioUtil.PlaySFX(SlushVelocitySFX, FuckingPartner, 1.0, "sfx", "sfx_slush_" + position)
+		AudioUtil.PlaySFX(SlushVelocitySFX, akOn, 1.0, "sfx", "sfx_slush_" + position)
 	endif
+EndFunction
+
+;Feeds one depth sample to the turn detector and plays what it finds: the full beat
+;when the thrust turns at its deepest, and on a non-intense stage a slush when it
+;turns back in. These are the two events SLO VE read off the velocity sign up to
+;0.6.25 ("reversal from inside" / "from outside").
+Function PPAThrustStep(Actor akReceiver, int aiType, float afDepth, float afNow)
+	if PPAThrustRising
+		if afDepth > PPAThrustPeak
+			PPAThrustPeak = afDepth
+			PPAThrustPeakAt = afNow
+		elseif PPAThrustPeak - afDepth >= ppathrustturn
+			;turned at the peak. The stroke that led there began at the trough; the
+			;first samples of a run have none, and then there is nothing to sound yet
+			float stroke = PPAThrustPeak - PPAThrustTrough
+			PPAThrustLastTime = PPAThrustPeakAt - PPAThrustTroughAt
+			PPAThrustRising = false
+			PPAThrustTrough = afDepth
+			PPAThrustTroughAt = afNow
+			if stroke >= ppathrustturn
+				PrintDebug("PPA thrust: impact | stroke=" + stroke + " | TimetoThrust=" + PPAThrustLastTime + " | depth=" + afDepth)
+				PlayThrustBeat(akReceiver, aiType, PPAThrustLastTime, true)
+			endif
+		endif
+	elseif afDepth < PPAThrustTrough
+		PPAThrustTrough = afDepth
+		PPAThrustTroughAt = afNow
+	elseif afDepth - PPAThrustTrough >= ppathrustturn
+		;heading back in
+		PPAThrustRising = true
+		PPAThrustPeak = afDepth
+		PPAThrustPeakAt = afNow
+		if CanPlayReverseIn
+			PlayThrustBeat(akReceiver, aiType, PPAThrustLastTime, false)
+		endif
+	endif
+EndFunction
+
+;Times the thrust sounds off PPA's depth for as long as this stage lasts and PPA
+;keeps measuring. True = it did, and the caller's tick is spent. False = PPA has
+;nothing for this actor's receiver, and the caller paces the stage its own way.
+Bool Function RunPPAThrustSFX()
+	if useppathrust != 1 || PPAThrustNoData
+		return false
+	endif
+	;whom this actor is penetrating: the contact detector's answer when there is
+	;one (P+ 2.19), else the labels'
+	Actor receiver = FuckingPartner
+	if receiver == none
+		receiver = ResolvePenetrationReceiver()
+	endif
+	float depth = 0.0
+	if receiver != none
+		depth = AudioUtilPPA.GetDepth(receiver)
+	endif
+	if receiver == none || (depth <= 0.0 && AudioUtilPPA.GetContext(receiver) == 0)
+		;nobody to read, or PPA is not tracking them at all
+		PPAThrustNoData = true
+		return false
+	endif
+	PrintDebug("Running PPA thrust SFX on " + receiver.GetDisplayName() + " | depth=" + depth)
+	int type = 1 ;the 1 = vaginal / 2 = anal the sound pickers key on
+	if IsGivingAnalPenetration()
+		type = 2
+	endif
+	updateRate = velocitypoll
+	float now = Utility.GetCurrentRealTime()
+	float seenAt = now ;when PPA last measured a depth above zero - the grace starts here
+	PPAThrustRising = true
+	PPAThrustPeak = depth
+	PPAThrustTrough = depth
+	PPAThrustPeakAt = now
+	PPAThrustTroughAt = now
+	while !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && DirectorLastPhysicsLabelTime == MasterScript.GetDirectorLastPhysicsLabelTime() && !UpdateNow
+		depth = AudioUtilPPA.GetDepth(receiver)
+		now = Utility.GetCurrentRealTime()
+		if depth > 0.0
+			seenAt = now
+		elseif now - seenAt > 1.5
+			;out for this long is not part of a thrust: PPA lost the pair, or the
+			;labels name a penetration that is not happening. Hand the stage back.
+			PrintDebug("PPA thrust: no depth for 1.5s - back to the stage's own pacing")
+			PPAThrustNoData = true
+			return false
+		endif
+		PPAThrustStep(receiver, type, depth, now)
+		ProcessContactEdges()
+		Utility.Wait(updateRate)
+	endwhile
+	return true
 EndFunction
 
 ;Calculate play sound
@@ -1347,6 +1478,7 @@ Function HentairimUpdateStageData()
 			;physics label changes would otherwise re-trigger it constantly
 			StopPenisVelocitySearch = false
 			SearchingFoundVelocity = false
+			PPAThrustNoData = false
 		endif
 		if isintense
 			CanPlayReverseIn = false

@@ -162,14 +162,28 @@ printdebug = 0
 # are patch additions and are not in the shipped Hentairim SFX config.
 enable = 1                     # master switch (applies the SFX effect to scene actors)
 volume = 60                    # 0-100, startup value for the "sfx" audio group
-usevelocity = 1                # thrust-paced sounds from SLPP contact speed (P+ 2.19+;
-                               # an older P+ paces them from the scene labels)
+# Thrust sounds timed from measured motion. Three sources, best first:
+# Accurate Penetration's depth (useppathrust below), SLPP contact speed
+# (P+ 2.19+), and failing both the scene labels pace them.
+usevelocity = 1
 # World units one full thrust (in + out) travels. P+ 2.19 reports a speed, not a
 # signed velocity, so a beat fires each time the contact has travelled this far:
 # the sound rate follows the animation, the exact moment of impact is not known.
 # Lower = more beats per thrust. 16 is an estimate, not yet calibrated in game -
 # sfx.printdebug = 1 logs each beat ("Thrust beat") with the speed it saw.
 thruststroke = 16.0
+# Time the thrust sounds off Accurate Penetration (PPA) when its bridge measures
+# the scene: the clap lands as the measured depth turns at its deepest. Works on
+# any SexLab build and outranks the pacing above. Needs usevelocity = 1.
+# PPA plays thrust sounds of its own - to hear one set, either install SLO VE's
+# "Silence contact SFX (for PPA users)" option (PPA's sounds only) or set
+# Enabled = false under [SoundEffects] in accurate-penetration.toml (SLO VE's only).
+useppathrust = 1
+# How far the depth must come back from its extreme to count as the thrust turning
+# around (PPA depth runs roughly 2 to 10). Lower = reacts sooner but can clap on
+# jitter; higher = ignores shallow strokes. An estimate, not yet calibrated in
+# game - sfx.printdebug = 1 logs each "PPA thrust: impact" with its stroke.
+ppathrustturn = 1.0
 # SOSBend calibration search: spams Debug.SendAnimationEvent(SOSBend) with 0.3s
 # waits to hunt for a bend that yields velocity data. Heaviest path in the
 # engine and off by default - only turn on if a scene otherwise reports no

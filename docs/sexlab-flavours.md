@@ -101,8 +101,11 @@ has no per-node contact detection, so:
   tick) — the difference is only the baseline it overlays: P+'s F/S label prefix is
   measured from live thrust, classic's comes from the tag database.
 - **Thrust-paced SFX and the adaptive SOSBend search are off.**
-  `sfx.usevelocity`, `sfx.useadaptivevelocity` and `director.usephysicslabels`
-  are ignored on this build.
+  `sfx.useadaptivevelocity` and `director.usephysicslabels` are ignored on this
+  build, and `sfx.usevelocity` has no SexLab contact speed to use. The one
+  exception needs no SexLab data at all: with **Accurate Penetration** connected,
+  thrust sounds are timed off its measured depth here too (`sfx.useppathrust`,
+  with `sfx.usevelocity` as the switch).
 - **Live cunnilingus detection is off.** P+ classifies `CUN` from live
   clit↔mouth collision; classic can only reach `CUN` from an animation's authored
   tag, so an untagged (or generically `Oral`-tagged) cunnilingus scene won't

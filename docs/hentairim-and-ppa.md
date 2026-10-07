@@ -86,6 +86,23 @@ and depth from the physics, rather than the animation's stage tag.
 - If the gape sounds fire too early or late, tune the `[sfx] gape*` thresholds in
   [`SLOVE.toml`](config/slove.md).
 
+### Thrust sounds
+
+With PPA connected, SLO VE times its thrust sounds off PPA's measured depth: the
+clap lands as the depth turns at its deepest point, on any SexLab build. This is
+on by default (`sfx.useppathrust`, with `sfx.usevelocity` as the master switch);
+where PPA reports no depth, the stage keeps the pacing it had before.
+
+PPA also plays thrust sounds **of its own**, so out of the box you hear both sets.
+Pick one:
+
+- **PPA's sounds only:** install SLO VE's *Silence contact SFX (for PPA users)*
+  option in the installer.
+- **SLO VE's sounds only:** set `Enabled = false` under `[SoundEffects]` in PPA's
+  `accurate-penetration.toml`. You keep SLO VE's sound set and its rules (claps only
+  on stages that call for them, size-matched variants, the `sfx` volume group) at
+  PPA's timing.
+
 ### It's safe to share
 
 SLO VE only **reads** PPA (through AudioUtil) — it never drives it, so PPA can feed

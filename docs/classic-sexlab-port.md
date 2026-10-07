@@ -58,7 +58,10 @@ The thread type changes from `SexLabThread` (P+) to **`sslThreadController`**
    The Director's physics-label overlay (`ApplyPhysicsLabels`) and `SLOVE_SFX`'s
    SOSBend adaptive-velocity search are removed; `director.usephysicslabels`,
    `sfx.usevelocity` and `sfx.useadaptivevelocity` are forced to `0` at load
-   regardless of `SLOVE.toml`. Practical effect: intensity is no longer *measured*
+   regardless of `SLOVE.toml`. (The `sfx.usevelocity` VALUE in the toml is still
+   read as the switch for `RunPPAThrustSFX`, the thrust sounds timed off Accurate
+   Penetration's depth: that block reads no SexLab data and is identical in both
+   variants.) Practical effect: intensity is no longer *measured*
    from live thrust speed — the F/S prefix comes from the authored SLATE label
    itself (`SVP` vs `FVP`), so it tracks the tag database rather than the real
    animation speed or any AnimSpeed override.

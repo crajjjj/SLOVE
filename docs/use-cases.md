@@ -111,6 +111,7 @@ Logs to watch: `Documents\My Games\Skyrim Special Edition\SKSE\AudioUtil.log`
 | C4 | **Contact one-shots** | Insertion, pull-out, kiss, oral edges | Insertion thunk, **PPA-measured** pull-out gape, kiss, oral one-shots fire on the contact edge | `sfx.printdebug` contact/edge line; gape needs the PPA bridge (see D1) |
 | C5 | **Size-matched ejaculation one-shot** | Male orgasm | One ejaculation SFX at climax, matched to size | `sfx.printdebug` ejac on `SLOVE_Orgasm`; channel `sfx_ejac_<pos>` |
 | C6 | **All SFX stop at scene end** | End the scene | Every SFX stream and pending one-shot stops | no lingering SFX in `sfx.printdebug`; silence = user |
+| C7 | **Thrust sounds timed off PPA depth** | Accurate Penetration installed (bridge connected), `sfx.usevelocity=1`, `sfx.useppathrust=1`, any SexLab build, a penetration stage | The clap and slush land as the measured depth turns at its deepest; a re-entry slush on non-intense stages; this outranks C2's pacing; a stage where PPA reports no depth for 1.5 s falls back to the build's own pacing | `sfx.printdebug`: `Running PPA thrust SFX on <receiver>`, then one `PPA thrust: impact` line per thrust with its stroke; timing against the animation = user. With PPA's own `[SoundEffects]` on, two sets play (expected, see [Hentairim & PPA](hentairim-and-ppa.md#thrust-sounds)) |
 
 ## D. Integrations (soft dependencies)
 
