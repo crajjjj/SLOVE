@@ -9,6 +9,7 @@
 #include "core/Schema.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -18,6 +19,14 @@
 #include <string_view>
 #include <unordered_set>
 #include <vector>
+
+#ifndef WIN32_LEAN_AND_MEAN
+#	define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#	define NOMINMAX
+#endif
+#include <windows.h>  // one test holds the file open the way another program would
 
 namespace fs = std::filesystem;
 using namespace Core;
@@ -467,6 +476,224 @@ namespace
 		}
 		fs::remove_all(work, ec);
 	}
+	// --------------------------------------------------------------- Rewrite
+	// ConfigDoc::Rewrite is the one way the menu changes the file. These are the
+	// cases a code review found: each was a lost edit, a blocked batch or a way
+	// to write over something the user had put there.
+
+	void TestRewrite(const fs::path& a_dir, const std::string& a_original)
+	{
+		const auto      work = fs::temp_directory_path() / "slove-core-tests-rewrite";
+		std::error_code ec;
+		fs::remove_all(work, ec);
+		fs::create_directories(work, ec);
+		const auto file = work / "SLOVE.toml";
+
+		ConfigDoc shipped;
+		shipped.LoadText(a_original);
+		const auto* shippedVolume = shipped.Find("voice.pcvolume");
+		Check(shippedVolume != nullptr, "the shipped file has voice.pcvolume");
+		if (!shippedVolume) {
+			return;
+		}
+		const Scalar volumeWas = shippedVolume->value;
+		std::vector<Outcome> outcomes;
+
+		// one exclusive read-splice-write changes one line of the real file
+		WriteAll(file, a_original);
+		{
+			ConfigDoc doc;
+			Check(doc.Rewrite(file, { { "voice.pcvolume", std::int64_t{ 41 } } }, outcomes), "a rewrite succeeds", doc.Error());
+			Check(outcomes.size() == 1 && outcomes[0] == Outcome::Written, "the edit is reported as written");
+			const auto after = ReadAll(file);
+			Check(after == doc.Text(), "after a rewrite the document is what the disk holds");
+			const auto  was = Lines(a_original);
+			const auto  now = Lines(after);
+			std::size_t changed = 0;
+			for (std::size_t i = 0; i < was.size() && i < now.size(); ++i) {
+				changed += was[i] != now[i] ? 1 : 0;
+			}
+			Check(was.size() == now.size() && changed == 1, "a rewrite changes exactly one line");
+			Check(doc.Rewrite(file, { { "voice.pcvolume", volumeWas } }, outcomes) && ReadAll(file) == a_original,
+				"rewriting the value back restores the file byte for byte");
+		}
+
+		// an edit that cannot be made is refused alone; the others still go in
+		{
+			ConfigDoc               doc;
+			const std::vector<Edit> edits{ { "voice", std::int64_t{ 1 } }, { "sfx.volume", std::int64_t{ 33 } } };
+			Check(doc.Rewrite(file, edits, outcomes), "a batch with one impossible edit still completes", doc.Error());
+			Check(outcomes.size() == 2 && outcomes[0] == Outcome::Refused && outcomes[1] == Outcome::Written,
+				"the impossible edit is refused, the other is written");
+			const auto* volume = doc.Find("sfx.volume");
+			Check(volume && volume->value == Scalar{ std::int64_t{ 33 } }, "the possible edit reached the file");
+			const auto* kept = doc.Find("voice.pcvolume");
+			Check(kept && Identical(kept->value, volumeWas), "the refused edit left its table alone");
+		}
+
+		// "add" never overwrites a value that is there
+		{
+			WriteAll(file, a_original);
+			ConfigDoc doc;
+			Check(doc.Rewrite(file, { { "voice.pcvolume", std::int64_t{ 5 }, true } }, outcomes) && outcomes[0] == Outcome::Kept,
+				"an add keeps a key the file already holds");
+			Check(ReadAll(file) == a_original, "and writes nothing");
+			Check(doc.Rewrite(file, { { "voice.brandnewkey", std::int64_t{ 5 }, true } }, outcomes) && outcomes[0] == Outcome::Written,
+				"an add writes a key the file lacks");
+			ConfigDoc after;
+			after.Load(file);
+			const auto* added = after.Find("voice.brandnewkey");
+			Check(added && added->section == "voice" && added->value == Scalar{ std::int64_t{ 5 } }, "the added key sits under [voice]");
+			Check(after.Entries().size() == shipped.Entries().size() + 1, "adding one key adds exactly one");
+		}
+
+		// while another program holds the file open, it is neither read nor written
+		{
+			WriteAll(file, a_original);
+			const HANDLE other = ::CreateFileW(file.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+				nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+			Check(other != INVALID_HANDLE_VALUE, "the test can hold the file open");
+			ConfigDoc doc;
+			Check(!doc.Rewrite(file, { { "voice.pcvolume", std::int64_t{ 12 } } }, outcomes) && outcomes.size() == 1 &&
+					  outcomes[0] == Outcome::Refused && !doc.Error().empty(),
+				"a file held open elsewhere is not rewritten");
+			if (other != INVALID_HANDLE_VALUE) {
+				::CloseHandle(other);
+			}
+			Check(ReadAll(file) == a_original, "and it is untouched");
+			Check(doc.Rewrite(file, { { "voice.pcvolume", std::int64_t{ 12 } } }, outcomes) && outcomes[0] == Outcome::Written,
+				"once it is released the same edit goes in");
+		}
+
+		// a file that does not parse is never "fixed"; a missing one is not created
+		{
+			const std::string broken = "[voice\npcvolume = 60\n";
+			WriteAll(file, broken);
+			ConfigDoc doc;
+			Check(!doc.Rewrite(file, { { "voice.pcvolume", std::int64_t{ 10 } } }, outcomes) && ReadAll(file) == broken,
+				"a file that does not parse is never rewritten");
+			Check(!doc.Rewrite(work / "nope.toml", { { "voice.pcvolume", std::int64_t{ 10 } } }, outcomes) && !fs::exists(work / "nope.toml"),
+				"a missing file is not created");
+		}
+
+		// non-ASCII text on the value's line: toml++ counts columns in code points,
+		// so a byte-column splice comes out short (and is refused); ours must not
+		{
+			const std::string name = "\xD0\x9C\xD0\xBE\xD0\xB4.esp|000800";  // a Cyrillic plugin name
+			const std::string start = "[expressions]\r\nahegaoitems = \"\" # yield list\r\nenabletongue = 1\r\n";
+			WriteAll(file, start);
+			ConfigDoc doc;
+			Check(doc.Rewrite(file, { { "expressions.ahegaoitems", name } }, outcomes) && outcomes[0] == Outcome::Written,
+				"a non-ASCII string is written");
+			Check(doc.Rewrite(file, { { "expressions.ahegaoitems", name + ", Other.esp|801" } }, outcomes) && outcomes[0] == Outcome::Written,
+				"a non-ASCII string can be edited again", doc.Error());
+			const auto* items = doc.Find("expressions.ahegaoitems");
+			Check(items && items->value == Scalar{ name + ", Other.esp|801" }, "and reads back whole");
+			const auto after = ReadAll(file);
+			Check(after.find("# yield list\r\nenabletongue = 1\r\n") != std::string::npos && !HasBareLf(after),
+				"its comment, its neighbour and the line endings are untouched");
+			Check(doc.Rewrite(file, { { "expressions.ahegaoitems", std::string{} }, { "expressions.enabletongue", std::int64_t{ 0 } } }, outcomes) &&
+					  outcomes[0] == Outcome::Written && outcomes[1] == Outcome::Written,
+				"a batch that touches it is not blocked by it");
+
+			// the same skew, begin and end, for a value that FOLLOWS non-ASCII text
+			const std::string inlineStart = "milk = { note = \"\xD0\xB6\xD0\xB6\", enable = 0 }\n";
+			WriteAll(file, inlineStart);
+			Check(doc.Rewrite(file, { { "milk.enable", std::int64_t{ 1 } } }, outcomes) && outcomes[0] == Outcome::Written,
+				"a value after non-ASCII text on its line is written");
+			Check(ReadAll(file) == "milk = { note = \"\xD0\xB6\xD0\xB6\", enable = 1 }\n", "and only its own character changed");
+		}
+
+		// a setting in an inline table is a setting like any other
+		{
+			WriteAll(file, "milk = { enable = 0 }\n[voice]\npcvolume = 60\n");
+			ConfigDoc doc;
+			Check(doc.Load(file), "a file with an inline table loads");
+			const auto* enable = doc.Find("milk.enable");
+			Check(enable && enable->section == "milk" && enable->value == Scalar{ std::int64_t{ 0 } }, "a key in an inline table is listed");
+			Check(doc.Rewrite(file, { { "milk.enable", std::int64_t{ 1 }, true } }, outcomes) && outcomes[0] == Outcome::Kept,
+				"so an add does not overwrite it");
+		}
+
+		Check(Identical(Scalar{ std::nan("") }, Scalar{ std::nan("") }), "a NaN is identical to a NaN (never dirty for ever)");
+		Check(!Identical(Scalar{ std::int64_t{ 1 } }, Scalar{ 1.0 }), "1 and 1.0 are the same value but not identical");
+
+		// ---- the same through the model
+		WriteAll(work / "SLOVE.defaults.toml", a_original);
+		const bool haveSchema = fs::exists(a_dir / "SLOVE_Menu.toml");
+		if (haveSchema) {
+			fs::copy_file(a_dir / "SLOVE_Menu.toml", work / "SLOVE_Menu.toml", fs::copy_options::overwrite_existing, ec);
+		}
+		const std::string volumeLine = "\npcvolume = " + Literal(volumeWas);
+		Check(Count(a_original, volumeLine) == 1, "the fixture has one pcvolume line");
+
+		// an int key someone wrote as a float keeps its control and goes back to an int
+		if (KindOf(volumeWas) == Kind::Int && Count(a_original, volumeLine) == 1) {
+			auto asFloat = a_original;
+			asFloat.replace(asFloat.find(volumeLine), volumeLine.size(), volumeLine + ".0");
+			WriteAll(file, asFloat);
+			Model model;
+			Check(model.Load(work), "the model loads a float in an int key");
+			auto* row = model.Find("voice.pcvolume");
+			Check(row && KindOf(row->saved) == Kind::Float && !row->Dirty(), "the float loads as it is and is not dirty");
+			if (row) {
+				Check(!haveSchema || row->control == Control::Percent, "it keeps the control the schema gives it");
+				Check(row->AtDefault(), "60.0 counts as the default 60");
+				const auto index = static_cast<std::size_t>(row - model.Rows().data());
+				model.ResetToDefault({ index });
+				Check(row->Dirty() && KindOf(row->edit) == Kind::Int, "a reset asks for the int");
+				Check(model.Commit({ index }) && ReadAll(file) == a_original, "and writing it restores the shipped file");
+			}
+		}
+
+		// after a commit, rows show what was changed outside in the meantime
+		{
+			WriteAll(file, a_original);
+			Model model;
+			Check(model.Load(work), "the model loads");
+			auto* volume = model.Find("voice.pcvolume");
+			auto* partner = model.Find("voice.partnervolume");
+			const std::string partnerLine = "\npartnervolume = 60";
+			if (volume && partner && Count(a_original, partnerLine) == 1) {
+				auto outside = a_original;
+				outside.replace(outside.find(partnerLine), partnerLine.size(), "\npartnervolume = 61");
+				WriteAll(file, outside);  // a hand edit while the menu holds its rows
+				volume->edit = std::int64_t{ 12 };
+				Check(model.Commit({ static_cast<std::size_t>(volume - model.Rows().data()) }), "a commit after an outside edit succeeds");
+				Check(partner->saved == Scalar{ std::int64_t{ 61 } } && !partner->Dirty(), "the row of the outside edit shows it without a refresh");
+				Check(ReadAll(file).find("\npartnervolume = 61") != std::string::npos, "and the outside edit is still on disk");
+			}
+		}
+
+		// "add" on a key someone added by hand meanwhile adopts their value
+		if (Count(a_original, volumeLine) == 1) {
+			auto       lines = Lines(a_original);
+			const auto line = shippedVolume->line;
+			lines.erase(lines.begin() + static_cast<std::ptrdiff_t>(line - 1));
+			std::string without;
+			for (std::size_t i = 0; i < lines.size(); ++i) {
+				without += lines[i];
+				if (i + 1 < lines.size()) {
+					without += '\n';
+				}
+			}
+			WriteAll(file, without);
+			Model model;
+			Check(model.Load(work), "the model loads a file with a key missing");
+			auto* row = model.Find("voice.pcvolume");
+			Check(row && !row->inFile, "the key is shown as missing");
+			if (row) {
+				auto byHand = a_original;
+				byHand.replace(byHand.find(volumeLine), volumeLine.size(), "\npcvolume = 5");
+				WriteAll(file, byHand);  // added by hand, at another value, while the menu is open
+				const auto index = static_cast<std::size_t>(row - model.Rows().data());
+				Check(model.Commit({ index }, true), "an add on a key that appeared meanwhile succeeds");
+				Check(model.Writes() == 0 && ReadAll(file) == byHand, "it writes nothing over the value added by hand");
+				Check(row->inFile && row->saved == Scalar{ std::int64_t{ 5 } } && !row->Dirty(), "and the row adopts that value");
+			}
+		}
+		fs::remove_all(work, ec);
+	}
 }
 
 int main(int argc, char** argv)
@@ -486,6 +713,7 @@ int main(int argc, char** argv)
 	TestDocument(original);
 	TestSchema(dir, original);
 	TestModel(dir, original);
+	TestRewrite(dir, original);
 
 	std::cout << g_checks << " checks, " << g_failures << " failed\n";
 	return g_failures == 0 ? 0 : 1;

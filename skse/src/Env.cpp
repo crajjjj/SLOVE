@@ -70,6 +70,13 @@ namespace Env
 		// SLOVE_Utils.HasInteractionAPI, which this mirrors.
 		void ProbeSexLab(const SKSE::LoadInterface* a_skse)
 		{
+			// GetPluginInfo joined SKSE's interface after the SKSEVR build was cut,
+			// and CommonLib calls it without looking: on VR that would be a call
+			// through whatever lies past the struct. The flavour stays unknown there,
+			// which only means no setting is dimmed.
+			if (REL::Module::IsVR()) {
+				return;
+			}
 			const auto* info = a_skse ? a_skse->GetPluginInfo("SexLabUtil") : nullptr;
 			if (!info) {
 				return;

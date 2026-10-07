@@ -391,7 +391,19 @@ function Build-Fomod {
 }
 
 & (Join-Path $PSScriptRoot 'check-config.ps1') -WriteDefaults
-if ($Variant -eq 'Both' -and -not $NoPlugin)        { Build-Plugin }
+if ($Variant -eq 'Both' -and -not $NoPlugin) {
+    Build-Plugin
+} else {
+    # Not rebuilt in this run. dist is what gets copied to a test install, so say
+    # so when the DLL sitting there belongs to another version.
+    $distDll = Join-Path $root 'dist\SKSE\Plugins\SLOVE.dll'
+    if (Test-Path $distDll) {
+        $have = (Get-Item $distDll).VersionInfo.FileVersion
+        if ($have -ne "$version.0") {
+            Write-Warning "dist\SKSE\Plugins\SLOVE.dll is version $have, not $version - the plugin was not built in this run"
+        }
+    }
+}
 if ($Variant -eq 'Both' -or $Variant -eq 'PPlus')   { Build-PPlus }
 if ($Variant -eq 'Both' -or $Variant -eq 'Classic') { Build-Classic }
 Assert-VariantTypes

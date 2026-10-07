@@ -7,9 +7,9 @@
 //   AudioUtil.SetGroupVolume(group, v) - move a volume bus now, mid-scene
 // The calls are queued on the SKSE task queue and dispatched on the game thread.
 // A dispatch can be lost (no save loaded, a load resets the VM), so the reload is
-// a state, not an event: "dirty" stays set until AudioUtil confirms, and is sent
-// again on the next occasion. The file on disk is right either way - this plugin
-// writes it itself.
+// a state, not an event: it is owed until AudioUtil has answered a read that began
+// after the last write, and a call that got no answer is sent again. The file on
+// disk is right either way - this plugin writes it itself.
 
 namespace Bridge
 {

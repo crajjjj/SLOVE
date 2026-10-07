@@ -41,7 +41,7 @@ namespace Core
 		// a value the last write refused, so a failing edit is not retried every frame
 		std::optional<Scalar> failed;
 
-		bool Dirty() const { return !(edit == saved); }
+		bool Dirty() const { return !Identical(edit, saved); }
 		bool AtDefault() const { return !shipped || SameValue(saved, *shipped); }
 	};
 
@@ -88,13 +88,19 @@ namespace Core
 		bool                     InFile(std::string_view a_key) const;
 		const ConfigDoc&         Doc() const { return _doc; }
 
-		// Write the edit of every listed row to the file, as one read-splice-write.
-		// All or nothing: on failure the file is untouched and each row remembers
-		// the value that failed. Rows that are not dirty are skipped - unless
-		// a_addMissing is set, which also writes rows the file does not hold yet
-		// at the value they show. That matters: a key missing from the file does
-		// NOT run at the shipped default, the scripts fall back to their own
-		// literal (often 0), so "add it at the default" is a real change.
+		// Write the edit of every listed row to the file, as one exclusive
+		// read-splice-write of what is on disk NOW (ConfigDoc::Rewrite), so a change
+		// made outside since the menu read the file survives. Each row stands alone:
+		// one the file refuses remembers the value that failed (Row::failed) and the
+		// others are still written. Rows that are not dirty are skipped - unless
+		// a_addMissing is set, which also adds rows the file does not hold yet at
+		// the value they show, and leaves a key alone that someone added by hand in
+		// the meantime. Adding matters: a key missing from the file does NOT run at
+		// the shipped default, the scripts fall back to their own literal (often
+		// 0), so "add it at the default" is a real change.
+		//
+		// Afterwards every row that is not mid-edit shows what the file holds.
+		// False when anything listed could not be written.
 		bool Commit(const std::vector<std::size_t>& a_rows, bool a_addMissing = false);
 
 		// Set each listed row's edit to its shipped default (rows without one are
@@ -106,6 +112,7 @@ namespace Core
 
 	private:
 		void Build();
+		void Sync();
 
 		std::filesystem::path _dir;
 		ConfigDoc             _doc;

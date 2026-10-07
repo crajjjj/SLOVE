@@ -5,6 +5,7 @@
 #include "Ui.h"
 #include "core/Model.h"
 
+#include <cmath>
 #include <limits>
 
 // Everything below RenderPage / OnEvent runs inside a callback SKSE Menu Framework
@@ -23,17 +24,20 @@ namespace Menu
 		constexpr auto        kReopenGap = 1s;  // no frame drawn for this long: the menu was closed
 		constexpr auto        kVolumePush = 100ms;  // a dragged volume slider moves the bus this often
 		constexpr float       kSlowReload = 6.0f;  // seconds before an unconfirmed reload is worth a line
+		constexpr auto        kRetryFailed = 2s;  // a value the file refused is tried again this often
+		constexpr std::size_t kTextCapacity = 4096;  // bytes a text field can hold, terminator included
 
 		struct RowUi
 		{
-			std::array<char, 512> text{};  // InputText edits in place
-			std::string           textFor;  // the value the buffer was last filled from
-			bool                  textInit = false;
-			bool                  wasActive = false;
-			Core::Scalar          pushed;  // the volume last sent to AudioUtil
-			Clock::time_point     pushedAt{};
-			bool                  pushInit = false;
-			std::uint64_t         drawn = 0;  // the g_frame this row was last drawn in
+			std::vector<char> text;  // InputText edits in place; sized on first use, text rows only
+			std::string       textFor;  // the value the buffer was last filled from
+			bool              textInit = false;
+			bool              wasActive = false;
+			Core::Scalar      pushed;  // the volume last sent to AudioUtil
+			Clock::time_point pushedAt{};
+			bool              pushInit = false;
+			std::uint64_t     drawn = 0;  // the g_frame this row was last drawn in
+			Clock::time_point failedAt{};  // when the file last refused this row's value
 		};
 
 		std::mutex               g_lock;
@@ -67,7 +71,9 @@ namespace Menu
 			const bool changed = g_model.Refresh();
 			SyncUi();
 			g_writeError.clear();
-			if (changed) {
+			// not for a file that does not parse: AudioUtil would refuse it too and
+			// keep what it has, so there is nothing to ask for until it is fixed
+			if (changed && g_model.Ok()) {
 				logger::info("SLOVE.toml changed on disk since it was last read - asking AudioUtil to re-read it");
 				Bridge::RequestReload();
 			}
@@ -125,20 +131,31 @@ namespace Menu
 			return i ? static_cast<int>(std::clamp<std::int64_t>(*i, std::numeric_limits<int>::min(), std::numeric_limits<int>::max())) : 0;
 		}
 
-		// changed, and not a value the file already refused
-		bool Writable(const Core::Row& a_row)
+		// Changed, and worth a write now. A value the file refused is tried again
+		// after a pause, not every frame: the cause may pass by itself (another
+		// program held the file for a moment) or may not (the file is read-only).
+		bool Writable(std::size_t a_index)
 		{
-			return a_row.Dirty() && !(a_row.failed && *a_row.failed == a_row.edit);
+			const auto& row = g_model.Rows()[a_index];
+			if (!row.Dirty()) {
+				return false;
+			}
+			if (row.failed && Core::Identical(*row.failed, row.edit)) {
+				return Clock::now() - g_ui[a_index].failedAt >= kRetryFailed;
+			}
+			return true;
 		}
 
 		// Queue every changed row that was NOT drawn this frame. A drawn row decides
 		// for itself, once its widget is let go of; one that is not drawn cannot be
 		// mid-edit - its page was switched away from, its group was collapsed or the
 		// menu closed - and no later frame is promised to it.
-		void QueueLeftBehind()
+		// a_lastChance: the rows are about to be re-read from disk, so a value the
+		// file refused a moment ago is tried once more without waiting.
+		void QueueLeftBehind(bool a_lastChance = false)
 		{
 			for (std::size_t i = 0; i < g_model.Rows().size() && i < g_ui.size(); ++i) {
-				if (g_ui[i].drawn != g_frame && Writable(g_model.Rows()[i])) {
+				if (g_ui[i].drawn != g_frame && (a_lastChance ? g_model.Rows()[i].Dirty() : Writable(i))) {
 					g_commits.push_back(i);
 				}
 			}
@@ -150,7 +167,18 @@ namespace Menu
 			auto&      ui = g_ui[a_index];
 			const bool met = Env::Meets(row.needs);
 			ui.drawn = g_frame;
-			const auto kind = Core::KindOf(row.edit);
+
+			// What the widget shows. An int key someone wrote as a float (60.0) is
+			// shown as the whole number it is meant to be; row.edit only changes when
+			// the widget does, so nothing is written that the user did not touch.
+			const bool   intLike = row.control == Core::Control::Flag || row.control == Core::Control::Int || row.control == Core::Control::Percent;
+			Core::Scalar shown = row.edit;
+			if (intLike) {
+				if (const auto* f = std::get_if<double>(&row.edit)) {
+					shown = std::isfinite(*f) ? static_cast<std::int64_t>(std::llround(std::clamp(*f, -2.0e9, 2.0e9))) : std::int64_t{ 0 };
+				}
+			}
+			const auto kind = Core::KindOf(shown);
 
 			std::string label = row.label;
 			if (!row.unit.empty() && row.control != Core::Control::Percent) {
@@ -170,12 +198,12 @@ namespace Menu
 					row.edit = value;
 				}
 			} else if (row.control == Core::Control::Flag && kind == Core::Kind::Int) {
-				bool value = std::get<std::int64_t>(row.edit) != 0;
+				bool value = std::get<std::int64_t>(shown) != 0;
 				if (Ui::Checkbox(label.c_str(), &value)) {
 					row.edit = std::int64_t{ value ? 1 : 0 };  // an int, never true/false: the scripts read flags with GetInt
 				}
 			} else if (kind == Core::Kind::Int) {
-				int value = ToInt(row.edit);
+				int value = ToInt(shown);
 				bool changed = false;
 				if (row.control == Core::Control::Percent) {
 					changed = Ui::SliderInt(label.c_str(), &value, 0, 100, "%d%%", Ui::ImGuiSliderFlags_AlwaysClamp);
@@ -212,12 +240,20 @@ namespace Menu
 					}
 					row.edit = Core::FromFloat(value);  // only on a real edit: an untouched value is never re-rounded
 				}
+			} else if (std::get<std::string>(row.edit).size() >= kTextCapacity) {
+				// longer than the field can hold: editing it here would cut it short
+				Ui::TextUnformatted(label.c_str());
+				Ui::SameLine();
+				Colored(kHint, "(too long to edit here: change it in SLOVE.toml)");
 			} else {
 				const auto& current = std::get<std::string>(row.edit);
+				if (ui.text.size() != kTextCapacity) {
+					ui.text.assign(kTextCapacity, '\0');
+					ui.textInit = false;
+				}
 				if (!ui.textInit || (!ui.wasActive && ui.textFor != current)) {
-					const auto length = std::min(current.size(), ui.text.size() - 1);
-					std::copy_n(current.begin(), length, ui.text.begin());
-					ui.text[length] = '\0';
+					std::copy(current.begin(), current.end(), ui.text.begin());  // fits: checked above
+					ui.text[current.size()] = '\0';
 					ui.textFor = current;
 					ui.textInit = true;
 				}
@@ -270,7 +306,7 @@ namespace Menu
 			// write once the widget is let go of: a slider on release, a typed number
 			// or text on leaving the field, a checkbox or step button at once. A value
 			// the file refused is not retried until it changes.
-			if (!active && Writable(row)) {
+			if (!active && Writable(a_index)) {
 				g_commits.push_back(a_index);
 			}
 		}
@@ -372,8 +408,9 @@ namespace Menu
 			Ui::PopID();
 		}
 
-		// all file I/O of the frame, after its last ImGui call
-		void Flush()
+		// All file I/O of the frame, before its first or after its last ImGui call.
+		// False when a change could not be written.
+		bool Flush()
 		{
 			const auto before = g_model.Writes();
 			bool       ok = true;
@@ -387,8 +424,19 @@ namespace Menu
 				Bridge::RequestReload();
 			}
 			if (!ok) {
-				g_writeError = "A change could not be written to SLOVE.toml (is the file read-only, or broken by a hand edit?). It was NOT saved.";
-				logger::warn("a change could not be written to SLOVE.toml");
+				// remember when, per row: Writable tries them again after a pause
+				const auto now = Clock::now();
+				for (const auto* list : { &g_adds, &g_commits }) {
+					for (const auto index : *list) {
+						if (index < g_model.Rows().size() && index < g_ui.size() && g_model.Rows()[index].failed) {
+							g_ui[index].failedAt = now;
+						}
+					}
+				}
+				if (g_writeError.empty()) {
+					logger::warn("a change could not be written to SLOVE.toml");
+				}
+				g_writeError = "A change could not be written to SLOVE.toml (is the file read-only, in use by another program, or broken by a hand edit?). It is NOT saved yet; the menu keeps trying while it is open.";
 			} else if (g_model.Writes() != before) {
 				g_writeError.clear();
 			}
@@ -397,7 +445,11 @@ namespace Menu
 			if (g_reloadAsked) {
 				g_reloadAsked = false;
 				Reopened();
+				if (g_model.Ok()) {
+					Bridge::RequestReload();  // asked for by hand: bring AudioUtil in step too, whatever we think it has
+				}
 			}
+			return ok;
 		}
 
 		void RenderPage(std::size_t a_thunk) noexcept
@@ -409,11 +461,16 @@ namespace Menu
 				if (now - g_lastFrame > kReopenGap) {
 					// an edit from before the gap goes to the file first: the
 					// re-read below would otherwise replace it with what is on disk
+					bool lost = false;
 					if (g_model.Ok()) {
-						QueueLeftBehind();
-						Flush();
+						QueueLeftBehind(true);
+						lost = !Flush();
 					}
 					Reopened();
+					if (lost) {
+						// the re-read dropped it, so say so instead of showing nothing
+						g_writeError = "A change made before the menu was last closed could not be written to SLOVE.toml (is the file read-only?) and was dropped.";
+					}
 				}
 				g_lastFrame = now;
 

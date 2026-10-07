@@ -181,7 +181,9 @@ foreach ($tree in @('papyrus\Source', 'papyrus\classic\Source')) {
 $scriptKeys = @($reads.Keys)
 [void](Compare-Sets 'the scripts' $scriptKeys 'SLOVE.toml' $tomlKeys)
 
-# TomlUtil hands back the caller's fallback on a type mismatch, silently
+# TomlUtil converts where nothing is lost (true reads as 1, 60.0 as 60) and otherwise
+# hands back the caller's fallback, silently. A getter of another type than the
+# shipped value is a mistake either way.
 $fits = @{ 'int' = @('int'); 'float' = @('float', 'int'); 'string' = @('string'); 'bool' = @('bool') }
 foreach ($key in $scriptKeys) {
     if (-not $toml.Contains($key)) { continue }

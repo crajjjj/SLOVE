@@ -9,13 +9,20 @@ namespace Bridge
 		using Clock = std::chrono::steady_clock;
 
 		constexpr auto kConfigFile = "SKSE/Plugins/SLOVE/SLOVE.toml"sv;  // as SLOVE_Config.File() spells it
-		constexpr auto kResend = 5s;  // no answer for this long: the call is taken as lost
+		// no answer for this long: the call is taken as lost. Also the pause before
+		// asking again after AudioUtil said no.
+		constexpr auto kResend = 5s;
 
-		std::atomic<bool>          g_dirty{ false };     // AudioUtil's cache is behind the file
-		std::atomic<bool>          g_inFlight{ false };  // a reload is queued or running
+		// The reload as a state. g_dirty: the file is newer than anything AudioUtil
+		// was asked to read. g_inFlight: a call is out and not answered. The debt is
+		// paid when a call that STARTED after the last write is answered with true;
+		// a call that is refused, or never answered, puts the debt back.
+		std::atomic<bool>          g_dirty{ false };
+		std::atomic<bool>          g_inFlight{ false };
 		std::atomic<std::uint32_t> g_generation{ 0 };    // bumped when the VM resets
 		std::atomic<std::int64_t>  g_sentAt{ 0 };        // Clock ticks of the last send
 		std::atomic<std::int64_t>  g_dirtySince{ 0 };    // Clock ticks when the debt began
+		std::atomic<std::int64_t>  g_refusedAt{ 0 };     // Clock ticks of AudioUtil's last "no" (0: none)
 
 		std::int64_t Now()
 		{
@@ -25,6 +32,14 @@ namespace Bridge
 		Clock::duration Since(std::int64_t a_ticks)
 		{
 			return Clock::duration{ Now() - a_ticks };
+		}
+
+		void Owe()
+		{
+			if (!g_dirty.exchange(true)) {
+				std::int64_t none = 0;
+				g_dirtySince.compare_exchange_strong(none, Now());
+			}
 		}
 
 		// The answer of a Papyrus call that returns a Bool. Runs on a VM thread, so
@@ -42,9 +57,11 @@ namespace Bridge
 				}
 				const bool ok = a_result.IsBool() && a_result.GetBool();
 				if (!ok) {
-					// AudioUtil kept its old cache (it read the file mid-write, or the
-					// file does not parse): the debt stands
-					g_dirty.store(true);
+					// AudioUtil kept its old cache (it could not open the file, or the
+					// file does not parse): the debt stands, and Pump waits a while
+					// before asking again instead of asking every frame
+					g_refusedAt.store(Now());
+					Owe();
 				} else if (!g_dirty.load()) {
 					g_dirtySince.store(0);
 				}
@@ -80,7 +97,8 @@ namespace Bridge
 				// documented, and a few bytes per reload is the only safe side of that
 				auto* args = RE::MakeFunctionArguments(RE::BSFixedString{ kConfigFile });
 				if (!vm->DispatchStaticCall("TomlUtil"sv, "Reload"sv, args, callback)) {
-					g_dirty.store(true);
+					g_refusedAt.store(Now());  // no such script: not every frame either
+					Owe();
 					g_inFlight.store(false);
 				}
 			});
@@ -134,19 +152,29 @@ namespace Bridge
 
 	void RequestReload()
 	{
-		if (!g_dirty.exchange(true)) {
-			std::int64_t none = 0;
-			g_dirtySince.compare_exchange_strong(none, Now());
-		}
+		Owe();
+		g_refusedAt.store(0);  // the file is new: whatever was refused before, ask now
 		Pump();
 	}
 
 	void Pump()
 	{
-		if (!g_dirty.load() || !Env::Get().audioUtil) {
-			return;  // nothing owed, or nobody to tell (without AudioUtil the scripts read nothing)
+		if (!Env::Get().audioUtil) {
+			return;  // nobody to tell (without AudioUtil the scripts read nothing)
 		}
-		if (g_inFlight.load() && Since(g_sentAt.load()) < kResend) {
+		if (g_inFlight.load()) {
+			if (Since(g_sentAt.load()) < kResend) {
+				return;  // wait for the answer
+			}
+			// none came: the call went down with its VM or was never run, and what
+			// it was to deliver is owed again
+			g_inFlight.store(false);
+			Owe();
+		}
+		if (!g_dirty.load()) {
+			return;
+		}
+		if (const auto refused = g_refusedAt.load(); refused != 0 && Since(refused) < kResend) {
 			return;
 		}
 		Send();
@@ -155,7 +183,11 @@ namespace Bridge
 	void OnVmReset()
 	{
 		g_generation.fetch_add(1);
-		g_inFlight.store(false);
+		// a call in flight dies with the old VM and its answer is no longer ours:
+		// the task clears the debt as it dispatches, so put it back
+		if (g_inFlight.exchange(false)) {
+			Owe();
+		}
 	}
 
 	bool ReloadPending()

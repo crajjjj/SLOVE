@@ -78,7 +78,9 @@ SKSEPluginLoad(const LoadInterface* a_skse)
 	const auto* plugin = PluginDeclaration::GetSingleton();
 	log::info("{} v{} is loading...", plugin->GetName(), plugin->GetVersion());
 
-	Init(a_skse);
+	// false: SKSE::Init would otherwise set up a logger of its own on top of ours,
+	// and that one throws inside a noexcept function when the log cannot be created
+	Init(a_skse, false);
 	g_skse = a_skse;
 
 	if (const auto* messaging = GetMessagingInterface()) {

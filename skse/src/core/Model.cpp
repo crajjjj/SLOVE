@@ -29,7 +29,9 @@ namespace Core
 			case Control::Flag:
 			case Control::Int:
 			case Control::Percent:
-				return KindOf(a_value) == Kind::Int;
+				// an int key someone wrote as 60.0 keeps its control: the menu shows
+				// it as the whole number it is meant to be and writes an int back
+				return KindOf(a_value) == Kind::Int || KindOf(a_value) == Kind::Float;
 			case Control::Float:
 				// a float key the user wrote as an int still edits as a float
 				return KindOf(a_value) == Kind::Float || KindOf(a_value) == Kind::Int;
@@ -151,13 +153,13 @@ namespace Core
 		// pages: the schema's, in its order, then any section it does not name
 		std::unordered_set<std::string> paged;
 		const auto                      addPage = [&](std::string a_section, std::string a_title, std::string a_note) {
-            if (paged.insert(a_section).second) {
-                Page page;
-                page.section = std::move(a_section);
-                page.title = std::move(a_title);
-                page.note = std::move(a_note);
-                _pages.push_back(std::move(page));
-            }
+			if (paged.insert(a_section).second) {
+				Page page;
+				page.section = std::move(a_section);
+				page.title = std::move(a_title);
+				page.note = std::move(a_note);
+				_pages.push_back(std::move(page));
+			}
 		};
 		for (const auto& spec : _schema.Pages()) {
 			addPage(spec.section, spec.title, spec.note);
@@ -214,34 +216,83 @@ namespace Core
 			if (index >= _rows.size()) {
 				continue;
 			}
-			if (!_rows[index].Dirty() && !(a_addMissing && !_rows[index].inFile)) {
+			const auto& row = _rows[index];
+			if (!row.Dirty() && !(a_addMissing && !row.inFile)) {
 				continue;
 			}
-			edits.emplace_back(_rows[index].key, _rows[index].edit);
+			// a row that was edited is written whatever the file holds; a plain
+			// "add" must not overwrite a value someone added by hand meanwhile
+			edits.push_back({ row.key, row.edit, !row.Dirty() });
 			touched.push_back(index);
 		}
 		if (edits.empty()) {
 			return true;
 		}
 
-		// splice into what is on disk NOW, not into what was read when the menu
-		// opened: a hand edit or a console `toml set` made since then survives
-		ConfigDoc fresh;
-		if (!fresh.Load(_doc.File()) || !fresh.Apply(edits) || !fresh.Save()) {
+		ConfigDoc            fresh;
+		std::vector<Outcome> outcomes;
+		if (!fresh.Rewrite(_doc.File(), edits, outcomes)) {
 			for (const auto index : touched) {
 				_rows[index].failed = _rows[index].edit;
 			}
 			return false;
 		}
 		_doc = std::move(fresh);
-		++_writes;
-		for (const auto index : touched) {
-			auto& row = _rows[index];
-			row.saved = row.edit;
-			row.inFile = true;
-			row.failed.reset();
+		bool wrote = false;
+		bool allDone = true;
+		for (std::size_t i = 0; i < touched.size(); ++i) {
+			auto& row = _rows[touched[i]];
+			switch (outcomes[i]) {
+			case Outcome::Written:
+				row.saved = row.edit;
+				row.inFile = true;
+				row.failed.reset();
+				wrote = true;
+				break;
+			case Outcome::Kept:
+				row.failed.reset();  // Sync shows the value that was already there
+				break;
+			default:
+				row.failed = row.edit;
+				allDone = false;
+				break;
+			}
 		}
-		return true;
+		if (wrote) {
+			++_writes;
+		}
+		Sync();
+		return allDone;
+	}
+
+	// _doc is what the disk holds. Bring every row that is not mid-edit in line
+	// with it, so a change made outside since the file was last read is shown
+	// instead of being papered over by a stale row.
+	void Model::Sync()
+	{
+		for (auto& row : _rows) {
+			const auto* entry = _doc.Find(row.key);
+			row.inFile = entry != nullptr;
+			if (!entry) {
+				continue;
+			}
+			Scalar disk = entry->value;
+			if (row.control == Control::Float) {
+				if (const auto* i = std::get_if<std::int64_t>(&disk)) {
+					disk = static_cast<double>(*i);
+				}
+			}
+			// a value whose type changed waits for the next Refresh, which
+			// rebuilds the row with a control that fits it
+			if (KindOf(disk) != KindOf(row.saved) || Identical(disk, row.saved)) {
+				continue;
+			}
+			const bool clean = !row.Dirty();
+			row.saved = disk;
+			if (clean) {
+				row.edit = std::move(disk);
+			}
+		}
 	}
 
 	void Model::ResetToDefault(const std::vector<std::size_t>& a_rows)

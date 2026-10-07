@@ -586,7 +586,7 @@ key = "sfx.usevelocity"
 group = "Thrust timing"
 label = "Time thrusts from motion"
 control = "flag"
-tip = "Time thrust sounds from measured motion instead of a fixed pace. The sources, best first: Accurate Penetration's depth, then SexLab P+ 2.19 contact speed. With neither, the scene labels set the pace."
+tip = "Time thrust sounds from measured motion instead of a fixed pace. The sources, best first: Accurate Penetration's depth, then SexLab P+ 2.19 contact speed. Where neither exists (classic SexLab, older P+) the scene labels set the pace. On P+ 2.19 a stage where no contact is detected plays no thrust sounds while this is on: turn it off if they go missing."
 
 [[setting]]
 key = "sfx.useppathrust"
