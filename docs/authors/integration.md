@@ -68,6 +68,27 @@ EndEvent
 
 These exist so consumers never have to touch raw SexLab events — the same events will be emitted by a future OStim backend.
 
+### Willpower events
+
+Since 0.7.2 every actor with a running [willpower](../resistance.md) effect reports it, **player and NPC scenes alike**. The sender is the actor.
+
+| Event | sender | `argNum` | When |
+|---|---|---|---|
+| `SLOVE_Willpower` | the actor | willpower `0` to `100` (`0` = broken) | On every tick of the actor's resistance effect (every 3 to 5 seconds), changed or not |
+| `SLOVE_WillpowerEnd` | the actor | not used | The effect has ended: the actor's scene is over |
+
+```papyrus
+RegisterForModEvent("SLOVE_Willpower", "OnSloveWillpower")
+
+Event OnSloveWillpower(String eventName, String argString, Float argNum, Form sender)
+    Actor who = sender as Actor
+    Int willpower = argNum as Int
+    ; ...
+EndEvent
+```
+
+The repeat is deliberate: a listener that came late (a game load in the middle of a scene) is up to date within one tick, and one that hears nothing for a while may take the scene as over even if the end event was lost. SLO VE's own [TrueHUD bar](../resistance.md#on-screen-bar-truehud) is drawn from exactly these two events. Nothing is sent while `resistance.enable = 0`.
+
 ### Muting an actor
 
 Your mod can take an actor's voice away from SLO VE, for the current stage or for the rest of the scene, by sending a mod event **from that actor** with your mod's name as the string. Use it when you play that actor's sounds yourself (choking, a scripted line, a death) and SLO VE's moans and dirty talk would run over them.

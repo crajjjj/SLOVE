@@ -1,7 +1,8 @@
 set_xmakever("3.0.0")  -- the commonlibsse-ng submodule requires 3.0
 
 -- SLOVE.dll: the SLO VE in-game settings menu (an SKSE Menu Framework page over
--- SLOVE.toml). Build it through scripts\build.ps1, which passes the mod version
+-- SLOVE.toml) and the willpower bar on TrueHUD's special bar (src\HudBar).
+-- Build it through scripts\build.ps1, which passes the mod version
 -- in and checks the result; a bare `xmake` here builds a 0.0.0 dev DLL that
 -- build.ps1 refuses to package.
 
@@ -48,12 +49,12 @@ target(PROJECT_NAME)
     add_rules("commonlibsse-ng.plugin", {
         name = PROJECT_NAME,
         author = PROJECT_AUTHOR,
-        description = "SLO VE in-game settings menu (SKSE Menu Framework page over SLOVE.toml)."
+        description = "SLO VE in-game settings menu (SKSE Menu Framework page over SLOVE.toml) and TrueHUD willpower bar."
     })
     add_packages("toml++")
     add_files("src/**.cpp")
     add_headerfiles("src/**.h")
-    add_includedirs("src", "extern/SKSEMenuFramework")
+    add_includedirs("src", "extern/SKSEMenuFramework", "extern/TrueHUD")
     set_pcxxheader("src/PCH.h")
 
     add_cxxflags(

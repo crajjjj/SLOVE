@@ -108,3 +108,12 @@ subs:
     alias: mutes
     func: Mutes
     help: List the actors with a mute written on them (SLOVE_Mute_* events) - level, caller, and whether it is in force
+  - name: Willpower
+    alias: willpower
+    func: Willpower
+    help: Send SLOVE_Willpower for the crosshair actor (else the player) to try the TrueHUD willpower bar without a scene - it resets by itself after about half a minute
+    args:
+      - name: value
+        type: int
+        required: true
+        help: 0-100 = the willpower to show (0 flashes the bar when it was above 0), -1 = end (SLOVE_WillpowerEnd)

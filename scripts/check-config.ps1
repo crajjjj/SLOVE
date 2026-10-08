@@ -8,6 +8,8 @@
 # literal for ever, and a key the menu does not describe shows up as a bare field.
 #
 #   papyrus\**\*.psc                            SLOVE_Config.Get*("section.key", fallback)
+#                                               (or, for a key only SLOVE.dll reads,
+#                                               Flag(doc, "section.key"sv, fallback) in skse\src)
 #   dist\SKSE\Plugins\SLOVE\SLOVE.toml          the shipped value
 #   dist\SKSE\Plugins\SLOVE\SLOVE_Menu.toml     how the in-game menu presents it
 #   docs\config\slove.md                        its row in the reference tables
@@ -179,7 +181,31 @@ foreach ($tree in @('papyrus\Source', 'papyrus\classic\Source')) {
     }
 }
 $scriptKeys = @($reads.Keys)
-[void](Compare-Sets 'the scripts' $scriptKeys 'SLOVE.toml' $tomlKeys)
+
+# A few keys are read by SLOVE.dll and not by any script (the TrueHUD bar): the
+# plugin takes a flag with Flag(doc, "section.key"sv, fallback), like GetInt == 1.
+$pluginReads = @{}   # key -> list of "file(line)"
+$pluginSrc = Join-Path $skse 'src'
+if (Test-Path $pluginSrc) {
+    foreach ($file in (Get-ChildItem $pluginSrc -Filter '*.cpp')) {
+        $n = 0
+        foreach ($line in [System.IO.File]::ReadAllLines($file.FullName)) {
+            $n++
+            foreach ($m in [regex]::Matches((Get-CppCode $line), '\bFlag\s*\(\s*\w+\s*,\s*"([A-Za-z0-9_.]+)"sv')) {
+                $key = $m.Groups[1].Value.ToLowerInvariant()
+                if (-not $pluginReads.ContainsKey($key)) { $pluginReads[$key] = @() }
+                $pluginReads[$key] += "skse\src\$($file.Name)($n)"
+            }
+        }
+    }
+}
+foreach ($key in $pluginReads.Keys) {
+    if ($toml.Contains($key) -and $toml[$key].Type -ne 'int') {
+        Fail "$key is a TOML $($toml[$key].Type) but the plugin reads it as a 0/1 flag ($($pluginReads[$key][0]))"
+    }
+}
+$readKeys = @(@($scriptKeys) + @($pluginReads.Keys) | Select-Object -Unique)
+[void](Compare-Sets 'the scripts and the plugin' $readKeys 'SLOVE.toml' $tomlKeys)
 
 # TomlUtil converts where nothing is lost (true reads as 1, 60.0 as 60) and otherwise
 # hands back the caller's fallback, silently. A getter of another type than the
@@ -193,7 +219,8 @@ foreach ($key in $scriptKeys) {
         }
     }
 }
-Write-Host "$($scriptKeys.Count) key(s) read by the scripts, $($tomlKeys.Count) in SLOVE.toml"
+$pluginOnly = @($pluginReads.Keys | Where-Object { $scriptKeys -notcontains $_ })
+Write-Host "$($scriptKeys.Count) key(s) read by the scripts, $($pluginOnly.Count) by the plugin alone, $($tomlKeys.Count) in SLOVE.toml"
 
 # ------------------------------------------------- 2. menu schema <-> toml ---
 Section 'SLOVE_Menu.toml <-> SLOVE.toml'
@@ -442,6 +469,14 @@ if (-not (Test-Path $bridgePath)) {
     if (-not $recorded) { Fail 'extern\SKSEMenuFramework\README.txt records no sha256' }
     elseif ($recorded -ne $actual) { Fail "SKSEMenuFramework.h was changed (sha256 $($actual.ToLowerInvariant())) - it is vendored verbatim; update README.txt only when taking a new upstream copy" }
     else { Write-Host 'SKSEMenuFramework.h matches the hash in its README' }
+
+    # the TrueHUD interface header (the willpower bar, src\HudBar.cpp): the same rule
+    $hudReadme = Read-Utf8 (Join-Path $skse 'extern\TrueHUD\README.txt')
+    $hudRecorded = [regex]::Match($hudReadme, 'sha256:\s*([0-9a-fA-F]{64})').Groups[1].Value
+    $hudActual = (Get-FileHash (Join-Path $skse 'extern\TrueHUD\TrueHUDAPI.h') -Algorithm SHA256).Hash
+    $hudSame = $hudRecorded -and $hudRecorded -eq $hudActual
+    if ($hudSame) { Write-Host 'TrueHUDAPI.h matches the hash in its README' }
+    if (-not $hudSame) { Fail 'TrueHUDAPI.h differs from the copy its README records - it is vendored verbatim' }
 
     # AudioUtil's writer and ours must make the same edit to the same file
     $ours = Join-Path $skse 'src\core\TomlEdit.h'

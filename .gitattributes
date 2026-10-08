@@ -1,3 +1,4 @@
-# Vendored verbatim: keep its bytes exactly as taken, whatever core.autocrlf says.
-# scripts\check-config.ps1 compares its sha256 with the one in the README beside it.
+# Vendored verbatim: keep their bytes exactly as taken, whatever core.autocrlf says.
+# scripts\check-config.ps1 compares each sha256 with the one in the README beside it.
 skse/extern/SKSEMenuFramework/SKSEMenuFramework.h -text
+skse/extern/TrueHUD/TrueHUDAPI.h -text

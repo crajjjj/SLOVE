@@ -72,6 +72,10 @@ EndEvent
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
 	; stamp scene-end game time so the next scene's lazy recovery has a reference
 	StorageUtil.SetFloatValue(Actorref, "SLOVE_LastSexTime", Utility.GetCurrentGameTime())
+	; tell whoever shows this actor's willpower that the scene is over for them
+	if Actorref
+		Actorref.SendModEvent("SLOVE_WillpowerEnd")
+	endif
 	; unwind the broken gameplay effects. The partner-rate subtraction is a safe
 	; no-op on an already-torn-down thread (P+ null-checks the alias), and the
 	; next scene resets the mults anyway; the key restore is marker-keyed and
@@ -223,7 +227,20 @@ Event OnUpdate()
 	else
 		RegisterForSingleUpdate(5.0)
 	endif
+	SendWillpower()
 EndEvent
+
+; ---- willpower events (outbound) ----
+; SLOVE_Willpower: sender = the actor, numArg = willpower 0-100 (0 = broken). Sent
+; on every tick of this effect, changed or not, so a listener can also take a
+; long silence as "out of the scene". SLOVE_WillpowerEnd (sender = the actor) is
+; sent when the effect ends. The TrueHUD bar in SLOVE.dll is fed by these, and
+; any other mod may listen: nothing here knows or cares who does.
+Function SendWillpower()
+	if enable == 1 && Actorref
+		Actorref.SendModEvent("SLOVE_Willpower", "", GetResistance() as float)
+	endif
+EndFunction
 
 ; ---- penetration gate: PPA-measured, SexLab-label fallback ----
 ; PPA reports "physically inserted right now"; if the bridge isn't tracking this

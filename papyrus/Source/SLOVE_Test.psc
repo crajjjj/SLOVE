@@ -316,6 +316,25 @@ Function Unmute(String scope) Global
 	MiscUtil.PrintConsole("SLO VE: sent " + ev + " for " + a.GetDisplayName() + " - 'slovetest mutes' shows the result")
 EndFunction
 
+;Send SLOVE_Willpower the way SLOVE_Resistance does, to see the TrueHUD willpower
+;bar without a scene (SexLab P+ hides the HUD during one while its Hide HUD
+;option is on): the actor under the crosshair, else the player. A value below 0
+;sends SLOVE_WillpowerEnd instead. Nothing is stored: the bar goes back to full
+;by itself about half a minute after the last event.
+Function Willpower(Int aiValue) Global
+	Actor a = Game.GetCurrentCrosshairRef() as Actor
+	if a == None
+		a = Game.GetPlayer()
+	endif
+	if aiValue < 0
+		a.SendModEvent("SLOVE_WillpowerEnd")
+		MiscUtil.PrintConsole("SLO VE: sent SLOVE_WillpowerEnd for " + a.GetDisplayName())
+	else
+		a.SendModEvent("SLOVE_Willpower", "", aiValue as float)
+		MiscUtil.PrintConsole("SLO VE: sent SLOVE_Willpower " + aiValue + " for " + a.GetDisplayName() + " - SKSE\\SLOVE.log says whether the TrueHUD bar is on")
+	endif
+EndFunction
+
 ;List every actor that has a mute written on it (SLOVE_Mute_* events), with what
 ;is written and whether it is in force - a mute that has run out stays written
 ;until it is lifted or the game is loaded.

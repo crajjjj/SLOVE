@@ -920,6 +920,13 @@ label = "Break status at scene start"
 control = "flag"
 tip = "At the start of a scene, say whether the player has recovered or is still broken."
 
+[[setting]]
+key = "resistance.truehudbar"
+group = "Notifications"
+label = "Willpower bar on TrueHUD"
+control = "flag"
+tip = "Shows the willpower of an actor in a scene on the special bar of TrueHUD - HUD Additions: the player's under the player widget, an NPC's on its info bar. TrueHUD has one such bar, and a stun or poise meter that already uses it keeps it. SexLab P+ hides the whole HUD in a scene while its Hide HUD option is on. Read when the game starts."
+
 # ---------------------------------------------------------------------- milk
 
 [[page]]

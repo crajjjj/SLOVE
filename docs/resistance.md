@@ -59,6 +59,20 @@ For the **player only**, `pcnotifyinterval` (`25`) prints *"Your resolve weakens
 
 The **break** message itself (*"Your will breaks…"*, when willpower first hits `0` mid-scene) is always shown. Set `scenestartnotification = 0` to silence the two scene-start status lines.
 
+## On-screen bar (TrueHUD)
+
+With [TrueHUD - HUD Additions](https://www.nexusmods.com/skyrimspecialedition/mods/62775) installed, SLO VE shows willpower on TrueHUD's **special bar** (since 0.7.2): the player's under the player widget, an NPC's on its info bar whenever TrueHUD draws one for that actor. The bar is full at `100`, drains with willpower and flashes when the actor breaks. It follows the actor for as long as they are in a scene and goes back to full afterwards. `truehudbar = 0` switches it off.
+
+Things to know:
+
+- **TrueHUD has one special bar for all mods.** Stun and poise meters (Valhalla Combat, POISE, Chocolate Poise, Maxsu Poise and others) use the same bar. SLO VE asks for it last, after every other plugin has loaded, and takes it only when it is free. With such a meter installed you keep the meter and get no willpower bar. `SKSE\SLOVE.log` has one `TrueHUD willpower bar:` line that says which way it went.
+- **SexLab P+ hides the HUD during a scene** while its *Hide HUD* option is on (its default), and TrueHUD goes with it. To see the bar in a player scene, turn that option off in the P+ settings, or switch *Game HUD* on in the P+ scene panel.
+- **How the bar looks is TrueHUD's business.** In TrueHUD's own settings the special bar has a display mode and colours. In the default *dynamic* mode it is hidden while willpower is whole and comes up with the first loss. An NPC's special bar is off by default for everyone but the current target.
+- **The switch is read when the game starts.** Change `truehudbar` and restart the game.
+- To see the bar without a scene: `slovetest willpower 40` in the console (it resets by itself after about half a minute, or with `slovetest willpower -1`).
+
+The bar is drawn from two mod events any mod can listen to: [willpower events](authors/integration.md#willpower-events).
+
 ## What breaking changes
 
 | Effect | Gate |
