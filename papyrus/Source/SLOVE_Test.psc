@@ -316,23 +316,39 @@ Function Unmute(String scope) Global
 	MiscUtil.PrintConsole("SLO VE: sent " + ev + " for " + a.GetDisplayName() + " - 'slovetest mutes' shows the result")
 EndFunction
 
-;Send SLOVE_Willpower the way SLOVE_Resistance does, to see the TrueHUD willpower
-;bar without a scene (SexLab P+ hides the HUD during one while its Hide HUD
-;option is on): the actor under the crosshair, else the player. A value below 0
-;sends SLOVE_WillpowerEnd instead. Nothing is stored: the bar goes back to full
-;by itself about half a minute after the last event.
+;Set the stored willpower of the actor under the crosshair, else the player, to
+;try a willpower display (the SL Widgets bar) or the broken voice without
+;playing scenes for it. This WRITES the real state: 1-100 sets the value and
+;lifts a break, 0 breaks the actor for the configured number of hours. The
+;time stamp is set to now, so recovery counts from this moment.
 Function Willpower(Int aiValue) Global
 	Actor a = Game.GetCurrentCrosshairRef() as Actor
 	if a == None
 		a = Game.GetPlayer()
 	endif
-	if aiValue < 0
-		a.SendModEvent("SLOVE_WillpowerEnd")
-		MiscUtil.PrintConsole("SLO VE: sent SLOVE_WillpowerEnd for " + a.GetDisplayName())
-	else
-		a.SendModEvent("SLOVE_Willpower", "", aiValue as float)
-		MiscUtil.PrintConsole("SLO VE: sent SLOVE_Willpower " + aiValue + " for " + a.GetDisplayName() + " - SKSE\\SLOVE.log says whether the TrueHUD bar is on")
+	int v = aiValue
+	if v < 0
+		v = 0
+	elseif v > 100
+		v = 100
 	endif
+	bool isPC = a == Game.GetPlayer()
+	int broken = 0
+	int rate = SLOVE_Config.GetInt("resistance.npcrecoverperhour", 5)
+	if isPC
+		rate = SLOVE_Config.GetInt("resistance.pcrecoverperhour", 10)
+	endif
+	if v == 0
+		broken = SLOVE_Config.GetInt("resistance.npcbrokenpoints", 40)
+		if isPC
+			broken = SLOVE_Config.GetInt("resistance.pcbrokenpoints", 60)
+		endif
+	endif
+	StorageUtil.SetIntValue(a, "SLOVE_Resistance", v)
+	StorageUtil.SetIntValue(a, "SLOVE_BrokenPoints", broken)
+	StorageUtil.SetIntValue(a, "SLOVE_RecoverPerHour", rate)
+	StorageUtil.SetFloatValue(a, "SLOVE_LastSexTime", Utility.GetCurrentGameTime())
+	MiscUtil.PrintConsole("SLO VE: " + a.GetDisplayName() + " willpower=" + v + " brokenhours=" + broken + " recovers " + rate + "% per game hour from now")
 EndFunction
 
 ;List every actor that has a mute written on it (SLOVE_Mute_* events), with what

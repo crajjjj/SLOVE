@@ -62,7 +62,6 @@ npcbrokenpoints = 40           # hours-to-recover set when an NPC breaks
 victiminsertiontrauma = 5      # extra willpower hit when a submissive is forcibly entered (0 = off)
 pcnotifyinterval = 25          # PC-only: "resolve weakens" notification each time willpower DRAINS down through this % band (e.g. 75/50/25). Draining only - recovery is handled by scenestartnotification. 0 = off
 scenestartnotification = 1     # PC-only: at scene start, announce break status - "recovered your composure" when a break clears, or "still broken (N hours to recover)" while it persists. 0 = off
-truehudbar = 1                 # show willpower on the "special bar" of TrueHUD - HUD Additions while an actor is in a scene (the player's under the player widget). Read by SLOVE.dll when the game starts. TrueHUD has ONE such bar: a stun or poise meter that already uses it keeps it. SexLab P+ hides the whole HUD in a scene while its "Hide HUD" option is on. 0 = off
 # what breaking changes at runtime (P+ variant only; classic keeps voice/face effects only)
 brokenblockenjkeys = 1         # PC-only: while the PC is broken, SexLab P+'s enjoyment-game hotkeys are disabled - and the "game required on high enjoyment" gate is lifted so she can still reach orgasm. The P+ MCM toggles are saved and restored at scene end. 0 = off
 brokenpartnerenjmult = 10      # while an actor is broken, every scene partner's enjoyment grows this % faster (P+ enjoyment engine; player scenes only). 0 = off

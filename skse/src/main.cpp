@@ -1,6 +1,5 @@
 #include "Bridge.h"
 #include "Env.h"
-#include "HudBar.h"
 #include "Menu.h"
 
 #include <spdlog/sinks/basic_file_sink.h>
@@ -8,10 +7,9 @@
 
 using namespace SKSE;
 
-// SLOVE.dll - the SLO VE in-game settings menu, and the willpower bar on TrueHUD.
-// Both are conveniences on top of a mod that runs entirely without them, so
-// nothing in here may take the game down: no report_and_fail, and a step that
-// fails only switches its own feature off.
+// SLOVE.dll - the SLO VE in-game settings menu. It is a convenience on top of a
+// mod that runs entirely without it, so nothing in here may take the game down:
+// no report_and_fail, and a step that fails only disables the menu.
 
 namespace
 {
@@ -49,17 +47,13 @@ namespace
 			case MessagingInterface::kDataLoaded:
 				// every SKSE plugin is loaded by now: what is not here will not come
 				Env::Detect(g_skse);
-				HudBar::Install();
 				Menu::Register();
 				break;
 			case MessagingInterface::kPreLoadGame:
 				Bridge::OnVmReset();
-				HudBar::Reset();
 				break;
-			case MessagingInterface::kNewGame:
-				HudBar::Reset();
-				[[fallthrough]];
 			case MessagingInterface::kPostLoadGame:
+			case MessagingInterface::kNewGame:
 				// a reload asked for before the load went down with the old VM
 				Bridge::OnVmReset();
 				Bridge::Pump();

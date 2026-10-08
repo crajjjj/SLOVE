@@ -68,27 +68,6 @@ EndEvent
 
 These exist so consumers never have to touch raw SexLab events — the same events will be emitted by a future OStim backend.
 
-### Willpower events
-
-Since 0.7.2 every actor with a running [willpower](../resistance.md) effect reports it, **player and NPC scenes alike**. The sender is the actor.
-
-| Event | sender | `argNum` | When |
-|---|---|---|---|
-| `SLOVE_Willpower` | the actor | willpower `0` to `100` (`0` = broken) | On every tick of the actor's resistance effect (every 3 to 5 seconds), changed or not |
-| `SLOVE_WillpowerEnd` | the actor | not used | The effect has ended: the actor's scene is over |
-
-```papyrus
-RegisterForModEvent("SLOVE_Willpower", "OnSloveWillpower")
-
-Event OnSloveWillpower(String eventName, String argString, Float argNum, Form sender)
-    Actor who = sender as Actor
-    Int willpower = argNum as Int
-    ; ...
-EndEvent
-```
-
-The repeat is deliberate: a listener that came late (a game load in the middle of a scene) is up to date within one tick, and one that hears nothing for a while may take the scene as over even if the end event was lost. SLO VE's own [TrueHUD bar](../resistance.md#on-screen-bar-truehud) is drawn from exactly these two events. Nothing is sent while `resistance.enable = 0`.
-
 ### Muting an actor
 
 Your mod can take an actor's voice away from SLO VE, for the current stage or for the rest of the scene, by sending a mod event **from that actor** with your mod's name as the string. Use it when you play that actor's sounds yourself (choking, a scripted line, a death) and SLO VE's moans and dirty talk would run over them.
@@ -128,7 +107,8 @@ Per-actor state, readable with PapyrusUtil:
 | `SLOVE_Resistance` | int | Current willpower `0–100` (default `100`) |
 | `SLOVE_BrokenPoints` | int | Game-hours-to-recover remaining; `> 0` means **broken** |
 | `SLOVE_ResDebt` | float | Pending forced-insertion trauma, drained on later ticks |
-| `SLOVE_LastSexTime` | float | Game time of the actor's last scene |
+| `SLOVE_LastSexTime` | float | Game time of the actor's last scene; kept current while a scene runs |
+| `SLOVE_RecoverPerHour` | int | The % per game-hour this actor recovers at (since 0.7.2) |
 | `SLOVE_FaceOwnsMouth_Expr` | int | `1` while SLO VE's climax/ahegao face owns this actor's mouth |
 | `SLOVE_FaceOwnsMouth_SLS` | int | `1` while SexLab Survival's ahegao owns the player's mouth |
 
@@ -139,6 +119,38 @@ Bool broken   = StorageUtil.GetIntValue(akActor, "SLOVE_BrokenPoints", 0) > 0
 
 !!! note "Prefer the Director's getters"
     `GetResistance(actor)` and `IsBroken(actor)` on the Director apply the `resistance.enable` gate for you; the raw keys don't.
+
+### Willpower between scenes
+
+`SLOVE_Resistance` is the value the last scene left behind. Recovery is only **applied** when the actor's next scene starts, so a mod that shows willpower outside a scene (a HUD bar, a status icon) has to work out what that scene will find. Everything it needs is in the keys above, and during a scene the same lines give the live value, because the time stamp is then never more than a few seconds old:
+
+```papyrus
+Int Function WillpowerNow(Actor akActor)
+    Int hours = 0
+    Float last = StorageUtil.GetFloatValue(akActor, "SLOVE_LastSexTime", -1.0)
+    If last >= 0.0
+        hours = Math.Floor((Utility.GetCurrentGameTime() - last) * 24.0)
+    EndIf
+    If hours < 0
+        hours = 0
+    EndIf
+    Int broken = StorageUtil.GetIntValue(akActor, "SLOVE_BrokenPoints", 0)
+    If broken > 0
+        ; a break is all or nothing: 0 until its hours have passed, then 100
+        If broken > hours
+            Return 0
+        EndIf
+        Return 100
+    EndIf
+    Int now = StorageUtil.GetIntValue(akActor, "SLOVE_Resistance", 100) + hours * StorageUtil.GetIntValue(akActor, "SLOVE_RecoverPerHour", 0)
+    If now > 100
+        now = 100
+    EndIf
+    Return now
+EndFunction
+```
+
+`SLOVE_RecoverPerHour` is written at each scene start from `pcrecoverperhour` / `npcrecoverperhour`. On a save that has not seen a scene since 0.7.2 it is missing, which reads as "no recovery until the next scene". This is what [SL Widgets](https://github.com/crajjjj/slwidgets) draws its willpower bar from.
 
 ### Owning an actor's face
 

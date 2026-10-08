@@ -111,9 +111,9 @@ subs:
   - name: Willpower
     alias: willpower
     func: Willpower
-    help: Send SLOVE_Willpower for the crosshair actor (else the player) to try the TrueHUD willpower bar without a scene - it resets by itself after about half a minute
+    help: Set the stored willpower of the crosshair actor (else the player) to try a willpower display or the broken voice - this writes the real state
     args:
       - name: value
         type: int
         required: true
-        help: 0-100 = the willpower to show (0 flashes the bar when it was above 0), -1 = end (SLOVE_WillpowerEnd)
+        help: 1-100 = that willpower (lifts a break), 0 = broken for the configured hours

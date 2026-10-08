@@ -72,10 +72,6 @@ EndEvent
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
 	; stamp scene-end game time so the next scene's lazy recovery has a reference
 	StorageUtil.SetFloatValue(Actorref, "SLOVE_LastSexTime", Utility.GetCurrentGameTime())
-	; tell whoever shows this actor's willpower that the scene is over for them
-	if Actorref
-		Actorref.SendModEvent("SLOVE_WillpowerEnd")
-	endif
 	; unwind the broken gameplay effects. The partner-rate subtraction is a safe
 	; no-op on an already-torn-down thread (P+ null-checks the alias), and the
 	; next scene resets the mults anyway; the key restore is marker-keyed and
@@ -214,6 +210,10 @@ Event OnUpdate()
 		return
 	endif
 
+	; keep the scene's time stamp current: recovery is counted from it, at the
+	; next scene's start and by whoever shows willpower in between (SL Widgets)
+	StorageUtil.SetFloatValue(Actorref, "SLOVE_LastSexTime", Utility.GetCurrentGameTime())
+
 	UpdateActorResistanceDebttoCurrent()
 
 	if GetResistance() > 0 && IsGettingFucked()
@@ -227,20 +227,7 @@ Event OnUpdate()
 	else
 		RegisterForSingleUpdate(5.0)
 	endif
-	SendWillpower()
 EndEvent
-
-; ---- willpower events (outbound) ----
-; SLOVE_Willpower: sender = the actor, numArg = willpower 0-100 (0 = broken). Sent
-; on every tick of this effect, changed or not, so a listener can also take a
-; long silence as "out of the scene". SLOVE_WillpowerEnd (sender = the actor) is
-; sent when the effect ends. The TrueHUD bar in SLOVE.dll is fed by these, and
-; any other mod may listen: nothing here knows or cares who does.
-Function SendWillpower()
-	if enable == 1 && Actorref
-		Actorref.SendModEvent("SLOVE_Willpower", "", GetResistance() as float)
-	endif
-EndFunction
 
 ; ---- penetration gate: PPA-measured, SexLab-label fallback ----
 ; PPA reports "physically inserted right now"; if the bridge isn't tracking this
@@ -410,8 +397,17 @@ Function CalculateStartupResistance()
 	endif
 	; mark this scene as initialized: a mid-scene save/reload re-runs this with
 	; last == now (~0 hours), so it neither recovers again nor wipes the drain
-	; already taken this scene. OnEffectFinish re-stamps it at scene end.
+	; already taken this scene. OnUpdate keeps it current while the scene runs and
+	; OnEffectFinish re-stamps it at scene end.
 	StorageUtil.SetFloatValue(Actorref, "SLOVE_LastSexTime", nowT)
+	; the rate this actor recovers at, for anyone who shows willpower between
+	; scenes: recovery is only APPLIED here, at the next scene's start, so a
+	; reader has to project it (docs\authors\integration.md has the formula)
+	if IsPlayer
+		StorageUtil.SetIntValue(Actorref, "SLOVE_RecoverPerHour", pcrecoverperhour)
+	else
+		StorageUtil.SetIntValue(Actorref, "SLOVE_RecoverPerHour", npcrecoverperhour)
+	endif
 
 	if IsBroken()
 		SetBrokenPoints(GetBrokenPoints() - hoursSince)

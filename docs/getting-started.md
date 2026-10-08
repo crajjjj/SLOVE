@@ -17,7 +17,6 @@ SLO VE is loose scripts, sounds and TOML config, plus one small ESL-flagged plug
 **Soft requirements.** All auto-detected, all optional; missing ones are simply skipped:
 
 - **SKSE Menu Framework** (version 3) for the [in-game settings menu](config/menu.md)
-- **TrueHUD - HUD Additions** for the [willpower bar](resistance.md#on-screen-bar-truehud), shown on its special bar when no other mod uses that bar
 - **MFEE** (Mu Facial Expression Extended) — extended ahegao / tongue faces
 - **sr_fillherup** — tongue armors
 - **Devious Devices** — gag detection for the [muffled gagged voice](packs/slots.md#the-gag-slot-f1gag)

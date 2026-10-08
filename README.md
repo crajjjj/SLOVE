@@ -20,8 +20,7 @@ reference, troubleshooting.
 | Mfg Fix NG (MfgConsoleFunc/Ext) | all face writes |
 
 Soft (auto-detected, optional): SKSE Menu Framework (the in-game settings
-menu), TrueHUD - HUD Additions (willpower shown on its special bar when no
-other mod uses that bar), MFEE, sr_fillherup (tongue), Devious Devices
+menu), MFEE, sr_fillherup (tongue), Devious Devices
 (gag), SexLab Survival (ahegao yield), SOS/TNG (huge-partner detection),
 Accurate Penetration via AudioUtilPPA (measured penetration/gape),
 Oninus Lactis NG (nipple squirts during scenes, `[milk]` in SLOVE.toml;
