@@ -134,6 +134,9 @@ Function PerformInitialization()
 	; seed the enjoyment baseline so the first tick drains the DELTA, not the
 	; whole current enjoyment (avoids a spike when the spell lands mid-scene)
 	LastEnjoyment = CurrentThread.GetEnjoyment(Actorref)
+	if LastEnjoyment < 0
+		LastEnjoyment = 0
+	endif
 
 	; seed on first ever entry
 	if StorageUtil.GetIntValue(Actorref, "SLOVE_Resistance", -1) < 0
@@ -182,10 +185,10 @@ EndFunction
 
 Function InitializeConfig()
 	enable             = SLOVE_Config.GetInt("resistance.enable", 1)
-	pcmaxresistance    = SLOVE_Config.GetInt("resistance.pcmaxresistance", 1000)
-	pcnonvictimmult    = SLOVE_Config.GetInt("resistance.pcnonvictimmult", 20)
+	pcmaxresistance    = SLOVE_Config.GetInt("resistance.pcmaxresistance", 600)
+	pcnonvictimmult    = SLOVE_Config.GetInt("resistance.pcnonvictimmult", 60)
 	npcnonvictimmult   = SLOVE_Config.GetInt("resistance.npcnonvictimmult", 30)
-	pcvictimmult       = SLOVE_Config.GetInt("resistance.pcvictimmult", 110)
+	pcvictimmult       = SLOVE_Config.GetInt("resistance.pcvictimmult", 120)
 	npcvictimmult      = SLOVE_Config.GetInt("resistance.npcvictimmult", 130)
 	hugeppmult         = SLOVE_Config.GetInt("resistance.hugeppmult", 200)
 	pcrecoverperhour   = SLOVE_Config.GetInt("resistance.pcrecoverperhour", 10)
@@ -216,11 +219,23 @@ Event OnUpdate()
 
 	UpdateActorResistanceDebttoCurrent()
 
+	; an orgasm puts enjoyment back to 0 and pain takes it below: the baseline
+	; follows it down on every tick, penetrated or not, or only the first climb
+	; of a scene would drain. Floored at 0, so climbing back out of pain is not
+	; charged as pleasure.
+	int enjoyment = CurrentThread.GetEnjoyment(Actorref)
+	if enjoyment < LastEnjoyment
+		LastEnjoyment = enjoyment
+		if LastEnjoyment < 0
+			LastEnjoyment = 0
+		endif
+	endif
+
 	if GetResistance() > 0 && IsGettingFucked()
 		UpdateLabels(Actorref)
-		int damagetodo = CurrentThread.GetEnjoyment(Actorref) - LastEnjoyment
+		int damagetodo = enjoyment - LastEnjoyment
 		if damagetodo > 0
-			LastEnjoyment = CurrentThread.GetEnjoyment(Actorref)
+			LastEnjoyment = enjoyment
 			AddResistanceDamage(damagetodo as float)
 		endif
 		RegisterForSingleUpdate(3.0)
@@ -259,8 +274,11 @@ Function AddResistanceDamage(float value)
 	AccumulatedResistanceDamage += Damage
 	if AccumulatedResistanceDamage >= 0.01
 		int before = GetResistance()
-		SetResistance(GetResistance() - Math.Floor(AccumulatedResistanceDamage * 100))
-		AccumulatedResistanceDamage = 0.0
+		int points = Math.Floor(AccumulatedResistanceDamage * 100)
+		SetResistance(before - points)
+		; keep the fraction of a point for the next tick: zeroing it threw away
+		; up to a third of a victim's drain, which crosses a point every other tick
+		AccumulatedResistanceDamage -= points / 100.0
 		if GetResistance() < 0
 			SetResistance(0)
 		endif

@@ -47,11 +47,11 @@ enablemalenpc = 1              # male NPCs lose willpower
 enablefemalenpc = 1            # female NPCs lose willpower
 enablecreaturenpc = 1          # creatures lose willpower
 enablebrokenstatus = 1         # play broken voice lines while broken (0 = broken face only)
-pcmaxresistance = 1000         # PC drain denominator - HIGHER = slower drain (NPCs use the race table)
+pcmaxresistance = 600          # PC drain denominator - HIGHER = slower drain (NPCs use the race table)
 # damage multipliers (percent of the base drain)
-pcnonvictimmult = 20           # PC, willing
+pcnonvictimmult = 60           # PC, willing
 npcnonvictimmult = 30          # NPC, willing
-pcvictimmult = 110             # PC, victim/submissive (drains faster)
+pcvictimmult = 120             # PC, victim/submissive (drains faster)
 npcvictimmult = 130            # NPC, victim/submissive
 hugeppmult = 200               # extra multiplier when the PC's partner is huge
 # recovery (percent of willpower regained per game-hour of no sex) + break severity

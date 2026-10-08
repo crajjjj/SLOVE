@@ -207,10 +207,10 @@ The optional willpower/break system. Full explanation of the mechanic: [Willpowe
 | `enablefemalenpc` | `1` | Female NPCs do. |
 | `enablecreaturenpc` | `1` | Creatures do. |
 | `enablebrokenstatus` | `1` | Play broken/begging voice lines while broken. `0` = keep the broken **face** but not the broken voice. |
-| `pcmaxresistance` | `1000` | PC drain denominator. **Higher = slower drain.** NPCs use `ResistanceRaceBase.json` instead. |
-| `pcnonvictimmult` | `20` | Percent multiplier — PC, willing. |
+| `pcmaxresistance` | `600` | PC drain denominator. **Higher = slower drain.** NPCs use `ResistanceRaceBase.json` instead. |
+| `pcnonvictimmult` | `60` | Percent multiplier — PC, willing. |
 | `npcnonvictimmult` | `30` | …NPC, willing. |
-| `pcvictimmult` | `110` | …PC, victim/submissive (drains faster). |
+| `pcvictimmult` | `120` | …PC, victim/submissive (drains faster). |
 | `npcvictimmult` | `130` | …NPC, victim/submissive. |
 | `hugeppmult` | `200` | Extra multiplier when the PC's partner is huge. |
 | `pcrecoverperhour` | `10` | Percent of willpower regained per game-hour without sex (PC). |

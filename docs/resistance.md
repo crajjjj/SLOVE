@@ -27,13 +27,15 @@ drain = (rise in enjoyment)
 
 | Situation | Key | Ships |
 |---|---|---|
-| PC, willing | `pcnonvictimmult` | `20` |
+| PC, willing | `pcnonvictimmult` | `60` |
 | NPC, willing | `npcnonvictimmult` | `30` |
-| PC, victim/submissive | `pcvictimmult` | `110` |
+| PC, victim/submissive | `pcvictimmult` | `120` |
 | NPC, victim/submissive | `npcvictimmult` | `130` |
 | PC's partner is huge (SOS/TNG ≥ `director.soshugeppsize`) | `hugeppmult` | `200` |
 
-`pcmaxresistance` (`1000`) is the PC's denominator — **higher means slower drain**. It is the single knob to turn if the whole system feels too fast or too slow for the player.
+`pcmaxresistance` (`600`) is the PC's denominator: **higher means slower drain**. It is the single knob to turn if the whole system feels too fast or too slow for the player.
+
+**How much is that?** SexLab enjoyment runs from `0` to `100` and an orgasm puts it back to `0`, so one full climb is a rise of `100`. With the shipped numbers that costs the player `100 ÷ 600 × 120% = 20` willpower as a victim and `100 ÷ 600 × 60% = 10` when willing, per climb. A short scene is about one and a half climbs, so it takes about 30 of her willpower as a victim and 15 when willing; a long one with several orgasms takes more. Every climb of a scene counts (since 0.7.2; before that only the first one did, and the numbers were 1000 / 110% / 20%), and enjoyment below `0` (pain) does not. Halving `pcmaxresistance` doubles both numbers.
 
 **Forced insertion trauma:** when a submissive receiver is forcibly entered, the SFX engine deposits an extra hit of `victiminsertiontrauma` (`5`) willpower, drained on the actor's next ticks. Set it to `0` to disable.
 
@@ -61,9 +63,9 @@ The **break** message itself (*"Your will breaks…"*, when willpower first hits
 
 ## On-screen bar
 
-SLO VE draws no bar of its own. [SL Widgets](https://github.com/crajjjj/slwidgets) 2.2.6 and newer shows the player's willpower as a bar with a brain icon beside it: it appears with the first loss, follows the drain during a scene, creeps back up as game hours pass and goes away again at `100`. Position and the on/off switch are in the SL Widgets MCM. It needs SLO VE 0.7.2 or newer for the recovery between scenes to show.
+SLO VE draws no bar of its own. [SL Widgets](https://github.com/crajjjj/slwidgets) 2.2.6 and newer shows the player's willpower as a bar with a brain icon beside it: during a scene it appears with the first loss and follows the drain, and it goes away when the scene ends (or at `100`). Position and the on/off switch are in the SL Widgets MCM. It needs SLO VE 0.7.2 or newer.
 
-To see it without a scene: `slovetest willpower 40` in the console. That **sets** the player's (or the crosshair actor's) real willpower; `slovetest willpower 0` breaks them, `slovetest willpower 100` puts it back.
+To move it without waiting for a drain: `slovetest willpower 40` in the console during a scene. That **sets** the player's (or the crosshair actor's) real willpower; `slovetest willpower 0` breaks them, `slovetest willpower 100` puts it back.
 
 Any other mod can show the same number: [willpower between scenes](authors/integration.md#willpower-between-scenes).
 
