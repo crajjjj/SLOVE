@@ -70,7 +70,8 @@ What is exchanged for what is a list in **`Data\SKSE\Plugins\StorageUtilData\SLO
 
 - **`armorslots`** lists the biped slots that are looked at (32 is the body; the others are slots outfit mods use for underwear, stockings and accessories).
 - Each line under **`form`** reads *the name of an armor you wear* : *the armor that replaces it*, written as `0x<form id>|<plugin file>`. The form id is the armor's id inside that plugin, without the load-order prefix: `0x000E74` and `0xe74` are the same.
-- The left side is the armor's **name as your inventory shows it**; upper and lower case do not matter. A renamed or translated armor needs a line under the name you see.
+- The left side is the armor's name **written in lower case**: `cosplay bikini - frill` for an armor the game calls *Cosplay Bikini - Frill*. A line whose name has a capital letter in it is never found.
+- It is the armor's own name. A tempering suffix such as *(Fine)* is not part of it, and a name you gave the item at the enchanting table does not count. An armor that a mod or a translation renames needs a line under the new name; if that name has letters outside A to Z and is not found in lower case, write those letters as the game does.
 - A line whose plugin is not installed is skipped, so one list can cover many outfit mods. The shipped list is Hentairim's, about 500 lines for popular outfit packs.
 
 The file is in Hentairim's format: to keep a list you already maintain, copy your `HentairimDirector\ArmorSwapping.json` over it.
@@ -78,16 +79,24 @@ The file is in Hentairim's format: to keep a list you already maintain, copy you
 How it behaves:
 
 - The swap runs **after SexLab has stripped**. An armor SexLab takes off is not there to be swapped, so leave the slots you want swapped unstripped in SexLab's strip options.
-- The original armor stays in your inventory during the scene. One copy of the replacement is added for the scene and removed again afterwards; a copy you own yourself is not touched.
+- The original armor stays in your inventory during the scene. One copy of the replacement is added for the scene and one copy is removed afterwards, so the count ends as it began.
 - A save made mid-scene is safe: the swap is remembered on the character, and the armor goes back on when that scene ends, or on loading if it ended meanwhile.
 - The original goes back on by its base item. If you carry two of the same armor with different enchantments or tempering, the game picks which of the two is worn.
 - Player only. An NPC re-equips an armor lying loose in their inventory, which would undo the swap.
+
+Known limits:
+
+- **Pair armors that cover the same slots.** A replacement that covers more slots than the original pushes off whatever you wear there, and that piece is not put back on when the scene ends.
+- **The replacement has to be wearable.** If it is flagged non-playable, or a locked device (Devious Devices and the like) holds one of its slots, the original still comes off and the slot stays bare for the scene. The debug log counts it as swapped all the same.
+- **Do not carry a copy of a replacement yourself.** The game decides which copy is taken away after the scene, and that can be your tempered or enchanted one. A copy that shares no slot with the original can also stay on next to it.
+- **Scenes that follow each other without a pause** (a mod that starts the next scene as one ends): the second scene can run without the swap while the first one is still putting the originals back.
+- **Rarely a scene ends with a replacement still on, or an original off**: a scene cancelled in its very first moment, or one in which a later stage stripped the replacement while you own a second copy of it. Put the original back on by hand; `slovetest armorswap` does not repair this.
 
 !!! warning "Still running Hentairim?"
     Hentairim has the same feature (`enablearmorswap` in its Director config). Turn one of the two off, or each will swap what the other just put on.
 
 !!! tip "Try a list without a scene"
-    `slovetest armorswap` swaps what you are wearing right now and prints, per listed slot, the armor found there and what the file gives for it, or that it has no entry. Run it again to put everything back. It reads the file afresh from disk each time, so you can edit the list and try again without restarting the game. It works with `enablearmorswap = 0`. Needs ConsoleUtil Extended.
+    `slovetest armorswap` swaps what you are wearing right now and prints, per listed slot, the armor found there and what the file gives for it, or that it has no entry. Run it again to put everything back. It reads the file afresh from disk each time, so you can edit the list and try again without restarting the game. It works with `enablearmorswap = 0`. A name that comes back as having no entry is most often one written with a capital letter. Used in the middle of a scene with the free camera on, it can close the mouth until the next expression update. Needs ConsoleUtil Extended.
 
 ## `[voice]`
 

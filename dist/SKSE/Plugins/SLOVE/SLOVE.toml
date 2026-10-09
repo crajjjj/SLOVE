@@ -38,7 +38,8 @@ maxnpcscenes = 3               # cap on concurrent NPC scenes processed (protect
 # of the same outfit) and goes back on when the scene ends. The file is in
 # Hentairim's format - copy your HentairimDirector\ArmorSwapping.json over it to
 # keep a list of your own - and holds the slots that are looked at ("armorslots")
-# plus one "worn armor name": "0xFormID|Plugin.esp" line per armor.
+# plus one "worn armor name": "0xFormID|Plugin.esp" line per armor. Write the
+# name in lower case: a name with a capital letter in it is never found.
 # An armor SexLab strips is gone before the swap looks: leave its slot unstripped
 # in SexLab's strip options. If Hentairim is still installed, turn off its own
 # armor swap. Try a list without a scene: console "slovetest armorswap".

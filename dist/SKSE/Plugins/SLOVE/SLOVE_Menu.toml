@@ -134,7 +134,7 @@ key = "director.enablearmorswap"
 group = "Armor swap"
 label = "Swap the player's armor for the scene"
 control = "flag"
-tip = "At the start of a player scene, each armor the player still wears that ArmorSwapping.json lists by name is exchanged for the version the file gives, and goes back on when the scene ends. An armor SexLab strips is not swapped. Turn off Hentairim's own armor swap if you run both."
+tip = "At the start of a player scene, each armor the player still wears that ArmorSwapping.json lists by name (written in lower case) is exchanged for the version the file gives, and goes back on when the scene ends. An armor SexLab strips is not swapped. Turn off Hentairim's own armor swap if you run both."
 
 [[setting]]
 key = "director.printdebug"

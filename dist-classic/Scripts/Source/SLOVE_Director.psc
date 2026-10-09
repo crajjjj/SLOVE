@@ -854,7 +854,11 @@ EndFunction
 ;back, also when the option was turned off mid-scene. The armor taken off at
 ;scene start was never on the framework's strip list, so its redress and this
 ;do not undo each other. A stand-in that a later stage stripped comes back with
-;that redress and is replaced here (the scene-end event follows the redress).
+;that redress and is replaced here, when this runs after it. That holds on the
+;AnimationEnd path (the framework sends the event once every actor is reset),
+;NOT on the P+ OnUpdate poll: GetThreadByActor stops answering the moment the
+;thread starts ending, so the poll can get here before or during the redress
+;(open, see the armor swap entry in CLAUDE.md).
 Function RestoreSceneArmor()
 	int restored = SLOVE_Utils.RestoreArmor(playerref)
 	if restored > 0

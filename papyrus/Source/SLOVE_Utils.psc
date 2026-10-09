@@ -456,8 +456,10 @@ EndFunction
 ;HentairimDirector/ArmorSwapping.json reads unchanged):
 ;  "string": { "armorslots": "32,44,38" }    the biped slots that are looked at
 ;  "form":   { "<name of the worn armor>": "0x<id>|<plugin>" }    what replaces it
-;The key is the armor's NAME as the inventory shows it (JsonUtil compares keys
-;without case), so a renamed or translated armor needs a line of its own.
+;The key is the armor's base NAME in LOWER CASE: JsonUtil lowercases the key it
+;is asked for and then matches the file's keys exactly, so a key written with a
+;capital is never found. GetName() is the base form's name (no tempering suffix,
+;no player rename); a renamed or translated armor needs a line of its own.
 ;
 ;SwapArmor is called AFTER the framework has stripped, so it only ever sees what
 ;the scene left on. Each listed armor is taken off (it stays in the inventory)
