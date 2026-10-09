@@ -219,7 +219,7 @@ The optional willpower/break system. Full explanation of the mechanic: [Willpowe
 | `npcbrokenpoints` | `40` | …NPC. |
 | `victiminsertiontrauma` | `5` | Extra willpower hit when a submissive is forcibly entered. `0` = off. |
 | `pcnotifyinterval` | `25` | **PC only.** *"Your resolve weakens…"* notification each time the player's willpower **drains** down through this percent band (e.g. `75`/`50`/`25`), once per band per scene. Draining only — recovery is announced by `scenestartnotification`. `0` = off. |
-| `scenestartnotification` | `1` | **PC only.** At scene start, announce break status: *"You have recovered your composure"* when a break has cleared, or *"You are still broken (N hours to recover)"* while it persists. `0` = off. |
+| `scenestartnotification` | `1` | **PC only.** Announce break status: *"You are still broken (N hours to recover)"* at scene start while a break persists, and *"You have recovered your composure"* when it ends (since 0.7.3 at the moment its hours have passed). `0` = off. |
 | `brokenblockenjkeys` | `1` | **PC only, P+ variant only.** While the PC is broken, SexLab P+'s enjoyment-game hotkeys are disabled (and the *"game required on high enjoyment"* gate is lifted so she can still reach orgasm). The P+ MCM toggles are saved and restored at scene end — or on the next game load after a crash. `0` = off. |
 | `brokenpartnerenjmult` | `10` | **P+ variant only.** While an actor is broken, every scene partner's enjoyment grows this percent faster (P+ enjoyment engine; effective in player scenes). `0` = off. |
 

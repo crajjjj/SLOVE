@@ -916,9 +916,9 @@ tip = "A notification each time the player's willpower drains down through this 
 [[setting]]
 key = "resistance.scenestartnotification"
 group = "Notifications"
-label = "Break status at scene start"
+label = "Break status messages"
 control = "flag"
-tip = "At the start of a scene, say whether the player has recovered or is still broken."
+tip = "Say at the start of a scene that the player is still broken, and say when the break is over."
 
 # ---------------------------------------------------------------------- milk
 

@@ -320,7 +320,9 @@ EndFunction
 ;try a willpower display (the SL Widgets bar) or the broken voice without
 ;playing scenes for it. This WRITES the real state: 1-100 sets the value and
 ;lifts a break, 0 breaks the actor for the configured number of hours. The
-;time stamp is set to now, so recovery counts from this moment.
+;time stamp is set to now, so recovery counts from this moment. A break set or
+;lifted here sends SLOVE_Break / SLOVE_Recover like a real one, which makes
+;this the way to try a listener for those events.
 Function Willpower(Int aiValue) Global
 	Actor a = Game.GetCurrentCrosshairRef() as Actor
 	if a == None
@@ -344,11 +346,22 @@ Function Willpower(Int aiValue) Global
 			broken = SLOVE_Config.GetInt("resistance.pcbrokenpoints", 60)
 		endif
 	endif
-	StorageUtil.SetIntValue(a, "SLOVE_Resistance", v)
-	StorageUtil.SetIntValue(a, "SLOVE_BrokenPoints", broken)
 	StorageUtil.SetIntValue(a, "SLOVE_RecoverPerHour", rate)
+	;the stamp before the break: the Director counts the break's hours from it
 	StorageUtil.SetFloatValue(a, "SLOVE_LastSexTime", Utility.GetCurrentGameTime())
-	MiscUtil.PrintConsole("SLO VE: " + a.GetDisplayName() + " willpower=" + v + " brokenhours=" + broken + " recovers " + rate + "% per game hour from now")
+	string sent = ""
+	if v == 0
+		StorageUtil.SetIntValue(a, "SLOVE_Resistance", 0)
+		if SLOVE_Utils.MarkBroken(a, broken)
+			sent = ", sent SLOVE_Break"
+		endif
+	else
+		if SLOVE_Utils.MarkRecovered(a)
+			sent = ", sent SLOVE_Recover"
+		endif
+		StorageUtil.SetIntValue(a, "SLOVE_Resistance", v)
+	endif
+	MiscUtil.PrintConsole("SLO VE: " + a.GetDisplayName() + " willpower=" + v + " brokenhours=" + broken + " recovers " + rate + "% per game hour from now" + sent + " (" + SLOVE_Utils.BrokenCount() + " actor(s) broken)")
 EndFunction
 
 ;List every actor that has a mute written on it (SLOVE_Mute_* events), with what

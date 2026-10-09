@@ -68,6 +68,42 @@ EndEvent
 
 These exist so consumers never have to touch raw SexLab events — the same events will be emitted by a future OStim backend.
 
+### Break and recover
+
+Two events tell you when an actor's willpower breaks and when the break is over (since 0.7.3). They are sent **from the actor**, for the player and for NPCs alike, so you do not have to poll the [StorageUtil keys](#storageutil-state).
+
+| Event | Sender | `argNum` | Sent when |
+|---|---|---|---|
+| `SLOVE_Break` | the actor | game hours the break will last | the actor's willpower reaches `0` |
+| `SLOVE_Recover` | the actor | `0` | the break ends and willpower is back at `100` |
+
+```papyrus
+RegisterForModEvent("SLOVE_Break", "OnSloveBreak")
+RegisterForModEvent("SLOVE_Recover", "OnSloveRecover")
+
+Event OnSloveBreak(String eventName, String argString, Float argNum, Form sender)
+    Actor who = sender as Actor
+    Int hours = argNum as Int      ; game hours until SLOVE_Recover, if no scene comes in between
+    ; ...
+EndEvent
+
+Event OnSloveRecover(String eventName, String argString, Float argNum, Form sender)
+    Actor who = sender as Actor
+    ; ...
+EndEvent
+```
+
+The rules:
+
+- **On the change only.** An actor who is already broken does not send `SLOVE_Break` again, and nothing is sent for willpower that merely drains or recovers. Read the keys for the number.
+- **`SLOVE_Recover` comes when the hours have passed, in a scene or not.** SLO VE keeps a game-time timer for the break that runs out first and checks again on every game load. After waiting, sleeping or fast travel the event arrives when the game resumes.
+- **The keys already read the new state** when your handler runs: `SLOVE_BrokenPoints` is the break's hours after `SLOVE_Break`, and `0` with `SLOVE_Resistance` at `100` after `SLOVE_Recover`.
+- **A scene pushes the end back.** The hours count from the actor's last scene, and an actor in a scene never recovers in the middle of it. Treat the hours in `SLOVE_Break` as the earliest end, not a promise.
+- **Mod events are queued**, so your handler runs a moment after the fact, and it only runs if your script was registered at the time. On a game load, read `SLOVE_BrokenPoints` once to learn the current state.
+- **Saves from before 0.7.3:** a break the player already carries is picked up on the first load. An NPC's is picked up at that NPC's next scene, which is also when it used to end.
+
+To try your handlers without playing up to a break: `slovetest willpower 0` breaks the actor under the crosshair (or the player) and `slovetest willpower 100` lifts it again; both send the events.
+
 ### Muting an actor
 
 Your mod can take an actor's voice away from SLO VE, for the current stage or for the rest of the scene, by sending a mod event **from that actor** with your mod's name as the string. Use it when you play that actor's sounds yourself (choking, a scripted line, a death) and SLO VE's moans and dirty talk would run over them.
@@ -105,7 +141,7 @@ Per-actor state, readable with PapyrusUtil:
 | Key | Type | Meaning |
 |---|---|---|
 | `SLOVE_Resistance` | int | Current willpower `0–100` (default `100`) |
-| `SLOVE_BrokenPoints` | int | Game-hours-to-recover remaining; `> 0` means **broken** |
+| `SLOVE_BrokenPoints` | int | Game hours the break lasts, counted from `SLOVE_LastSexTime`; `> 0` means **broken**. Back at `0` once the hours have passed (since 0.7.3; see [Break and recover](#break-and-recover)) |
 | `SLOVE_ResDebt` | float | Pending forced-insertion trauma, drained on later ticks |
 | `SLOVE_LastSexTime` | float | Game time of the actor's last scene; kept current while a scene runs |
 | `SLOVE_RecoverPerHour` | int | The % per game-hour this actor recovers at (since 0.7.2) |

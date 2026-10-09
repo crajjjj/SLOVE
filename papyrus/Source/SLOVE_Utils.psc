@@ -338,6 +338,107 @@ String Function DescribeMute(Int aiIndex) Global
 	return line + " (1 = voice, 2 = voice + face) by '" + MutedBy(a) + "' on thread " + setOn + ", in force: " + MuteLevel(a, -1)
 EndFunction
 
+;=== Break and recover (the SLOVE_Break / SLOVE_Recover mod events) ===
+;Public API for other mods (docs/authors/integration.md). Both events are sent
+;FROM the actor, so a listener gets the actor as the sender; SLOVE_Break carries
+;the game hours the break lasts as its number. They go out on the change only:
+;an actor who is already broken does not break again.
+;
+;A break ends when its hours have passed since the actor's last scene
+;(SLOVE_LastSexTime + SLOVE_BrokenPoints hours). SLOVE_Resistance used to notice
+;that only when the actor's next scene started; SweepBroken ends it on time,
+;from a game-time update SLOVE_Director keeps, so SLOVE_Recover means "now" and
+;the StorageUtil keys read recovered from that moment on. This block is the only
+;place the two event names and the SLOVE_BrokenActors index are spelled.
+
+;Break the actor for aiHours game hours. Sends SLOVE_Break when they were not
+;broken already, and returns whether they were not.
+Bool Function MarkBroken(Actor a, Int aiHours) Global
+	if a == None || aiHours <= 0
+		return false
+	endif
+	bool fresh = StorageUtil.GetIntValue(a, "SLOVE_BrokenPoints", 0) <= 0
+	StorageUtil.SetIntValue(a, "SLOVE_BrokenPoints", aiHours)
+	StorageUtil.FormListAdd(None, "SLOVE_BrokenActors", a, false)
+	if fresh
+		a.SendModEvent("SLOVE_Break", "", aiHours as float)
+	endif
+	return fresh
+EndFunction
+
+;End the actor's break and put their willpower back to 100. Sends SLOVE_Recover
+;when they were broken, and returns whether they were.
+Bool Function MarkRecovered(Actor a) Global
+	if a == None
+		return false
+	endif
+	StorageUtil.FormListRemove(None, "SLOVE_BrokenActors", a, true)
+	if StorageUtil.GetIntValue(a, "SLOVE_BrokenPoints", 0) <= 0
+		return false
+	endif
+	;the state first, the event last: a listener finds the keys recovered
+	StorageUtil.SetIntValue(a, "SLOVE_Resistance", 100)
+	;taken in one native: two sweeps running at once (a game load beside the
+	;timer) both get this far, and only one of them may send the event
+	if StorageUtil.PluckIntValue(a, "SLOVE_BrokenPoints", 0) <= 0
+		return false
+	endif
+	a.SendModEvent("SLOVE_Recover")
+	return true
+EndFunction
+
+;Put a broken actor on the list SweepBroken walks. For breaks that were not set
+;through MarkBroken: the ones a save from before 0.7.3 carries.
+Function IndexBroken(Actor a) Global
+	if a && StorageUtil.GetIntValue(a, "SLOVE_BrokenPoints", 0) > 0
+		StorageUtil.FormListAdd(None, "SLOVE_BrokenActors", a, false)
+	endif
+EndFunction
+
+;End every break whose hours have passed (SLOVE_Recover goes out for each) and
+;return the game hours until the next one runs out, -1.0 when nobody is broken.
+;An actor in a scene is never due: SLOVE_Resistance keeps their time stamp
+;current while it runs.
+Float Function SweepBroken() Global
+	float now = Utility.GetCurrentGameTime()
+	float nextDue = -1.0
+	int i = StorageUtil.FormListCount(None, "SLOVE_BrokenActors")
+	while i > 0
+		i -= 1
+		Actor a = StorageUtil.FormListGet(None, "SLOVE_BrokenActors", i) as Actor
+		int hours = 0
+		if a
+			hours = StorageUtil.GetIntValue(a, "SLOVE_BrokenPoints", 0)
+		endif
+		if hours <= 0
+			;the actor is gone, or the break was ended some other way
+			StorageUtil.FormListRemoveAt(None, "SLOVE_BrokenActors", i)
+		else
+			float last = StorageUtil.GetFloatValue(a, "SLOVE_LastSexTime", -1.0)
+			if last < 0.0
+				;no stamp to count from: the break runs from now
+				last = now
+				StorageUtil.SetFloatValue(a, "SLOVE_LastSexTime", now)
+			endif
+			float due = last + hours / 24.0
+			if due <= now
+				MarkRecovered(a)
+			elseif nextDue < 0.0 || due < nextDue
+				nextDue = due
+			endif
+		endif
+	endwhile
+	if nextDue < 0.0
+		return -1.0
+	endif
+	return (nextDue - now) * 24.0
+EndFunction
+
+;How many actors are on that list (the console's "slovetest willpower" line)
+Int Function BrokenCount() Global
+	return StorageUtil.FormListCount(None, "SLOVE_BrokenActors")
+EndFunction
+
 ;The exclusivity channel an actor's voice lines play on: "slove_pc" for the
 ;player, "slove_np<FormID>" for anyone else. The PC engine appends "_orgasm" for
 ;climax cries. Every place that plays a voice line and the one that has to STOP

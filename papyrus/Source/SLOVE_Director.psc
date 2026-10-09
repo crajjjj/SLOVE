@@ -173,6 +173,34 @@ bool Function IsBroken(actor char)
 	return enableresistance == 1 && StorageUtil.GetIntValue(char, "SLOVE_BrokenPoints", 0) > 0
 EndFunction
 
+;------------------------- break / recover (the SLOVE_Break / SLOVE_Recover mod events) -------------------------
+;A break ends when its hours have passed, scene or no scene, and other mods hear
+;of it through SLOVE_Recover (docs/authors/integration.md; the rules and the two
+;event names live in SLOVE_Utils). Nothing else of ours runs between scenes, so
+;this script holds the clock: ONE game-time update, set for the break that runs
+;out first. WatchBreaks runs on every game load (the registration is not trusted
+;to survive one), whenever an actor breaks (our own SLOVE_Break) and from the
+;update itself.
+Function WatchBreaks()
+	bool pcWasBroken = StorageUtil.GetIntValue(playerref, "SLOVE_BrokenPoints", 0) > 0
+	float hoursLeft = SLOVE_Utils.SweepBroken()
+	if pcWasBroken && StorageUtil.GetIntValue(playerref, "SLOVE_BrokenPoints", 0) <= 0 && SLOVE_Config.GetInt("resistance.scenestartnotification", 1) == 1
+		Debug.Notification("You have recovered your composure")
+	endif
+	if hoursLeft >= 0.0
+		;a little past the hour, so the update finds the break over
+		RegisterForSingleUpdateGameTime(hoursLeft + 0.02)
+	endif
+EndFunction
+
+Event OnUpdateGameTime()
+	WatchBreaks()
+EndEvent
+
+Event DirectorOnBreak(string eventName, string argString, float argNum, form sender)
+	WatchBreaks()
+EndEvent
+
 ;------------------------- external mute (the SLOVE_Mute_* mod events) -------------------------
 ;Public API for other mods (docs/authors/integration.md): take an actor's voice,
 ;and optionally their face, away from SLO VE for the current stage or for the rest
@@ -324,6 +352,11 @@ Function Maintenance()
 	StorageUtil.SetIntValue(None, "SLOVE_MfgFixBroken", 0)
 	SendModEvent("SLOVE_MfgFixProbe")
 
+	;breaks end on time, in a scene or not (see WatchBreaks): pick the clock back
+	;up, with the player's break from a save older than 0.7.3 on the list
+	SLOVE_Utils.IndexBroken(playerref)
+	WatchBreaks()
+
 	;enjoyment-game block net: a crash/quit while the broken-PC block was live
 	;leaves the P+ settings flipped (and P+ saves them to disk on every game
 	;save). If the markers are set and no player scene survived the load, hand
@@ -402,6 +435,8 @@ Function RegisterForTheEventsWeNeed()
 	RegisterForModEvent("SLOVE_Mute_Scene", "DirectorOnMute")
 	RegisterForModEvent("SLOVE_Unmute_Stage", "DirectorOnUnmute")
 	RegisterForModEvent("SLOVE_Unmute_Scene", "DirectorOnUnmute")
+	;an actor broke: set the clock for the end of that break - see WatchBreaks
+	RegisterForModEvent("SLOVE_Break", "DirectorOnBreak")
 
 EndFunction
 

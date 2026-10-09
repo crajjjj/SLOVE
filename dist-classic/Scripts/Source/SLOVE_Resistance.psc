@@ -298,10 +298,19 @@ Function SetBrokenPoints(int value)
 	elseif v > 127
 		v = 127
 	endif
-	if GetBrokenPoints() == 0 && v > 0 && IsPlayer
-		Debug.Notification("Your will breaks...")
+	bool wasBroken = GetBrokenPoints() > 0
+	if !wasBroken && v > 0
+		if IsPlayer
+			Debug.Notification("Your will breaks...")
+		endif
+		;writes the hours and tells other mods (SLOVE_Break)
+		SLOVE_Utils.MarkBroken(Actorref, v)
+	elseif wasBroken && v == 0
+		;willpower back to 100, and SLOVE_Recover for other mods
+		SLOVE_Utils.MarkRecovered(Actorref)
+	else
+		StorageUtil.SetIntValue(Actorref, "SLOVE_BrokenPoints", v)
 	endif
-	StorageUtil.SetIntValue(Actorref, "SLOVE_BrokenPoints", v)
 EndFunction
 
 bool Function IsBroken()
@@ -369,6 +378,9 @@ Function CalculateStartupResistance()
 		if IsBroken()
 			; still broken -> pinned at 0 willpower
 			StorageUtil.SetIntValue(Actorref, "SLOVE_Resistance", 0)
+			; a break carried over from a save older than 0.7.3 is not on the
+			; Director's list yet: from here on it ends on time
+			SLOVE_Utils.IndexBroken(Actorref)
 			if IsPlayer && scenestartnotification == 1
 				Debug.Notification("You are still broken (" + GetBrokenPoints() + " hours to recover)")
 			endif
