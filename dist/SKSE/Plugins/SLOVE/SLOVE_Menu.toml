@@ -23,7 +23,7 @@ schema = 1
 [[page]]
 section = "director"
 title = "Director"
-note = "Master switches, intensity from physics, and NPC-only scenes."
+note = "Master switches, intensity from physics, NPC-only scenes, and the armor swap."
 
 [[setting]]
 key = "director.enablevoice"
@@ -128,6 +128,13 @@ control = "int"
 min = 1
 max = 10
 tip = "How many NPC-only scenes are processed at the same time. A cap that protects script performance in busy places."
+
+[[setting]]
+key = "director.enablearmorswap"
+group = "Armor swap"
+label = "Swap the player's armor for the scene"
+control = "flag"
+tip = "At the start of a player scene, each armor the player still wears that ArmorSwapping.json lists by name is exchanged for the version the file gives, and goes back on when the scene ends. An armor SexLab strips is not swapped. Turn off Hentairim's own armor swap if you run both."
 
 [[setting]]
 key = "director.printdebug"

@@ -82,6 +82,10 @@ subs:
         type: int
         default: 0
         help: 1 = intense (milk.levelintense), 0 = non-intense (default)
+  - name: ArmorSwap
+    alias: armorswap
+    func: ArmorSwap
+    help: Swap the player's armors now as a scene would (ArmorSwapping.json, re-read from disk) and print what each listed slot maps to - run it again to put them back
   - name: Mute
     alias: mute
     func: Mute

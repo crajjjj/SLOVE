@@ -27,10 +27,16 @@ Hentairim either:
   such database, so it can fill that role if you don't already have another, but any
   Hentairim-convention SLATE database works.
 
-The real reason to keep Hentairim is its **other features that SLO VE never ported** —
-for example its **armor swap** — which are still useful on their own. If you want
-those, keep Hentairim installed but switch **off** the four modules SLO VE replaces
-(below), so the two never drive the same actor.
+The real reason to keep Hentairim is its **other features that SLO VE never ported**,
+such as its linear scenes, foreplay choreography and out-of-scene commentary, which
+are still useful on their own. If you want those, keep Hentairim installed but switch
+**off** the four modules SLO VE replaces (below), so the two never drive the same actor.
+
+Hentairim's **armor swap** is no longer one of them: SLO VE has it too
+(`[director] enablearmorswap`, see [Armor swap](config/slove.md#armor-swap)) and reads
+the same `ArmorSwapping.json` format. Run it in one of the two mods, not both: if you
+turn SLO VE's on, set `enablearmorswap = 0` in Hentairim's
+`HentairimDirector/Config.json`.
 
 So the coexistence is: **SLO VE owns the voice / face / SFX / willpower layer;
 Hentairim stays — those modules off — only for its extra features** (and, if you have

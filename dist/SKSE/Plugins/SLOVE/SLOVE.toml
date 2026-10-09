@@ -31,6 +31,18 @@ soshugeppsize = 6              # SOS size / TNG size counted as "huge"
 enablenpcscenes = 1            # 1 = process nearby NPC-only scenes; 0 = player scenes only
 npcscenedistance = 2048.0      # max distance (game units, ~hearing range) from the player to adopt an NPC scene
 maxnpcscenes = 3               # cap on concurrent NPC scenes processed (protects the Papyrus VM in busy areas)
+# Armor swap (ported from Hentairim, player only). When ON, at the start of a
+# player scene every armor the player still wears after SexLab's strip is looked
+# up BY NAME in SKSE\Plugins\StorageUtilData\SLOVE\ArmorSwapping.json. A listed
+# armor is exchanged for the armor its line names (the lewd / pulled-aside version
+# of the same outfit) and goes back on when the scene ends. The file is in
+# Hentairim's format - copy your HentairimDirector\ArmorSwapping.json over it to
+# keep a list of your own - and holds the slots that are looked at ("armorslots")
+# plus one "worn armor name": "0xFormID|Plugin.esp" line per armor.
+# An armor SexLab strips is gone before the swap looks: leave its slot unstripped
+# in SexLab's strip options. If Hentairim is still installed, turn off its own
+# armor swap. Try a list without a scene: console "slovetest armorswap".
+enablearmorswap = 0            # 1 = swap the player's listed armors for the scene
 printdebug = 0
 
 [resistance]

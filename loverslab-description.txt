@@ -14,6 +14,7 @@ SLO VE watches the running SexLab scene and drives voices, facial expressions, a
 - Facial expressions — live breathing, stage faces, tongue-out and ahegao (soft deps), jaw-gated.
 - Body SFX - slushing, impacts, claps, kissing/blowjob, optional thrust pacing, contact one-shots; gape reads from Accurate Penetration when present.
 - Gagged voice, milk squirts, and audio-driven lipsync on any loose voice file.
+- Armor swap (optional, ported from Hentairim) - during a scene the player wears the lewd version of a listed outfit and gets the original back afterwards. Reads Hentairim's ArmorSwapping.json list.
 
 
 REQUIREMENTS (hard)

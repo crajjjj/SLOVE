@@ -706,6 +706,7 @@ Function AdoptScene()
 		statusfailsafe = statusfailsafe + 1
 	endwhile
 
+	SwapSceneArmor()
 	ApplySpells()
 	SendModEvent("SLOVE_SceneStart", CurrentThreadID as string)
 	printdebug("CurrentThread :" + CurrentThread)
@@ -797,6 +798,7 @@ Function DirectorEndScene()
 	if removeTongues
 		RemoveTongueItems()
 	endif
+	RestoreSceneArmor()
 
 	CurrentThread = none
 	CurrentSceneID = ""
@@ -846,6 +848,41 @@ Function RemoveTongueItems()
 		z += 1
 	endwhile
 	printdebug("SCENE-END tongue cleanup: items_removed=" + removed)
+EndFunction
+
+;-------- armor swap (director.enablearmorswap; port of Hentairim's RunThreadControl step) --------
+;The player wears the scene version of every armor SLOVE/ArmorSwapping.json
+;lists, from scene start to scene end. The exchange itself, its file and its
+;state are SLOVE_Utils.SwapArmor / RestoreArmor (shared by both variants); this
+;block only decides WHEN. The two functions are the same in both variants.
+;
+;Called from AdoptScene once the scene is set up: the framework has stripped by
+;then, so what the player still wears is what the scene leaves on, and a listed
+;armor the strip took off is simply not there to swap. A scene adopted again
+;after a game load finds the swap written on the player and does nothing.
+Function SwapSceneArmor()
+	if SLOVE_Config.GetInt("director.enablearmorswap", 0) != 1
+		return
+	endif
+	int swapped = SLOVE_Utils.SwapArmor(playerref)
+	printdebug("Armor swap : " + swapped + " armor(s) exchanged for the scene")
+	if !PlayerInScene
+		;the scene ended while the swap was running (every equip call lets other
+		;events in): its restore has come and gone, so undo what was swapped since
+		SLOVE_Utils.RestoreArmor(playerref)
+	endif
+EndFunction
+
+;Called from DirectorEndScene. Not behind the switch: whatever is swapped goes
+;back, also when the option was turned off mid-scene. The armor taken off at
+;scene start was never on the framework's strip list, so its redress and this
+;do not undo each other. A stand-in that a later stage stripped comes back with
+;that redress and is replaced here (the scene-end event follows the redress).
+Function RestoreSceneArmor()
+	int restored = SLOVE_Utils.RestoreArmor(playerref)
+	if restored > 0
+		printdebug("Armor swap : " + restored + " armor(s) put back on")
+	endif
 EndFunction
 
 Bool Function AnimationisEnding()

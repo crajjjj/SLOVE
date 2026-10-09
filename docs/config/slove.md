@@ -34,6 +34,7 @@ Master switches and scene detection.
 | `enablenpcscenes` | `1` | Process **NPC-only** SexLab scenes (no player) — see [NPC-only scenes](#npc-only-scenes) below. `0` = the pre-0.5.x behavior (player scenes only). |
 | `npcscenedistance` | `2048.0` | *(float)* Max distance (game units, ≈ hearing range) from the player to adopt an NPC scene. |
 | `maxnpcscenes` | `3` | Cap on concurrent NPC scenes processed at once (protects the Papyrus VM in busy areas). |
+| `enablearmorswap` | `0` | **Player only.** Exchange the armors the player still wears at scene start for their scene versions, and put them back at scene end. See [Armor swap](#armor-swap) below. |
 | `printdebug` | `0` | Log director decisions to `SLOVE.0.log`, **including the per-line voice trace**: category, facts, animation, stage, and the exact wav that played. See [Checking Your Pack](../packs/checking.md#watching-it-happen-in-game). |
 
 ### NPC-only scenes
@@ -48,6 +49,45 @@ Adoption is deliberately bounded so a busy town can't flood the script engine:
 NPC scenes are adopted **even while you're in a scene of your own** — a follower or nearby couple starting a scene next to you gets voiced too (each scene is driven independently of yours).
 
 Per-actor behavior reuses the existing toggles — `voice.voiceallactors`, `voice.malemoaning`, `voice.creaturebreathing`, `enablemalenpcexpression` / `enablefemalenpcexpression`, and the `[resistance]` NPC switches — there are no separate NPC-scene sub-switches. Works in both the P+ and classic script sets. NPC facial/SFX detail is coarser than a player scene (no velocity-driven physics overlay), which is plenty for background ambience.
+
+### Armor swap
+
+Ported from Hentairim. With `enablearmorswap = 1`, the **player** wears the scene version of an outfit for as long as a scene runs: a bikini top becomes its pulled-aside version, a skirt its lifted one, and at scene end the original is back on. Off by default. Works in both the P+ and classic script sets.
+
+What is exchanged for what is a list in **`Data\SKSE\Plugins\StorageUtilData\SLOVE\ArmorSwapping.json`**:
+
+```json
+{
+   "string": {
+      "armorslots": "32,44,38,49,46,52,53,56,42,45"
+   },
+   "form": {
+      "cosplay bikini - frill": "0xe74|[caenarvon] cosplay pack.esp",
+      "school vibes top": "0x816|[baku]doaxvv school vibes.esp"
+   }
+}
+```
+
+- **`armorslots`** lists the biped slots that are looked at (32 is the body; the others are slots outfit mods use for underwear, stockings and accessories).
+- Each line under **`form`** reads *the name of an armor you wear* : *the armor that replaces it*, written as `0x<form id>|<plugin file>`. The form id is the armor's id inside that plugin, without the load-order prefix: `0x000E74` and `0xe74` are the same.
+- The left side is the armor's **name as your inventory shows it**; upper and lower case do not matter. A renamed or translated armor needs a line under the name you see.
+- A line whose plugin is not installed is skipped, so one list can cover many outfit mods. The shipped list is Hentairim's, about 500 lines for popular outfit packs.
+
+The file is in Hentairim's format: to keep a list you already maintain, copy your `HentairimDirector\ArmorSwapping.json` over it.
+
+How it behaves:
+
+- The swap runs **after SexLab has stripped**. An armor SexLab takes off is not there to be swapped, so leave the slots you want swapped unstripped in SexLab's strip options.
+- The original armor stays in your inventory during the scene. One copy of the replacement is added for the scene and removed again afterwards; a copy you own yourself is not touched.
+- A save made mid-scene is safe: the swap is remembered on the character, and the armor goes back on when that scene ends, or on loading if it ended meanwhile.
+- The original goes back on by its base item. If you carry two of the same armor with different enchantments or tempering, the game picks which of the two is worn.
+- Player only. An NPC re-equips an armor lying loose in their inventory, which would undo the swap.
+
+!!! warning "Still running Hentairim?"
+    Hentairim has the same feature (`enablearmorswap` in its Director config). Turn one of the two off, or each will swap what the other just put on.
+
+!!! tip "Try a list without a scene"
+    `slovetest armorswap` swaps what you are wearing right now and prints, per listed slot, the armor found there and what the file gives for it, or that it has no entry. Run it again to put everything back. It reads the file afresh from disk each time, so you can edit the list and try again without restarting the game. It works with `enablearmorswap = 0`. Needs ConsoleUtil Extended.
 
 ## `[voice]`
 

@@ -449,3 +449,145 @@ String Function VoiceChannel(Actor a) Global
 	endif
 	return "slove_np" + a.GetFormID()
 EndFunction
+
+;=== Armor swap (port of Hentairim's BodySwitchtoLewdArmor / RestoreArmor) ===
+;For the length of a scene an actor wears the scene version of what they have
+;on. SLOVE/ArmorSwapping.json decides, in Hentairim's format (its
+;HentairimDirector/ArmorSwapping.json reads unchanged):
+;  "string": { "armorslots": "32,44,38" }    the biped slots that are looked at
+;  "form":   { "<name of the worn armor>": "0x<id>|<plugin>" }    what replaces it
+;The key is the armor's NAME as the inventory shows it (JsonUtil compares keys
+;without case), so a renamed or translated armor needs a line of its own.
+;
+;SwapArmor is called AFTER the framework has stripped, so it only ever sees what
+;the scene left on. Each listed armor is taken off (it stays in the inventory)
+;and one copy of its stand-in is added and put on; RestoreArmor puts the
+;original back on and takes that one copy away again, so the inventory ends as
+;it began whether the actor owned the stand-in already or not.
+;
+;What was swapped is written on the actor, not kept in a script: two form lists,
+;the originals and the stand-ins (this block is the only place the
+;SLOVE_ArmorSwap* keys are spelled). It survives a save made mid-scene, and
+;RestoreArmor can be called from anywhere, any number of times.
+;
+;The callers pass the PLAYER only, as Hentairim did. An NPC puts an armor lying
+;loose in their inventory straight back on, which would undo the swap.
+
+String Function ArmorSwapFile() Global
+	return "SLOVE/ArmorSwapping.json"
+EndFunction
+
+;The biped slot numbers (30 to 61) the file asks to be looked at
+String[] Function ArmorSwapSlots() Global
+	return PapyrusUtil.StringSplit(JsonUtil.GetStringValue(ArmorSwapFile(), "armorslots", ""), ",")
+EndFunction
+
+;The armor the file gives for a worn one. None when it lists none, or when the
+;plugin it names is not installed.
+Armor Function ArmorSwapFor(Armor akWorn) Global
+	if akWorn == None
+		return None
+	endif
+	string wornName = akWorn.GetName()
+	if wornName == ""
+		return None
+	endif
+	Armor standIn = JsonUtil.GetFormValue(ArmorSwapFile(), wornName, None) as Armor
+	if standIn == akWorn
+		return None
+	endif
+	return standIn
+EndFunction
+
+;How many armors of the actor are swapped right now
+Int Function ArmorSwapCount(Actor a) Global
+	return StorageUtil.FormListCount(a, "SLOVE_ArmorSwapBase")
+EndFunction
+
+;Put the actor into the scene versions of what they wear. Returns how many
+;armors were exchanged, and 0 when a swap is already written on the actor: a
+;scene picked up again after a game load must not swap the stand-ins in turn.
+Int Function SwapArmor(Actor a) Global
+	if a == None || ArmorSwapCount(a) > 0
+		return 0
+	endif
+	string[] slots = ArmorSwapSlots()
+	int swapped = 0
+	int i = 0
+	while i < slots.Length
+		int slot = slots[i] as int
+		if slot >= 30 && slot <= 61
+			Armor worn = a.GetWornForm(Armor.GetMaskForSlot(slot)) as Armor
+			;an armor that covers several listed slots comes up once per slot. By
+			;then it is off and its stand-in sits there (never swap that in turn),
+			;or it could not be taken off and is still the same armor
+			if worn && !StorageUtil.FormListHas(a, "SLOVE_ArmorSwapStandIn", worn) && !StorageUtil.FormListHas(a, "SLOVE_ArmorSwapBase", worn)
+				Armor standIn = ArmorSwapFor(worn)
+				if standIn
+					;written down BEFORE anything moves: whatever cuts the three calls
+					;below short, RestoreArmor finds both forms
+					StorageUtil.FormListAdd(a, "SLOVE_ArmorSwapBase", worn)
+					StorageUtil.FormListAdd(a, "SLOVE_ArmorSwapStandIn", standIn)
+					a.AddItem(standIn, 1, true)
+					a.UnequipItem(worn, false, true)
+					a.EquipItem(standIn, false, true)
+					swapped += 1
+				endif
+			endif
+		endif
+		i += 1
+	endwhile
+	if swapped > 0
+		RefreshWornArmor(a)
+	endif
+	return swapped
+EndFunction
+
+;Put back what SwapArmor exchanged and take the stand-ins away again. Returns
+;how many armors went back on. One native when nothing is swapped. The two lists
+;are emptied one form per native and independently of each other, so two callers
+;at once handle every form once, and a list that lost an entry (the plugin of a
+;stand-in removed mid-swap) does not throw the other one off.
+Int Function RestoreArmor(Actor a) Global
+	if a == None
+		return 0
+	endif
+	int restored = 0
+	;the originals first: each goes on over its stand-in, nothing is bare in between.
+	;Counted once, then that many pops: a pop that finds the list emptied by another
+	;caller hands back None, and the loop ends whatever the natives do
+	int left = StorageUtil.FormListCount(a, "SLOVE_ArmorSwapBase")
+	while left > 0
+		left -= 1
+		Form worn = StorageUtil.FormListPop(a, "SLOVE_ArmorSwapBase")
+		;EquipItem on an armor the actor no longer has would CREATE one
+		if worn && a.GetItemCount(worn) > 0
+			a.EquipItem(worn, false, true)
+			restored += 1
+		endif
+	endwhile
+	int removed = 0
+	left = StorageUtil.FormListCount(a, "SLOVE_ArmorSwapStandIn")
+	while left > 0
+		left -= 1
+		Form standIn = StorageUtil.FormListPop(a, "SLOVE_ArmorSwapStandIn")
+		if standIn && a.GetItemCount(standIn) > 0
+			a.RemoveItem(standIn, 1, true)
+			removed += 1
+		endif
+	endwhile
+	if restored > 0 || removed > 0
+		RefreshWornArmor(a)
+	endif
+	return restored
+EndFunction
+
+;While the free camera is on (SexLab's scene camera) the PLAYER's body is not
+;redrawn after an equip - the case SLOVE_Expressions.AddTongue works around for
+;the tongue. Queue the rebuild SexLab itself queues after its strip. Anyone
+;else, and the player in any other camera, is redrawn by the equip.
+Function RefreshWornArmor(Actor a) Global
+	if a == Game.GetPlayer() && Game.GetCameraState() == 3
+		a.QueueNiNodeUpdate()
+	endif
+EndFunction

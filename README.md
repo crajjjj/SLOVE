@@ -72,8 +72,11 @@ Full reference: <https://crajjjj.github.io/SLOVE/config/>
 - `SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml` — voice slots, actor→slot
   routing, and SFX (AudioUtil preset content). `AudioUtil.toml` alongside it
   holds only the engine globals. Live reload via `au reload`.
-- `SKSE\Plugins\StorageUtilData\SLOVE\*.json` — expression preset data, plus the
-  `ResistanceRaceBase` / `ResistanceRacePCModifier` willpower race tables.
+- `SKSE\Plugins\StorageUtilData\SLOVE\*.json`: expression preset data, the
+  `ResistanceRaceBase` / `ResistanceRacePCModifier` willpower race tables, and
+  `ArmorSwapping.json`, the list behind the optional armor swap
+  (`[director] enablearmorswap`: the player wears the scene version of a listed
+  outfit during a scene and gets the original back afterwards).
 
 ## Build (dev)
 

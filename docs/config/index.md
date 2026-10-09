@@ -82,6 +82,7 @@ Not TOML, but part of the configuration surface:
 | `…\Masks.json`, `…\NPCTongue.json`, `…\ErinMFEEConfig.json` | mask detection, tongue models, MFEE mapping |
 | `…\ResistanceRaceBase.json` | per-race willpower denominators for NPCs |
 | `…\ResistanceRacePCModifier.json` | partner-race modifier applied to the PC's drain |
+| `…\ArmorSwapping.json` | which worn armor is exchanged for which during a scene (see [Armor swap](slove.md#armor-swap)) |
 
 These are PapyrusUtil JSON, read at runtime. See [Willpower / Resistance](../resistance.md) for the two resistance tables.
 

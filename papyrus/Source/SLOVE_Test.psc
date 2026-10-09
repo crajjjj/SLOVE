@@ -364,6 +364,60 @@ Function Willpower(Int aiValue) Global
 	MiscUtil.PrintConsole("SLO VE: " + a.GetDisplayName() + " willpower=" + v + " brokenhours=" + broken + " recovers " + rate + "% per game hour from now" + sent + " (" + SLOVE_Utils.BrokenCount() + " actor(s) broken)")
 EndFunction
 
+;Try the armor swap (director.enablearmorswap) on the player without a scene.
+;Reads ArmorSwapping.json afresh from disk, so an edit to it shows without a
+;restart; prints what each listed slot holds and what the file gives for it,
+;then swaps. Run it again to put everything back. Works with the switch off:
+;the switch only decides whether scenes do this by themselves.
+Function ArmorSwap() Global
+	Actor pc = Game.GetPlayer()
+	if SLOVE_Utils.ArmorSwapCount(pc) > 0
+		int back = SLOVE_Utils.RestoreArmor(pc)
+		MiscUtil.PrintConsole("SLOVE armorswap: " + back + " armor(s) put back on. Run it again to swap.")
+		return
+	endif
+	string file = SLOVE_Utils.ArmorSwapFile()
+	if !JsonUtil.JsonExists(file)
+		MiscUtil.PrintConsole("SLOVE armorswap: SKSE\\Plugins\\StorageUtilData\\" + file + " is missing - nothing can be swapped.")
+		return
+	endif
+	;drop the cached copy (nothing to save, the scripts only read it) and load the file as it is on disk now
+	JsonUtil.Unload(file, false)
+	JsonUtil.Load(file)
+	string errors = JsonUtil.GetErrors(file)
+	if errors != ""
+		MiscUtil.PrintConsole("SLOVE armorswap: " + file + " does not parse - " + errors)
+		return
+	endif
+	string[] slots = SLOVE_Utils.ArmorSwapSlots()
+	if slots.Length == 0
+		MiscUtil.PrintConsole("SLOVE armorswap: 'armorslots' in " + file + " is empty - no slot is looked at.")
+		return
+	endif
+	int i = 0
+	while i < slots.Length
+		int slot = slots[i] as int
+		if slot < 30 || slot > 61
+			MiscUtil.PrintConsole("  '" + slots[i] + "' is not a biped slot (30 to 61) - skipped")
+		else
+			Armor worn = pc.GetWornForm(Armor.GetMaskForSlot(slot)) as Armor
+			if worn == None
+				MiscUtil.PrintConsole("  slot " + slot + ": nothing worn")
+			else
+				Armor standIn = SLOVE_Utils.ArmorSwapFor(worn)
+				if standIn
+					MiscUtil.PrintConsole("  slot " + slot + ": '" + worn.GetName() + "' -> '" + standIn.GetName() + "'")
+				else
+					MiscUtil.PrintConsole("  slot " + slot + ": '" + worn.GetName() + "' - no entry that resolves (not listed under that name, or the plugin its line names is not installed)")
+				endif
+			endif
+		endif
+		i += 1
+	endwhile
+	int swapped = SLOVE_Utils.SwapArmor(pc)
+	MiscUtil.PrintConsole("SLOVE armorswap: " + swapped + " armor(s) swapped. Run it again to put them back. Scenes swap by themselves only with director.enablearmorswap = 1 (it is " + SLOVE_Config.GetInt("director.enablearmorswap", 0) + ").")
+EndFunction
+
 ;List every actor that has a mute written on it (SLOVE_Mute_* events), with what
 ;is written and whether it is in force - a mute that has run out stays written
 ;until it is lifted or the game is loaded.
