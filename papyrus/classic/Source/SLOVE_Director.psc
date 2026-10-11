@@ -720,7 +720,9 @@ Function AdoptScene()
 
 	SwapSceneArmor()
 	if !PlayerInScene
-		;its teardown has run while the armor was swapped: the engines must not start on it
+		;its teardown has run while the armor was swapped: the engines must not start on it.
+		;Nothing to undo here - only DirectorEndScene lowers the flag, and it takes
+		;everything set above (CurrentThread, PCInSex) down in the same step
 		AbandonAdoption("it ended while it was being adopted")
 		return
 	endif
