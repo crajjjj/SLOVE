@@ -84,7 +84,9 @@ Function PerformInitialization()
 	if SexLab == None || MasterScript == None
 		return
 	endif
-	CurrentThread = Sexlab.GetActorController(Actorref)
+	; the actor's LIVE scene: in back-to-back scenes GetActorController still answers
+	; with the finished thread for about 10s (see SLOVE_Director.LiveThread)
+	CurrentThread = MasterScript.LiveThread(Actorref)
 	if CurrentThread == None
 		printdebug("no SexLab thread - not initializing resistance")
 		return

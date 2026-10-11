@@ -61,7 +61,9 @@ Function PerformInitialization()
 		RemoveSelf()
 		return
 	endif
-	CurrentThread = SexLab.GetActorController(anchor)
+	; the anchor's LIVE scene: in back-to-back scenes GetActorController still answers
+	; with the finished thread for about 10s (see SLOVE_Director.LiveThread)
+	CurrentThread = MasterScript.LiveThread(anchor)
 	if CurrentThread == None
 		RemoveSelf()
 		return

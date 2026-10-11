@@ -40,7 +40,17 @@ Function PerformInitialization()
 	playerref = game.getplayer()
 	;resolve OUR OWN controller from the actor, not the player's - this effect runs on
 	;NPC scene actors too (NPC-only scenes). Identical for a PC-scene actor.
-	CurrentThread = Sexlab.GetActorController(actorref)
+	;The LIVE one: in back-to-back scenes GetActorController still answers with the
+	;finished thread for about 10s (see SLOVE_Director.LiveThread)
+	CurrentThread = MasterScript.LiveThread(actorref)
+	if CurrentThread == none
+		;the spell landed as the scene was already over. Bail: everything below reads
+		;the controller, and with a finished thread still holding the actor the end
+		;test in OnUpdate would keep this instance going for 10s more
+		SLOVE_Utils.WritetoErrorlogs("SFX", "Sexlab Thread Not Found!")
+		RemoveSFX()
+		return
+	endif
 	actorlist = currentthread.Positions
 	Gender = sexlab.GetGender(actorref)
 	IsPlayer = actorref == playerref
@@ -53,10 +63,6 @@ Function PerformInitialization()
 
 	if sexlab == none
 		SLOVE_Utils.WritetoErrorlogs("SFX", "Sexlab Not Found!")
-	endif
-
-	if CurrentThread == none
-		SLOVE_Utils.WritetoErrorlogs("SFX", "Sexlab Thread Not Found!")
 	endif
 
 	PrintDebug("actorlist" + actorlist)

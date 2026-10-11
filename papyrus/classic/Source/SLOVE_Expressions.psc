@@ -33,7 +33,9 @@ EndEvent
 Function PerformInitialization()
 	PrintDebug("Perform Initialization")
 
-	CurrentThread = Sexlab.GetActorController(Actorref)
+	;the actor's LIVE scene: in back-to-back scenes GetActorController still answers
+	;with the finished thread for about 10s (see SLOVE_Director.LiveThread)
+	CurrentThread = MasterScript.LiveThread(Actorref)
 	if CurrentThread == none
 		;the spell landed as the scene was already dying (or on the wrong actor) -
 		;bail cleanly instead of limping on with a half-initialized instance

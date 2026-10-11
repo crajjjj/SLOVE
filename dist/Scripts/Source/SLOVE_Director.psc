@@ -677,9 +677,17 @@ Function AdoptScene()
 
 	;Initialize Configs
 	InitializeDirectorConfigs() ;SLO VE: cheap toml-cache reads; keeps live edits + Reload() effective per scene
+	;the scene can be gone by the time the settings are read (cut short, or a save
+	;loaded as it ended). Adopting None armed every engine on no scene at all:
+	;SexLab's own voice left on, and a voice engine with no thread id to end on
+	SexLabThread adopted = Sexlab.GetThreadByActor(PlayerRef)
+	if !adopted
+		AbandonAdoption("no live player scene")
+		return
+	endif
 	isEnding = false
 	PCInSex = true
-	CurrentThread = Sexlab.GetThreadByActor(PlayerRef) ;CURRENT THREAD
+	CurrentThread = adopted ;CURRENT THREAD
 	CurrentThreadID = CurrentThread.GetThreadID()
 	CurrentSceneID = CurrentThread.GetActiveScene()
 	CurrentSceneName = SexlabRegistry.GetSceneName(CurrentSceneID)
@@ -707,6 +715,11 @@ Function AdoptScene()
 	endwhile
 
 	SwapSceneArmor()
+	if !PlayerInScene
+		;its teardown has run while we waited above: the engines must not start on it
+		AbandonAdoption("it ended while it was being adopted")
+		return
+	endif
 	ApplySpells()
 	SendModEvent("SLOVE_SceneStart", CurrentThreadID as string)
 	printdebug("CurrentThread :" + CurrentThread)
@@ -717,6 +730,18 @@ Function AdoptScene()
 	NextMilkRollTime = CurrentThread.GetTimeTotal() + milkrollinterval
 	UpdateNow = false
 	RegisterForSingleUpdate(0.1)
+EndFunction
+
+;AdoptScene found no scene, or lost it on the way. Leaves this script "not in a
+;scene": on the reload path PlayerInScene is still up from the save, and with no
+;update loop started nothing else would ever take it down
+Function AbandonAdoption(string why)
+	UpdateNow = false
+	printdebug("Scene not adopted - " + why)
+	if PlayerInScene
+		ClearSpellsFromTrackedActors()
+		DirectorEndScene()
+	endif
 EndFunction
 
 Event DirectorOnOrgasm(Form actorRef, Int thread)
@@ -775,6 +800,22 @@ Function DirectorEndScene()
 	;SLO VE: no StopAnimation/armor/scaling/speed restore - the only end path here is
 	;the OnUpdate poll after the thread already ended
 	isEnding = true
+	;ALL of this scene's state goes down here, before the first external call.
+	;Every call below unlocks the script, and the next scene's AnimationStart can
+	;run AdoptScene in that gap. State cleared after it (CurrentThread used to be,
+	;past the tongue and armor traffic) took the NEW scene's with it: SexLab's own
+	;voice was then never silenced, and the voice engine read thread id -1 and
+	;never heard its scene end
+	PCInSex = false
+	LastLabelUpdateTime = 0
+	LastPhysicsLabelTime = 0
+	int endedThreadID = CurrentThreadID
+	CurrentThread = none
+	CurrentSceneID = ""
+	CurrentSceneName = ""
+	CurrentStageID = ""
+	CurrentStageNum = 0
+	updaterate = 0.5
 	;mute on scene end: a moan/line/SFX started just before the scene ended would
 	;otherwise keep playing over the aftermath. Stop the ambient/mundane groups
 	;immediately, but leave the *_high voice groups (orgasm lines play there at
@@ -784,10 +825,6 @@ Function DirectorEndScene()
 	AudioUtil.StopGroup("partner_low")
 	AudioUtil.StopGroup("sfx")
 	AudioUtil.StopGroup("oneshot")
-	PCInSex = false
-	LastLabelUpdateTime = 0
-	LastPhysicsLabelTime = 0
-	int endedThreadID = CurrentThreadID
 	SLOVE_Utils.MarkSceneEnd(endedThreadID) ;the poll path gets here without an AnimationEnd event
 
 	;take the pre-added tongue armors back off - they must not persist between
@@ -799,13 +836,6 @@ Function DirectorEndScene()
 		RemoveTongueItems()
 	endif
 	RestoreSceneArmor()
-
-	CurrentThread = none
-	CurrentSceneID = ""
-	CurrentSceneName = ""
-	CurrentStageID = ""
-	CurrentStageNum = 0
-	updaterate = 0.5
 
 	SendModEvent("SLOVE_SceneEnd", endedThreadID as string)
 
@@ -895,6 +925,12 @@ EndFunction
 
 Event OnUpdate()
 
+	if !PlayerInScene
+		;AnimationEnd has ended the scene (DirectorSceneEnd): nothing left to watch.
+		;With the next scene's thread already setting up, the test below kept this
+		;loop running on a CurrentThread that is gone
+		return
+	endif
 
 	if	!Sexlab.GetThreadByActor(PlayerRef) ;CURRENT THREAD
 		printdebug("-------------End Scene-------------------.")
@@ -2377,6 +2413,15 @@ int Function GetThreadID()
 		return -1
 	endif
 	return CurrentThread.GetThreadID()
+EndFunction
+
+;True while the scene on this thread is the player scene this script is running.
+;The voice engine asks every cycle. Its other end signals are an AnimationEnd
+;with the thread id it read at its start and the 3s AnimationisEnding() window,
+;and an engine that missed both - or had read the id of a thread that was not
+;its scene - used to talk on after the scene for good
+bool Function IsRunningScene(int tid)
+	return PlayerInScene && CurrentThread != none && CurrentThreadID == tid
 EndFunction
 
 bool Function HasSubmissives()

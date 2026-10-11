@@ -120,11 +120,11 @@ Function ReconcileSceneOnLoad()
 	;SexLab restores its threads slightly after the load event fires; give it a
 	;short window before concluding the scene is really gone
 	int tries = 0
-	while !Sexlab.GetPlayerController() && tries < 10
+	while !LiveThread(playerref) && tries < 10
 		Utility.Wait(0.3)
 		tries = tries + 1
 	endwhile
-	if Sexlab.GetPlayerController()
+	if LiveThread(playerref)
 		printdebug("Reload mid-scene: re-adopting the running player scene")
 		AdoptScene() ;re-applies spells (restarting per-actor loops) and restarts OnUpdate
 	else
@@ -254,26 +254,51 @@ Event DirectorOnUnmute(string eventName, string argString, float argNum, form se
 EndEvent
 
 ;The id of the SexLab thread this actor is in a LIVE scene on, -1 when in none.
-;Classic keeps a finished thread's positions filled for about 10s (its Frozen
-;state) and GetActorController returns the first slot that still holds the actor,
-;so in back-to-back scenes it can name the dead thread - look past it.
 int Function ActorThreadID(Actor a)
-	sslThreadController t = Sexlab.GetActorController(a)
+	sslThreadController t = LiveThread(a)
 	if !t
 		return -1
 	endif
-	if ThreadIsLive(t)
-		return t.tid
+	return t.tid
+EndFunction
+
+;The controller of the LIVE scene this actor is in, none when in none.
+;Classic keeps a finished thread's positions filled for about 10s (its Frozen
+;state) and GetActorController / GetPlayerController return the first slot that
+;still holds the actor, so in back-to-back scenes they name the dead thread -
+;look past it. Everything that binds an engine to a scene asks here: this script
+;and, through MasterScript, the per-actor effects. Bound to the dead thread,
+;SexLab's own voice was silenced on the wrong aliases and played along, and the
+;voice engine waited for an AnimationEnd with the dead thread's id
+sslThreadController Function LiveThread(Actor a)
+	sslThreadController t = Sexlab.GetActorController(a)
+	if !t || ThreadIsLive(t)
+		return t
 	endif
 	int i = 0
 	while i < 15 ;classic SexLab runs 15 thread slots
 		sslThreadController other = Sexlab.GetController(i)
 		if other && other != t && ThreadIsLive(other) && other.Positions.Find(a) >= 0
-			return i
+			return other
 		endif
 		i += 1
 	endwhile
-	return -1
+	return none
+EndFunction
+
+;True once the tracked controller is done with the player's scene: handed back
+;(Frozen after AnimationEnd, Unlocked in the pool) or no longer holding the
+;player. Ending still counts as running - the actors are being reset, and
+;AnimationEnd, which is what normally ends the scene here, is yet to come.
+;This is the OnUpdate poll's test. GetPlayerController() was not one: through a
+;chain of back-to-back scenes some slot always holds the player, so it never
+;came up empty and the fallback never fired
+bool Function TrackedSceneOver()
+	if !CurrentThread
+		return true
+	endif
+	string st = CurrentThread.GetState()
+	return st == "Frozen" || st == "Unlocked" || CurrentThread.Positions.Find(playerref) < 0
 EndFunction
 
 ;False for a controller whose scene is over: ending, held for its hooks, or back in the pool
@@ -624,7 +649,7 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 		Return
 	endif
 
-	sslThreadController newThread = Sexlab.GetPlayerController()
+	sslThreadController newThread = LiveThread(playerref) ;NOT GetPlayerController(): see LiveThread
 	if !newThread
 		printdebug("Scene does not involve player and no NPC thread resolved - ignored")
 		Return
@@ -659,9 +684,18 @@ Function AdoptScene()
 
 	;Initialize Configs
 	InitializeDirectorConfigs() ;SLO VE: cheap toml-cache reads; keeps live edits + Reload() effective per scene
+	;the player's LIVE scene, not GetPlayerController(): started within about 10s
+	;of the last one, that still answers with the finished thread (see LiveThread),
+	;and the whole scene then ran against a dead controller. None = the scene is
+	;gone by now (cut short, or a save loaded as it ended): nothing to adopt
+	sslThreadController adopted = LiveThread(playerref)
+	if !adopted
+		AbandonAdoption("no live player scene")
+		return
+	endif
 	isEnding = false
 	PCInSex = true
-	CurrentThread = Sexlab.GetPlayerController() ;CURRENT THREAD (classic)
+	CurrentThread = adopted ;CURRENT THREAD (classic)
 	CurrentThreadID = CurrentThread.tid
 	CurrentAnimation = CurrentThread.Animation
 	CurrentSceneName = CurrentAnimation.Name
@@ -685,6 +719,11 @@ Function AdoptScene()
 	;P+ GetStatus()==2 (still-registering) busy-wait has no equivalent and is dropped
 
 	SwapSceneArmor()
+	if !PlayerInScene
+		;its teardown has run while the armor was swapped: the engines must not start on it
+		AbandonAdoption("it ended while it was being adopted")
+		return
+	endif
 	ApplySpells()
 	SendModEvent("SLOVE_SceneStart", CurrentThreadID as string)
 	printdebug("CurrentThread :" + CurrentThread)
@@ -695,6 +734,18 @@ Function AdoptScene()
 	NextMilkRollTime = CurrentThread.TotalTime + milkrollinterval
 	UpdateNow = false
 	RegisterForSingleUpdate(0.1)
+EndFunction
+
+;AdoptScene found no scene, or lost it on the way. Leaves this script "not in a
+;scene": on the reload path PlayerInScene is still up from the save, and with no
+;update loop started nothing else would ever take it down
+Function AbandonAdoption(string why)
+	UpdateNow = false
+	printdebug("Scene not adopted - " + why)
+	if PlayerInScene
+		ClearSpellsFromTrackedActors()
+		DirectorEndScene()
+	endif
 EndFunction
 
 Event DirectorOnOrgasm(Form actorRef, Int thread)
@@ -754,6 +805,21 @@ Function DirectorEndScene()
 	;SLO VE: no StopAnimation/armor/scaling/speed restore - the only end path here is
 	;the OnUpdate poll after the thread already ended
 	isEnding = true
+	;ALL of this scene's state goes down here, before the first external call.
+	;Every call below unlocks the script, and the next scene's AnimationStart can
+	;run AdoptScene in that gap. State cleared after it (CurrentThread used to be,
+	;past the tongue and armor traffic) took the NEW scene's with it: SexLab's own
+	;voice was then never silenced, and the voice engine read thread id -1 and
+	;never heard its scene end
+	PCInSex = false
+	LastLabelUpdateTime = 0
+	LastPhysicsLabelTime = 0
+	int endedThreadID = CurrentThreadID
+	CurrentThread = none
+	CurrentAnimation = none
+	CurrentSceneName = ""
+	CurrentStageNum = 0
+	updaterate = 0.5
 	;mute on scene end: a moan/line/SFX started just before the scene ended would
 	;otherwise keep playing over the aftermath. Stop the ambient/mundane groups
 	;immediately, but leave the *_high voice groups (orgasm lines play there at
@@ -763,10 +829,6 @@ Function DirectorEndScene()
 	AudioUtil.StopGroup("partner_low")
 	AudioUtil.StopGroup("sfx")
 	AudioUtil.StopGroup("oneshot")
-	PCInSex = false
-	LastLabelUpdateTime = 0
-	LastPhysicsLabelTime = 0
-	int endedThreadID = CurrentThreadID
 	SLOVE_Utils.MarkSceneEnd(endedThreadID) ;the poll path gets here without an AnimationEnd event
 
 	;take the pre-added tongue armors back off - they must not persist between
@@ -778,12 +840,6 @@ Function DirectorEndScene()
 		RemoveTongueItems()
 	endif
 	RestoreSceneArmor()
-
-	CurrentThread = none
-	CurrentAnimation = none
-	CurrentSceneName = ""
-	CurrentStageNum = 0
-	updaterate = 0.5
 
 	SendModEvent("SLOVE_SceneEnd", endedThreadID as string)
 
@@ -872,8 +928,14 @@ EndFunction
 
 Event OnUpdate()
 
+	if !PlayerInScene
+		;AnimationEnd has ended the scene (DirectorSceneEnd): nothing left to watch.
+		;This loop used to run on for the 10s the finished thread stays Frozen, on a
+		;CurrentThread that is gone
+		return
+	endif
 
-	if	!Sexlab.GetPlayerController() ;CURRENT THREAD
+	if	TrackedSceneOver() ;CURRENT THREAD
 		printdebug("-------------End Scene-------------------.")
 		DirectorEndScene()
 		return
@@ -1973,6 +2035,15 @@ int Function GetThreadID()
 		return -1
 	endif
 	return CurrentThread.tid
+EndFunction
+
+;True while the scene on this thread is the player scene this script is running.
+;The voice engine asks every cycle. Its other end signals are an AnimationEnd
+;with the thread id it read at its start and the 3s AnimationisEnding() window,
+;and an engine that missed both - or had read the id of a thread that was not
+;its scene - used to talk on after the scene for good
+bool Function IsRunningScene(int tid)
+	return PlayerInScene && CurrentThread != none && CurrentThreadID == tid
 EndFunction
 
 bool Function HasSubmissives()

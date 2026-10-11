@@ -45,6 +45,24 @@ Lifecycle/services: `AnimationisEnding()`, `isUpdating()`, `SceneisIntense()`,
 `SaveSchlongAdjustment(pos, val)` (SFX adaptive-velocity SOSBend memory; the
 director replays it via `LoadSchlongAdjustment()` on stage change).
 
+Scene identity (0.7.4): `IsRunningScene(threadId)` is true while the scene on
+that thread is the player scene the director is running, and `PCInSex()` while
+it runs any. `SLOVE_Voice` asks the first on every cycle and ends itself on a
+no: its other two end signals (an `AnimationEnd` carrying the thread id it read
+at its start, and the 3 s `AnimationisEnding()` window) can both be missed, and
+an engine that missed them used to talk on after the scene. It asks the second
+before it takes its spell off at the end of its teardown, so that a scene started
+in the meantime keeps the copy the director has just given it.
+
+Classic only: `LiveThread(a)` is the controller of the live scene an actor is
+in. Classic SexLab keeps a finished thread's actors listed for about 10 s (its
+`Frozen` state) and `GetActorController` / `GetPlayerController` return the
+first slot that still lists the actor, which in back-to-back scenes is the dead
+one. The classic director adopts through `LiveThread`, and the classic
+`SLOVE_Expressions` / `SLOVE_SFX` / `SLOVE_Resistance` / `SLOVE_NpcScene` bind
+their own thread handle through it. SexLab P+ has no counterpart because its
+`GetThreadByActor` already skips threads that are ending.
+
 Resistance state (written by `SLOVE_Resistance` into StorageUtil, read back
 through the Director so consumers stay firewall-clean): `GetResistance(a)`,
 `IsBroken(a)` - both gated on `resistance.enable`, consumed by

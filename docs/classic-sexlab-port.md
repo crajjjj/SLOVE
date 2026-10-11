@@ -28,7 +28,7 @@ The thread type changes from `SexLabThread` (P+) to **`sslThreadController`**
 
 | P+ call | Classic 1.63 |
 |---|---|
-| `SexLab.GetThreadByActor(a)` | `SexLab.GetActorController(a)` (player: `GetPlayerController()`) |
+| `SexLab.GetThreadByActor(a)` | `SLOVE_Director.LiveThread(a)` (since 0.7.4). NOT `SexLab.GetActorController(a)` / `GetPlayerController()` when binding to a scene: for about 10 s after a scene they still return its finished thread, which in back-to-back scenes is the wrong one. They remain right for "does any thread still list this actor" |
 | `SexLab.GetThreadByID` / by tid | `SexLab.GetController(tid)` |
 | `thread.GetThreadID()` | `thread.tid` |
 | `thread.GetTimeTotal()` | `thread.TotalTime` |

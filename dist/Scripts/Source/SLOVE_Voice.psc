@@ -807,8 +807,13 @@ Event OnUpdate()
 		return
 	endif
 
-	if Masterscript.AnimationisEnding()
+	;the scene is over when the Director says so - asked every cycle, not only
+	;caught in passing. AnimationisEnding() is up for 3s and a cycle spends longer
+	;than that waiting on one line; OnSceneEnd needs an AnimationEnd carrying the
+	;thread id read at our start. An engine that missed both talked on for good
+	if Masterscript.AnimationisEnding() || !MasterScript.IsRunningScene(ThreadID)
 		ASLEndScene()
+		return ;the tracker is down: nothing below has a scene to run for
 	endif
 
 	if actorWithSceneTrackerSpell == mainFemaleActor
@@ -989,8 +994,13 @@ Function RemoveTracker()
 	Utility.Wait(2.0)
 	AudioUtil.UnduckGroup("pc_low")
 	AudioUtil.UnduckGroup("partner_low")
-	;Do this very last, but make sure to do it (it's what actually removes the tracker)
-	actorWithSceneTrackerSpell.RemoveSpell(SceneTrackerSpell)
+	;Do this very last, but make sure to do it (it's what actually removes the tracker).
+	;Unless the next scene started during the two waits above: its Director has put
+	;a fresh copy of this spell on the actor in place of ours, and removing "our"
+	;spell now would take the new scene's voice
+	if !MasterScript.PCInSex()
+		actorWithSceneTrackerSpell.RemoveSpell(SceneTrackerSpell)
+	endif
 
 EndFunction
 
