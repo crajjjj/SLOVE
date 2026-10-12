@@ -37,6 +37,8 @@ drain = (rise in enjoyment)
 
 **How much is that?** SexLab enjoyment runs from `0` to `100` and an orgasm puts it back to `0`, so one full climb is a rise of `100`. With the shipped numbers that costs the player `100 ÷ 600 × 120% = 20` willpower as a victim and `100 ÷ 600 × 60% = 10` when willing, per climb. A short scene is about one and a half climbs, so it takes about 30 of her willpower as a victim and 15 when willing; a long one with several orgasms takes more. Every climb of a scene counts (since 0.7.2; before that only the first one did, and the numbers were 1000 / 110% / 20%), and enjoyment below `0` (pain) does not. Halving `pcmaxresistance` doubles both numbers.
 
+**On classic** the number is SLSO's enjoyment meter: the bar SLSO draws, the one that sets off the orgasm, counted up to `100`. One climb is one SLSO orgasm. Before 0.7.5 the classic build read SexLab's own figure instead, which stays at `0` for the whole scene with the SLSO minigame on, so willpower never drained whatever `pcmaxresistance` was. If you lowered `pcmaxresistance` to get a break out of an older version, put it back near `600`: at a low value the first climb of a scene breaks her. The orgasms need **Separate Orgasms** switched on in SexLab's MCM ([SexLab Flavours](sexlab-flavours.md#sexlab-separate-orgasm-slso)); with it off SexLab keeps the one orgasm for the end of the scene, and a scene is one climb however long it runs.
+
 **Forced insertion trauma:** when a submissive receiver is forcibly entered, the SFX engine deposits an extra hit of `victiminsertiontrauma` (`5`) willpower, drained on the actor's next ticks. Set it to `0` to disable.
 
 ## Breaking and recovery

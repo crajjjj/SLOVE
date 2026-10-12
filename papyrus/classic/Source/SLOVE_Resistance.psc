@@ -41,6 +41,10 @@ bool IsHugePP
 bool IsVictim
 float AccumulatedResistanceDamage = 0.0
 int LastEnjoyment = 0
+; SLSO: 0 = not looked for yet, 1 = present, -1 = absent; and whether its meter has
+; been read above 0 this scene (see ReadEnjoyment)
+int SLSOReadyCache = 0
+bool SLSOMeterLive = false
 ; highest interval band the PC has been notified about this scene (100 = none yet);
 ; seeded from the starting willpower so we never announce a band she began below
 int LastNotifiedBand = 100
@@ -108,7 +112,7 @@ Function PerformInitialization()
 	UpdateLabels(Actorref)
 	; seed the enjoyment baseline so the first tick drains the DELTA, not the
 	; whole current enjoyment (avoids a spike when the spell lands mid-scene)
-	LastEnjoyment = CurrentThread.GetEnjoyment(Actorref)
+	LastEnjoyment = ReadEnjoyment()
 	if LastEnjoyment < 0
 		LastEnjoyment = 0
 	endif
@@ -122,7 +126,58 @@ Function PerformInitialization()
 
 	SeedNotifyBand()
 
+	if enableprintdebug == 1
+		printdebug("start: willpower=" + GetResistance() + " brokenhours=" + GetBrokenPoints() + " victim=" + IsVictim + " hugepp=" + IsHugePP + " enjoyment=" + LastEnjoyment + " slsometer=" + SLSOMeterLive)
+	endif
+
 	RegisterForSingleUpdate(0.1)
+EndFunction
+
+; ---- enjoyment source ----
+; SLSO keeps the meter the player sees, the one that fires the orgasm, in the
+; alias's GetFullEnjoyment(). SexLab's own GetEnjoyment() is not that number: with
+; the SLSO minigame on and its passive enjoyment off it stays at 0 for the whole
+; scene (willpower never drained, whatever pcmaxresistance was), and where it does
+; move it restarts from a relationship bonus after an orgasm, not from 0.
+; So: SexLab's own number until the meter first reads above 0, the meter from then
+; on, for the rest of the scene. The two are different scales, so the baseline is
+; moved onto the meter at that one switch and the gap is not charged as a climb.
+; A meter that never comes alive (no SLSO, or its sslActorAlias lost the conflict)
+; leaves the scene on SexLab's number, as before.
+; Capped at 100, the top of one climb: the meter has no ceiling of its own and keeps
+; growing while an orgasm is on cooldown, denied, or left to the end of the scene
+; (SexLab's "Separate Orgasms" switch off).
+int Function ReadEnjoyment()
+	if SLSOReadyCache == 0
+		if SLOVE_Utils.isDependencyReady("SLSO.esp")
+			SLSOReadyCache = 1
+		else
+			SLSOReadyCache = -1
+		endif
+	endif
+	int enjoyment = 0
+	if SLSOReadyCache == 1
+		sslActorAlias al = CurrentThread.ActorAlias(Actorref)
+		if al
+			enjoyment = al.GetFullEnjoyment()
+		endif
+		if enjoyment > 100
+			enjoyment = 100
+		elseif enjoyment < 0
+			enjoyment = 0
+		endif
+		if enjoyment > 0 && !SLSOMeterLive
+			SLSOMeterLive = true
+			LastEnjoyment = enjoyment
+		endif
+	endif
+	if !SLSOMeterLive
+		enjoyment = CurrentThread.GetEnjoyment(Actorref)
+		if enjoyment > 100
+			enjoyment = 100
+		endif
+	endif
+	return enjoyment
 EndFunction
 
 Function InitializeConfig()
@@ -163,7 +218,7 @@ Event OnUpdate()
 	; follows it down on every tick, penetrated or not, or only the first climb
 	; of a scene would drain. Floored at 0, so climbing back out of pain is not
 	; charged as pleasure.
-	int enjoyment = CurrentThread.GetEnjoyment(Actorref)
+	int enjoyment = ReadEnjoyment()
 	if enjoyment < LastEnjoyment
 		LastEnjoyment = enjoyment
 		if LastEnjoyment < 0
@@ -221,6 +276,9 @@ Function AddResistanceDamage(float value)
 		AccumulatedResistanceDamage -= points / 100.0
 		if GetResistance() < 0
 			SetResistance(0)
+		endif
+		if enableprintdebug == 1
+			printdebug("drain: willpower " + before + " -> " + GetResistance() + " (last hit " + value + ", enjoyment baseline " + LastEnjoyment + ")")
 		endif
 		MaybeNotifyResistance(before, GetResistance())
 	endif

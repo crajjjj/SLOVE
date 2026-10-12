@@ -86,9 +86,9 @@ The unification added to both directors: `GetThreadID()`, `HasSubmissives()`,
 `SLOVE_Hentairim_Tags` signature is annotation-scheme-specific), and folded the
 classic SLSO `GetFullEnjoyment()` merge into the classic director's
 `GetEnjoyment` - it is framework truth, not voice policy. NOTE this reaches only
-consumers that go THROUGH the director (Voice today): `SLOVE_Expressions` keeps
-its own SLSO merge and `SLOVE_NpcScene` / `SLOVE_Resistance` still read their own
-thread raw, so enjoyment stays 0 for them under the SLSO minigame. They cannot
+consumers that go THROUGH the director (Voice today): `SLOVE_Expressions` and,
+since 0.7.5, `SLOVE_Resistance` (`ReadEnjoyment`) keep their own SLSO merge, and
+`SLOVE_NpcScene` still reads its own thread raw. They cannot
 simply call the director - they run on NPC-scene threads it knows nothing about. The build's `Assert-VariantTypes`
 fails if a direct framework type ever reappears in the unified pex, or if a
 stale `SLOVE_Voice.pex` shows up in `dist-classic` (it would shadow the Core

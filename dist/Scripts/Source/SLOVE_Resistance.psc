@@ -156,6 +156,10 @@ Function PerformInitialization()
 		EngageBrokenEffects()
 	endif
 
+	if enableprintdebug == 1
+		printdebug("start: willpower=" + GetResistance() + " brokenhours=" + GetBrokenPoints() + " victim=" + IsVictim + " hugepp=" + IsHugePP + " enjoyment=" + LastEnjoyment)
+	endif
+
 	RegisterForSingleUpdate(0.1)
 EndFunction
 
@@ -281,6 +285,9 @@ Function AddResistanceDamage(float value)
 		AccumulatedResistanceDamage -= points / 100.0
 		if GetResistance() < 0
 			SetResistance(0)
+		endif
+		if enableprintdebug == 1
+			printdebug("drain: willpower " + before + " -> " + GetResistance() + " (last hit " + value + ", enjoyment baseline " + LastEnjoyment + ")")
 		endif
 		MaybeNotifyResistance(before, GetResistance())
 	endif

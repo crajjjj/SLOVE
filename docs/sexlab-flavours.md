@@ -40,12 +40,20 @@ that the scene had an orgasm, not who had it.
 republishes the per-actor event that P+ sends natively, with identical arguments,
 so with it installed orgasm routing is at full parity.
 
+!!! warning "Switch on SexLab's Separate Orgasms"
+    SLSO sends that per-actor event only while **Separate Orgasms** is on in
+    SexLab's own MCM (*Animation Settings*; it is off by default). With it off
+    there is one orgasm at the end of the scene and nothing tells SLO VE who had
+    it: no climax voice, face, sound or milk, and [willpower](resistance.md)
+    sees one climb per scene.
+
 SLSO also supplies the per-actor **enjoyment** meter that classic SexLab lacks.
 That is what feeds the intensity overlay described under
 [What actually differs on classic](#what-actually-differs-on-classic): a stage tips
 into "intense" when enjoyment crosses `voice.intenseenjoyment` (P+ and classic
 both run this overlay). Without SLSO, enjoyment never rises, so the voice stays on
-the label/tag baseline and the orgasm-hype lines never trigger.
+the label/tag baseline and the orgasm-hype lines never trigger. The
+[willpower](resistance.md) drain reads the same meter (since 0.7.5).
 
 !!! warning "Let SLSO overwrite SexLab"
     SLSO ships a replacement `sslActorAlias` script. That override is what emits
