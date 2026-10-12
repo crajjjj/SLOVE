@@ -170,6 +170,10 @@ shipped fabricated:
   Argonian copies under `dist\meshes\SLOVE\tongues` are what the offsets in that
   script produce from the standard ten). `build.ps1` also fails when `SLOVE.esp`
   names a tongue mesh that `dist\meshes` does not hold.
+- Tongue offsets: `python tools\tonguefit\measure_mouth.py --check` (the offsets
+  are what the vanilla mouth parts give under the shipped `tongueoutphonemeoverride`
+  and the scene moods; exit 2 = no game archive or no `lz4` here, not checked).
+  Run it after any change to that preset.
 - BodySlide tongue projects: `python tools\tonguefit\make_bodyslide.py --check`
   (the base shapes under `CalienteTools\BodySlide\ShapeData` are the current
   meshes and the slider data is what the script computes from them).

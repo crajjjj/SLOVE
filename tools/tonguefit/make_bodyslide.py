@@ -299,7 +299,11 @@ def plan():
 
 
 def main():
-    check = len(sys.argv) > 1 and sys.argv[1] == "--check"
+    if sys.argv[1:] not in ([], ["--check"]):
+        # a mistyped --check must not fall through to "write"
+        print("usage: make_bodyslide.py [--check]")
+        return 2
+    check = sys.argv[1:] == ["--check"]
     files = plan()
     stale = []
     for path, data in files.items():

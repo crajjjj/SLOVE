@@ -7,11 +7,12 @@ Khajiit or an Argonian is.
 
 Why: the tongue meshes (dist\\meshes\\SLOVE\\tongues\\linga1..10.nif) are fitted to a human
 mouth, and a tongue hangs on the skull, not on the jaw. It is only ever visible while
-SLO VE holds the mouth open (the tongue hold, tongueoutphonemeoverride), and under that
-one hold the front of the lower lip travels 2.8 units on a human, 7 on a Khajiit and 10 on
-an Argonian: the beast heads' BigAah morph alone is four times the human one. So the fit
-has to follow the OPEN jaw, and the human one is left in mid air between the two jaws of
-a muzzle. SLOVE.esp therefore gives every tongue armor a Khajiit and an Argonian armor
+SLO VE holds the mouth open (the tongue-out preset, tongueoutphonemeoverride), and under
+that one preset the front of the lower lip travels 2.8 units on a human female, 7 on a
+Khajiit and 10 on an Argonian; all six of its channels pull a beast jaw down, not only
+the two jaw openers. So the fit has to follow the OPEN jaw, and the human one is left in
+mid air between the two jaws of a muzzle. SLOVE.esp therefore gives every tongue armor a
+Khajiit and an Argonian armor
 addon that point at the copies this script writes, and the game picks the addon by the
 wearer's race - no script involved (the same shape as the UBE option, see
 optional\\UBESupport\\README.md).
@@ -26,26 +27,37 @@ So moving the whole tongue by d, in head-bone coordinates, takes two edits:
 plus the bounding spheres, for culling. Every vertex then moves by exactly d and the
 mesh cannot distort; verify() proves that for each bone of each file written.
 
-The numbers in FITS are measured, not tuned in game. The landmark is the top of the lower
-front teeth of the vanilla mouth head parts with the mouth in the default tongue hold:
-the part's .tri morphs Aah 0.75, BigAah 0.75, Eee 1, Eh 1, FV 1 and K 0.68 added to its
-base shape. In head-bone coordinates (x right, y forward, z up, about one game unit each)
+The numbers in FITS are measured, not tuned in game, by measure_mouth.py beside this file
+(its header says how; run it to see them, --check fails when FITS is not what it gives).
+The landmark is the top of the lower front teeth of the vanilla mouth head parts at the
+median face a tongue wearer has: the shipped tongue-out preset plus the mood of a scene
+expression. In head-bone coordinates (x right, y forward, z up, about one game unit each)
 that is, forward / up:
 
     MouthHumanF           8.77 / -3.89   the mouth the ten meshes sit right in
-    MouthKhajiitFemale    9.11 / -6.39
-    MaleMouthKhajiit      9.07 / -5.87
-    MouthArgonian        10.37 / -7.52   one part for both sexes
+    MouthKhajiitFemale    8.89 / -6.74   -7.24 .. -6.28 over the moods
+    MaleMouthKhajiit      8.89 / -6.23   -6.72 .. -5.76
+    MouthArgonian        10.36 / -7.94   -8.50 .. -7.51, one part for both sexes
 
 An offset is the beast landmark minus the human one, so the tongue lies over the lower
 front teeth the way it does on a human, with its root behind the lower lip. The Khajiit
-number is the female's; the male's teeth stand half a unit higher and touch the underside
-of the tongue. Up to 0.7.4 the offsets were taken from the CLOSED mouth (Khajiit
-0 / 3.0 / 0.55, Argonian 0 / 5.0 / 2.2), which pinned the tongue under the nose while the
-jaw hung open below it. They assume the default hold: a custom tongueoutphonemeoverride
-that opens the jaw much less leaves the tongue low. Change a number, rerun (and rerun
-make_bodyslide.py, whose base shapes are these meshes), look in game. The ten armor addons
-per race live in SLOVE.esp and do not change when the numbers do.
+number is the mean of the two sexes, a quarter of a unit off for each. Up to 0.7.4 the
+offsets were taken from the CLOSED mouth (Khajiit 0 / 3.0 / 0.55, Argonian 0 / 5.0 / 2.2),
+which pinned the tongue under the nose while the jaw hung open below it.
+
+What the numbers depend on, and what they cost:
+  - the shipped tongue-out preset, all six channels of it. Another shape moves a beast
+    jaw by units (a plain Aah / BigAah 75 leaves an Argonian's teeth more than 4 units
+    above the tongue), so change the preset and this fit together; measure_mouth.py
+    --check fails until they agree.
+  - the mouth being open. A tongue is equipped a moment before the preset has opened the
+    jaw and taken off a moment after it closes; for that moment a beast's tongue shows
+    below the jaw. The closed-mouth fit looked right then and wrong for the rest of the
+    scene.
+
+Change a number, rerun (and rerun make_bodyslide.py, whose base shapes are these meshes),
+look in game. The ten armor addons per race live in SLOVE.esp and do not change when the
+numbers do.
 
 Standard library only.
 """
@@ -58,8 +70,8 @@ SOURCE = os.path.join(ROOT, "dist", "meshes", "SLOVE", "tongues")
 
 # race folder -> (right, forward, up) in head-bone coordinates
 FITS = {
-    "khajiit": (0.0, 0.35, -2.5),   # lower front teeth 9.11 / -6.39 (f) against the human 8.77 / -3.89
-    "argonian": (0.0, 1.6, -3.6),   # lower front teeth 10.37 / -7.52
+    "khajiit": (0.0, 0.1, -2.6),     # lower front teeth 8.89 / -6.49 (both sexes) against the human 8.77 / -3.89
+    "argonian": (0.0, 1.6, -4.05),   # lower front teeth 10.36 / -7.94
 }
 HEAD = "NPC Head [Head]"
 CHAIN_ROOT = "tong1 1"
@@ -249,6 +261,10 @@ def head_local(nif):
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else ""
+    if len(sys.argv) > 2 or mode not in ("", "--check", "--report"):
+        # a mistyped --check must not fall through to "write"
+        print("usage: fit_tongues.py [--check | --report]")
+        return 2
     failed = False
     for race, d_local in FITS.items():
         folder = os.path.join(SOURCE, race)

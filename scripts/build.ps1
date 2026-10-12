@@ -313,6 +313,12 @@ function Build-Fomod {
         # build yesterday's fit
         & $python.Source (Join-Path $root 'tools\tonguefit\make_bodyslide.py') --check
         if ($LASTEXITCODE -ne 0) { throw 'the BodySlide tongue projects are stale - run tools\tonguefit\make_bodyslide.py' }
+        # the beast offsets are measured on the vanilla mouth parts posed with the shipped
+        # tongue-out preset: a change to that preset must move them (exit 2 = no game
+        # archive or no lz4 here, which is "not checked", not a failure)
+        & $python.Source (Join-Path $root 'tools\tonguefit\measure_mouth.py') (Join-Path $game 'Data') --check
+        if ($LASTEXITCODE -eq 1) { throw 'the beast-race tongue offsets (FITS in tools\tonguefit\fit_tongues.py) are not what tools\tonguefit\measure_mouth.py measures' }
+        if ($LASTEXITCODE -ne 0) { Write-Warning 'the beast-race tongue offsets were not checked against the mouth parts (tools\tonguefit\measure_mouth.py could not read them)' }
     } else {
         Write-Warning 'python not found - skipped the tongue mesh and BodySlide project checks (tools\tonguefit\*.py --check)'
     }
