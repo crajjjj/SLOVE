@@ -1,16 +1,20 @@
-"""Beast-race tongue meshes: the ten standard tongues, moved to where a Khajiit or
-Argonian mouth is.
+"""Beast-race tongue meshes: the ten standard tongues, moved to where the open jaw of a
+Khajiit or an Argonian is.
 
     python tools\\tonguefit\\fit_tongues.py            regenerate both sets from FITS
     python tools\\tonguefit\\fit_tongues.py --check    fail if the shipped sets are not what FITS produces
     python tools\\tonguefit\\fit_tongues.py --report   print where each mesh sits (head-bone coordinates)
 
 Why: the tongue meshes (dist\\meshes\\SLOVE\\tongues\\linga1..10.nif) are fitted to a human
-mouth. A beast muzzle carries the mouth further forward and higher, so the human fit comes
-out through the underside of the jaw. SLOVE.esp therefore gives every tongue armor a
-Khajiit and an Argonian armor addon that point at the copies this script writes, and the
-game picks the addon by the wearer's race - no script involved (the same shape as the UBE
-option, see optional\\UBESupport\\README.md).
+mouth, and a tongue hangs on the skull, not on the jaw. It is only ever visible while
+SLO VE holds the mouth open (the tongue hold, tongueoutphonemeoverride), and under that
+one hold the front of the lower lip travels 2.8 units on a human, 7 on a Khajiit and 10 on
+an Argonian: the beast heads' BigAah morph alone is four times the human one. So the fit
+has to follow the OPEN jaw, and the human one is left in mid air between the two jaws of
+a muzzle. SLOVE.esp therefore gives every tongue armor a Khajiit and an Argonian armor
+addon that point at the copies this script writes, and the game picks the addon by the
+wearer's race - no script involved (the same shape as the UBE option, see
+optional\\UBESupport\\README.md).
 
 How a copy is made, without touching a vertex. The tongue is skinned to five bones:
 'NPC Head [Head]' (the actor's own head bone) and 'tong1 2'..'tong1 5', a chain that
@@ -22,11 +26,26 @@ So moving the whole tongue by d, in head-bone coordinates, takes two edits:
 plus the bounding spheres, for culling. Every vertex then moves by exactly d and the
 mesh cannot distort; verify() proves that for each bone of each file written.
 
-The numbers in FITS are measured, not tuned in game: front teeth and tooth line of the
-vanilla mouth head parts (MaleMouthKhajiit, MouthKhajiitFemale, MouthArgonian) against
-MouthHuman / MouthHumanF, all in head-bone coordinates (x right, y forward, z up, about
-one game unit each). Change a number, rerun, look in game. The ten armor addons per race
-live in SLOVE.esp and do not change when the numbers do.
+The numbers in FITS are measured, not tuned in game. The landmark is the top of the lower
+front teeth of the vanilla mouth head parts with the mouth in the default tongue hold:
+the part's .tri morphs Aah 0.75, BigAah 0.75, Eee 1, Eh 1, FV 1 and K 0.68 added to its
+base shape. In head-bone coordinates (x right, y forward, z up, about one game unit each)
+that is, forward / up:
+
+    MouthHumanF           8.77 / -3.89   the mouth the ten meshes sit right in
+    MouthKhajiitFemale    9.11 / -6.39
+    MaleMouthKhajiit      9.07 / -5.87
+    MouthArgonian        10.37 / -7.52   one part for both sexes
+
+An offset is the beast landmark minus the human one, so the tongue lies over the lower
+front teeth the way it does on a human, with its root behind the lower lip. The Khajiit
+number is the female's; the male's teeth stand half a unit higher and touch the underside
+of the tongue. Up to 0.7.4 the offsets were taken from the CLOSED mouth (Khajiit
+0 / 3.0 / 0.55, Argonian 0 / 5.0 / 2.2), which pinned the tongue under the nose while the
+jaw hung open below it. They assume the default hold: a custom tongueoutphonemeoverride
+that opens the jaw much less leaves the tongue low. Change a number, rerun (and rerun
+make_bodyslide.py, whose base shapes are these meshes), look in game. The ten armor addons
+per race live in SLOVE.esp and do not change when the numbers do.
 
 Standard library only.
 """
@@ -39,8 +58,8 @@ SOURCE = os.path.join(ROOT, "dist", "meshes", "SLOVE", "tongues")
 
 # race folder -> (right, forward, up) in head-bone coordinates
 FITS = {
-    "khajiit": (0.0, 3.0, 0.55),   # teeth 2.8 (m) / 3.1 (f) further forward, tooth line 0.5 higher
-    "argonian": (0.0, 5.0, 2.2),   # teeth 4.9 / 5.2 further forward, tooth line 2.0 / 2.5 higher
+    "khajiit": (0.0, 0.35, -2.5),   # lower front teeth 9.11 / -6.39 (f) against the human 8.77 / -3.89
+    "argonian": (0.0, 1.6, -3.6),   # lower front teeth 10.37 / -7.52
 }
 HEAD = "NPC Head [Head]"
 CHAIN_ROOT = "tong1 1"
