@@ -58,6 +58,15 @@ float malemoanmininterval
 float malemoanmaxinterval
 Float lastMaleMoanTime
 Float maleMoanCooldown
+;--- voice cadence (SLOVE.toml voice.pcmoan*interval, voice.npcfemalemoan*interval). The
+;literals are the values these were hardcoded to up to 0.7.5, and what a scene runs on
+;until its config is read
+float pcmoanmininterval = 1.0          ;silence after one of the PC's lines before her next, calm stages
+float pcmoanmaxinterval = 2.0
+float pcmoanintensemininterval = 0.4   ;the same on intense stages
+float pcmoanintensemaxinterval = 1.3
+float npcfemalemoanmininterval = 6.0   ;pause between a female NPC's voice beats (her partner chain, the bystanders)
+float npcfemalemoanmaxinterval = 14.0
 Int voiceAllActors = 1             ;SLOVE.toml "voice.voiceallactors"
 Actor playerCharacter = None
 
@@ -179,6 +188,12 @@ Function InitializeConfigValues()
 	enablemalemoaning = SLOVE_Config.GetInt("voice.malemoaning", 1)
 	malemoanmininterval = SLOVE_Config.GetInt("voice.malemoanmininterval", 5) as float
 	malemoanmaxinterval = SLOVE_Config.GetInt("voice.malemoanmaxinterval", 12) as float
+	;the PC's own cadence (NextUpdateInterval). The female NPC pair is read in
+	;FindActorsAndVoices, which seeds their first pause before this function runs
+	pcmoanmininterval = SLOVE_Config.GetFloat("voice.pcmoanmininterval", 1.0)
+	pcmoanmaxinterval = SLOVE_Config.GetFloat("voice.pcmoanmaxinterval", 2.0)
+	pcmoanintensemininterval = SLOVE_Config.GetFloat("voice.pcmoanintensemininterval", 0.4)
+	pcmoanintensemaxinterval = SLOVE_Config.GetFloat("voice.pcmoanintensemaxinterval", 1.3)
 
 	MoanOnly  = SLOVE_Config.GetInt("voice.moanonly",0)
 	hypebeforeorgasm = SLOVE_Config.GetInt("voice.hypebeforeorgasm",0)
@@ -379,10 +394,13 @@ Function FindActorsAndVoices()
 	secondaryLineCooldown = Utility.RandomFloat(6.0, 14.0)
 	lastMaleMoanTime = 0.0
 	maleMoanCooldown = Utility.RandomFloat(2.0, 5.0) ;first male moan comes early
+	;read here, not in InitializeConfigValues: that runs after this seed
+	npcfemalemoanmininterval = SLOVE_Config.GetInt("voice.npcfemalemoanmininterval", 6) as float
+	npcfemalemoanmaxinterval = SLOVE_Config.GetInt("voice.npcfemalemoanmaxinterval", 14) as float
 	lastFemaleLineTime = 0.0
-	femaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	femaleLineCooldown = FemaleNPCPause()
 	lastPartnerFemaleLineTime = 0.0
-	partnerFemaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	partnerFemaleLineCooldown = FemaleNPCPause()
 	lastCreatureBreathTime = 0.0
 	creatureBreathCooldown = Utility.RandomFloat(2.0, 5.0) ;first breath comes early
 	printdebug("scene females voiced (NPC): " + sceneFemales.length)
@@ -446,8 +464,17 @@ Actor Function PickSpeakingFemale()
 		return None
 	endif
 	lastFemaleLineTime = now
-	femaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	femaleLineCooldown = FemaleNPCPause()
 	return pick
+EndFunction
+
+;the pause before a female NPC's next voice beat (voice.npcfemalemoan*interval). A
+;longest below the shortest gives the shortest.
+Float Function FemaleNPCPause()
+	if npcfemalemoanmaxinterval < npcfemalemoanmininterval
+		return npcfemalemoanmininterval
+	endif
+	return Utility.RandomFloat(npcfemalemoanmininterval, npcfemalemoanmaxinterval)
 EndFunction
 
 ;Voice a female NPC BYSTANDER - a voiced human female who is neither the lead (the
@@ -541,7 +568,7 @@ Function PlayFemalePartnerComments()
 		return
 	endif
 	lastPartnerFemaleLineTime = now
-	partnerFemaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	partnerFemaleLineCooldown = FemaleNPCPause()
 	;kissing first, mirroring the lead's own dispatch order - the one symmetric
 	;act, where the label speaks for both mouths. Same A-name + B-folder pair as
 	;the lead's PlayKissingVarB. Everything else is the shared NPC beat.
@@ -3955,11 +3982,23 @@ endfunction
 
 float function NextUpdateInterval()
 
+	;the silence after one of the PC's lines before her next (voice.pcmoan*interval;
+	;the shipped intense pair is faster than calm, but not rapid-fire). Floored at
+	;0.4 s, the shortest gap this ever shipped with (0.1 was rapid-fire, and this
+	;value re-arms the update loop). A longest below the shortest gives the shortest.
+	float shortest = pcmoanmininterval
+	float longest = pcmoanmaxinterval
 	if ASLcurrentlyIntense
-		return Utility.RandomFloat(0.4, 1.3)   ;intense is faster than calm, but not rapid-fire (was 0.1-1.0)
-	else
-		return Utility.RandomFloat(1.0, 2.0)
+		shortest = pcmoanintensemininterval
+		longest = pcmoanintensemaxinterval
 	endif
+	if shortest < 0.4
+		shortest = 0.4
+	endif
+	if longest <= shortest
+		return shortest
+	endif
+	return Utility.RandomFloat(shortest, longest)
 
 endfunction
 

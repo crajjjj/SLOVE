@@ -106,6 +106,12 @@ creaturebreathmaxinterval = 8
 malemoaning = 1                # ambient male-partner moans (male mirror of creaturebreathing); needs enablemalevoice = 1
 malemoanmininterval = 5        # seconds between male moans (halved on intense stages)
 malemoanmaxinterval = 12
+npcfemalemoanmininterval = 6   # seconds between a female NPC's moans or lines: partners and bystanders in your scene, and NPC-only scenes
+npcfemalemoanmaxinterval = 14
+pcmoanmininterval = 1.0        # seconds of silence between the PLAYER's moans or lines on calm stages, from the end of one to the start of the next (the clip's length comes on top)
+pcmoanmaxinterval = 2.0
+pcmoanintensemininterval = 0.4 # the same on intense stages; 0.4 is the least any of the four can be
+pcmoanintensemaxinterval = 1.3
 moanonly = 0                   # 1 = moans only, no spoken lines (males then moan via malemoaning above)
 hypebeforeorgasm = 0           # DEPRECATED & ignored - froze SLSO's orgasm at 100%. Leave at 0.
 useblowjobsoundforkissing = 1

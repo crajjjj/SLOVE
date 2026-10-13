@@ -31,6 +31,8 @@ float malemoanmininterval
 float malemoanmaxinterval
 float creaturebreathmininterval
 float creaturebreathmaxinterval
+float npcfemalemoanmininterval = 6.0  ;voice.npcfemalemoan*interval: pause between a female NPC's voice beats
+float npcfemalemoanmaxinterval = 14.0 ;(the literals are the values hardcoded up to 0.7.5)
 int intenseenjoyment
 float npcvolume
 float npcdepthintense ;voice.npcdepthintense: HER measured PPA depth for the intense pools (0 = off)
@@ -88,7 +90,7 @@ Function PerformInitialization()
 	lastCreatureBreathTime = 0.0
 	creatureBreathCooldown = Utility.RandomFloat(2.0, 5.0)
 	lastFemaleLineTime = 0.0
-	femaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	femaleLineCooldown = FemaleNPCPause()
 	printdebug("NPC-scene driver start: males=" + sceneMales.length + " females=" + sceneFemales.length + " creatures=" + sceneCreatures.length)
 	RegisterForSingleUpdate(1.0)
 EndFunction
@@ -104,6 +106,8 @@ Function InitializeConfig()
 	malemoanmaxinterval     = SLOVE_Config.GetInt("voice.malemoanmaxinterval", 12) as float
 	creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 5) as float
 	creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 12) as float
+	npcfemalemoanmininterval = SLOVE_Config.GetInt("voice.npcfemalemoanmininterval", 6) as float
+	npcfemalemoanmaxinterval = SLOVE_Config.GetInt("voice.npcfemalemoanmaxinterval", 14) as float
 	intenseenjoyment        = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment", 75)
 	npcdepthintense         = SLOVE_Config.GetFloat("voice.npcdepthintense", 6.0)
 	; dedicated NPC-scene voice volume (own audio bus), default = partnervolume so it
@@ -267,8 +271,17 @@ Function PlayFemaleNPCComments(bool intense)
 		return
 	endif
 	lastFemaleLineTime = now
-	femaleLineCooldown = Utility.RandomFloat(6.0, 14.0)
+	femaleLineCooldown = FemaleNPCPause()
 	PlayAmbient(f, intense, true)
+EndFunction
+
+;the pause before a female NPC's next voice beat (voice.npcfemalemoan*interval). A
+;longest below the shortest gives the shortest.
+float Function FemaleNPCPause()
+	if npcfemalemoanmaxinterval < npcfemalemoanmininterval
+		return npcfemalemoanmininterval
+	endif
+	return Utility.RandomFloat(npcfemalemoanmininterval, npcfemalemoanmaxinterval)
 EndFunction
 
 Function PlayCreatureBreathing(bool intense)

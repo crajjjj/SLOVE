@@ -148,6 +148,12 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 | `malemoaning` | `1` | Ambient male-partner moaning — the male mirror of `creaturebreathing`. Non-PC males moan on a cadence in **every** scene (between dirty-talk lines, and the only male sound under `moanonly`). Male packs are spoken-only, so this uses SexLab's stock male moans (`vMaleMoan01`–`04`, four distinct voices) via the `M0`–`M0D` slot fallback. Needs `enablemalevoice = 1`. |
 | `malemoanmininterval` | `5` | Seconds between a male's moans, minimum. **Halved on intense stages.** |
 | `malemoanmaxinterval` | `12` | …maximum. |
+| `npcfemalemoanmininterval` | `6` | Seconds between a female NPC's moans or lines, minimum: partners and bystanders in your scene, and NPC-only scenes. Not halved on intense stages. |
+| `npcfemalemoanmaxinterval` | `14` | ...maximum. |
+| `pcmoanmininterval` | `1.0` | *(float)* Seconds of silence between the **player's** moans or lines on calm stages, minimum. Counted from the end of one clip to the start of the next, so the clip's own length comes on top: 2-second moans with the default gap play one every 3 to 4 seconds. Values under `0.4` count as `0.4`, here and in the three keys below. |
+| `pcmoanmaxinterval` | `2.0` | *(float)* ...maximum. Set it equal to the minimum for a fixed gap. |
+| `pcmoanintensemininterval` | `0.4` | *(float)* The same gap on intense stages, minimum. |
+| `pcmoanintensemaxinterval` | `1.3` | *(float)* ...maximum. |
 
 ### Volume
 

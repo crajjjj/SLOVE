@@ -235,6 +235,46 @@ control = "percent"
 tip = "Chance of an unamused or bored line where one applies."
 
 [[setting]]
+key = "voice.pcmoanmininterval"
+group = "How often she speaks"
+label = "Player moan gap, shortest"
+control = "float"
+min = 0.4
+max = 15.0
+unit = "s"
+tip = "Shortest silence between the player's moans or lines on calm stages, in seconds, from the end of one to the start of the next. The clip's own length comes on top."
+
+[[setting]]
+key = "voice.pcmoanmaxinterval"
+group = "How often she speaks"
+label = "Player moan gap, longest"
+control = "float"
+min = 0.4
+max = 15.0
+unit = "s"
+tip = "Longest silence between the player's moans or lines on calm stages, in seconds. Set it to the shortest for a fixed gap."
+
+[[setting]]
+key = "voice.pcmoanintensemininterval"
+group = "How often she speaks"
+label = "Player moan gap when intense, shortest"
+control = "float"
+min = 0.4
+max = 15.0
+unit = "s"
+tip = "Shortest silence between the player's moans or lines on intense stages, in seconds."
+
+[[setting]]
+key = "voice.pcmoanintensemaxinterval"
+group = "How often she speaks"
+label = "Player moan gap when intense, longest"
+control = "float"
+min = 0.4
+max = 15.0
+unit = "s"
+tip = "Longest silence between the player's moans or lines on intense stages, in seconds."
+
+[[setting]]
 key = "voice.intenseenjoyment"
 group = "Intensity and orgasm"
 label = "Intense from enjoyment"
@@ -357,6 +397,26 @@ min = 1
 max = 60
 unit = "s"
 tip = "Longest pause between a male's moans, in seconds. Halved on intense stages."
+
+[[setting]]
+key = "voice.npcfemalemoanmininterval"
+group = "Who speaks"
+label = "Female NPC moan gap, shortest"
+control = "int"
+min = 1
+max = 60
+unit = "s"
+tip = "Shortest pause between a female NPC's moans or lines, in seconds. Covers partners and bystanders in your scene, and scenes without the player."
+
+[[setting]]
+key = "voice.npcfemalemoanmaxinterval"
+group = "Who speaks"
+label = "Female NPC moan gap, longest"
+control = "int"
+min = 1
+max = 60
+unit = "s"
+tip = "Longest pause between a female NPC's moans or lines, in seconds."
 
 [[setting]]
 key = "voice.creaturebreathing"
