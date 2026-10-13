@@ -9,7 +9,9 @@ SLOVE_Config Reload
 ```
 
 !!! note "Fail-open"
-    If the AudioUtil DLL is missing or too old, **every getter returns its default** — SLO VE degrades instead of erroring. That also means a typo'd key silently uses the default; check `AudioUtil.log` after an edit.
+    A key SLO VE cannot read runs on the **shipped default** (the Default column on this page), so the mod degrades instead of erroring. That covers a key your file lacks (a `SLOVE.toml` kept from an older version), a typo'd key, and a file that no longer parses after a hand edit, where every key falls back at once: check `AudioUtil.log` after an edit. Up to 0.7.5 almost forty keys fell back to 0 or to an older number instead (a broken file meant silent voices and the voice debug log switched on).
+
+    The time settings have floors in the scripts as well as on the menu sliders: a value under the slider's minimum, typed into the file by hand, counts as that minimum.
 
 Every key on this page can also be changed in game, through the optional [settings menu](menu.md).
 

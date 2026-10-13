@@ -965,23 +965,40 @@ Function InitializeConfigandForms()
 	Masks = papyrusutil.stringsplit(JsonUtil.GetStringValue(MasksFile,"masks","") ,",")
 	Maskslots = papyrusutil.stringsplit(JsonUtil.GetStringValue(MasksFile,"maskslots","") ,",")
 	exclude = papyrusutil.stringsplit(JsonUtil.GetStringValue(MasksFile,"exclude","") ,",")
-	enabletongue =  SLOVE_Config.GetInt("expressions.enabletongue", 0)
-	fhutonguetype = SLOVE_Config.GetInt("expressions.tonguetype", 0) ;config key renamed to tonguetype; the var keeps its FHU* name for save-compat
-	removetongueonblowjob = SLOVE_Config.GetInt("expressions.removetongueonblowjob", 0)
-	cunusetongue = SLOVE_Config.GetInt("expressions.cunusetongue", 0)
-	enableahegao = SLOVE_Config.GetInt("expressions.enableahegao", 0)
-	chancetostickouttongueduringintense = SLOVE_Config.GetInt("expressions.chancetostickouttongueduringintense", 0)
-	chancetostickouttongueduringattacking = SLOVE_Config.GetInt("expressions.chancetostickouttongueduringattacking", 0)
+	enabletongue =  SLOVE_Config.GetInt("expressions.enabletongue", 1)
+	fhutonguetype = SLOVE_Config.GetInt("expressions.tonguetype", 1) ;config key renamed to tonguetype; the var keeps its FHU* name for save-compat
+	removetongueonblowjob = SLOVE_Config.GetInt("expressions.removetongueonblowjob", 1)
+	cunusetongue = SLOVE_Config.GetInt("expressions.cunusetongue", 1)
+	enableahegao = SLOVE_Config.GetInt("expressions.enableahegao", 1)
+	chancetostickouttongueduringintense = SLOVE_Config.GetInt("expressions.chancetostickouttongueduringintense", 30)
+	chancetostickouttongueduringattacking = SLOVE_Config.GetInt("expressions.chancetostickouttongueduringattacking", 10)
 	enableprintdebug = SLOVE_Config.GetInt("expressions.printdebug", 0)
 
 	enablebreathing = SLOVE_Config.GetInt("expressions.enablebreathing", 1)
 	breathingupdateinseconds = SLOVE_Config.GetFloat("expressions.breathingupdateinseconds", 0.55)
 	tonguemouthopenthreshold = SLOVE_Config.GetFloat("expressions.tonguemouthopenthreshold", 0.4)
 	tongueretractgraceseconds = SLOVE_Config.GetFloat("expressions.tongueretractgraceseconds", 2.0)
-	pcnonintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.pcnonintenseexpressionupdateinseconds", 3.0)
-	pcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.pcintenseexpressionupdateinseconds", 3.0)
-	npcnonintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcnonintenseexpressionupdateinseconds", 3.0)
-	npcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcintenseexpressionupdateinseconds", 3.0)
+	pcnonintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.pcnonintenseexpressionupdateinseconds", 2.1)
+	pcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.pcintenseexpressionupdateinseconds", 1.6)
+	npcnonintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcnonintenseexpressionupdateinseconds", 2.1)
+	npcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcintenseexpressionupdateinseconds", 1.6)
+	;floors, the menu sliders' minimums: each of these re-arms the update loop, so a
+	;hand-edited zero would run a full pass every frame (breathing 0 still means off)
+	if pcnonintenseexpressionupdateinseconds < 0.5
+		pcnonintenseexpressionupdateinseconds = 0.5
+	endif
+	if pcintenseexpressionupdateinseconds < 0.5
+		pcintenseexpressionupdateinseconds = 0.5
+	endif
+	if npcnonintenseexpressionupdateinseconds < 0.5
+		npcnonintenseexpressionupdateinseconds = 0.5
+	endif
+	if npcintenseexpressionupdateinseconds < 0.5
+		npcintenseexpressionupdateinseconds = 0.5
+	endif
+	if breathingupdateinseconds > 0.0 && breathingupdateinseconds < 0.2
+		breathingupdateinseconds = 0.2
+	endif
 
 	printdebug("enabletongue : " +enabletongue)
 	printdebug("fhutonguetype : " +fhutonguetype)
@@ -1505,7 +1522,7 @@ EndFunction
 Function LoadAhegaoStorageKeys()
 	AhegaoStorageKeys = new string[16]
 	AhegaoStorageKeyCount = 0
-	string raw = SLOVE_Config.GetString("expressions.ahegaostoragekeys", "")
+	string raw = SLOVE_Config.GetString("expressions.ahegaostoragekeys", "TongueOn")
 	if raw == ""
 		return
 	endif

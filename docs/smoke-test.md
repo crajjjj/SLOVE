@@ -129,6 +129,7 @@ replaces the whole slot), and no `[[slot]]` may lack both `path` and
 
 ```
 powershell -NoProfile -ExecutionPolicy Bypass -File "SLO VE/scripts/check-config.ps1"
+# also fails when a script's fallback for a key is not the shipped value of that key
 ```
 
 `build.ps1` runs it first, so a green section 1 includes it; run it alone after

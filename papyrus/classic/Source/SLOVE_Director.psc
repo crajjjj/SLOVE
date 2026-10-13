@@ -494,7 +494,7 @@ Function InitializeDirectorConfigs()
 
 	enablevoice = SLOVE_Config.GetInt("director.enablevoice", 1)
 	suppresssexlabvoice = SLOVE_Config.GetInt("director.suppresssexlabvoice", 1)
-	enablesfx = SLOVE_Config.GetInt("sfx.enable", 0)
+	enablesfx = SLOVE_Config.GetInt("sfx.enable", 1)
 	enableExpressions = SLOVE_Config.GetInt("director.enableexpressions", 1)
 	enablepcexpression = SLOVE_Config.GetInt("director.enablepcexpression", 1)
 	enablefemalenpcexpression = SLOVE_Config.GetInt("director.enablefemalenpcexpression", 1)
@@ -505,7 +505,7 @@ Function InitializeDirectorConfigs()
 	resenablefemalenpc = SLOVE_Config.GetInt("resistance.enablefemalenpc", 1)
 	resenablecreaturenpc = SLOVE_Config.GetInt("resistance.enablecreaturenpc", 1)
 	usephysicslabels = SLOVE_Config.GetInt("director.usephysicslabels", 1)
-	physicsfastvelocity = SLOVE_Config.GetFloat("director.physicsfastvelocity", 25.0)
+	physicsfastvelocity = SLOVE_Config.GetFloat("director.physicsfastvelocity", 18.0)
 	physicsslowfactor = SLOVE_Config.GetFloat("director.physicsslowfactor", 0.65)
 	if physicsslowfactor > 1.0
 		physicsslowfactor = 1.0
@@ -531,7 +531,7 @@ Function InitializeDirectorConfigs()
 
 	;[milk] - Oninus Lactis NG nipple squirts (optional; off unless the mod is
 	;present AND milk.enable = 1). MME is a further optional layer inside Lactate().
-	milkenable = SLOVE_Config.GetInt("milk.enable", 0)
+	milkenable = SLOVE_Config.GetInt("milk.enable", 1)
 	if milkenable == 1 && SLOVE_Utils.isDependencyReady("OninusLactis.esp")
 		if LactisQuest == none
 			LactisQuest = Game.GetFormFromFile(0xD61, "OninusLactis.esp") as Quest
@@ -550,6 +550,9 @@ Function InitializeDirectorConfigs()
 		milkrollinterval = SLOVE_Config.GetInt("milk.rollinterval", 10)
 		milkmintime = SLOVE_Config.GetInt("milk.mintime", 4)
 		milkmaxtime = SLOVE_Config.GetInt("milk.maxtime", 10)
+		if milkmaxtime < milkmintime ;two separate settings: RandomInt needs them in order
+			milkmaxtime = milkmintime
+		endif
 		milklevelintense = SLOVE_Config.GetInt("milk.levelintense", 2)
 		milklevelnonintense = SLOVE_Config.GetInt("milk.levelnonintense", 1)
 		milkrequirebarechest = SLOVE_Config.GetInt("milk.requirebarechest", 1)
@@ -591,7 +594,7 @@ Event DirectorSceneStarting(string eventName, string argString, float argNum, fo
 	;is honoured only by the P+ variant. (Body-only gate; the function is kept for save-compat.)
 	return
 
-	if SLOVE_Config.GetInt("expressions.enabletongue", 0) != 1
+	if SLOVE_Config.GetInt("expressions.enabletongue", 1) != 1
 		return
 	endif
 	sslThreadController startingThread = Sexlab.GetPlayerController()

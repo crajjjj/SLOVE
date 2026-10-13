@@ -272,15 +272,15 @@ float gapeanalhuge
 
 Bool SearchingFoundVelocity
 Function InitializeConfigandForms()
-	volume = SLOVE_Config.GetInt("sfx.volume", 100) as float / 100
-	usevelocity = SLOVE_Config.GetInt("sfx.usevelocity", 0)
+	volume = SLOVE_Config.GetInt("sfx.volume", 60) as float / 100
+	usevelocity = SLOVE_Config.GetInt("sfx.usevelocity", 1)
 	useadaptivevelocity = SLOVE_Config.GetInt("sfx.useadaptivevelocity", 0)
 	;thrust sounds timed off Accurate Penetration's measured depth (RunPPAThrustSFX).
 	;sfx.usevelocity is the user's switch for measured thrust timing as a whole;
 	;sfx.useppathrust turns off this source alone. It reads no SexLab contact data,
 	;so the bridge being connected is all it needs.
 	useppathrust = 0
-	if SLOVE_Config.GetInt("sfx.usevelocity", 0) == 1 && SLOVE_Config.GetInt("sfx.useppathrust", 1) == 1 && AudioUtilPPA.IsConnected()
+	if SLOVE_Config.GetInt("sfx.usevelocity", 1) == 1 && SLOVE_Config.GetInt("sfx.useppathrust", 1) == 1 && AudioUtilPPA.IsConnected()
 		useppathrust = 1
 	endif
 	ppathrustturn = SLOVE_Config.GetFloat("sfx.ppathrustturn", 1.0)
@@ -305,6 +305,13 @@ Function InitializeConfigandForms()
 	endif
 	velocitypoll = SLOVE_Config.GetFloat("sfx.velocitypoll", 0.1)
 	normalpoll = SLOVE_Config.GetFloat("sfx.normalpoll", 0.5)
+	;floors, the menu sliders' minimums: both re-arm the update loop
+	if velocitypoll < 0.05
+		velocitypoll = 0.05
+	endif
+	if normalpoll < 0.1
+		normalpoll = 0.1
+	endif
 	updateRate = velocitypoll
 	enableprintdebug = SLOVE_Config.GetInt("sfx.printdebug", 0)
 	gapevaginalaverage = SLOVE_Config.GetFloat("sfx.gapevaginalaverage", 2.0)

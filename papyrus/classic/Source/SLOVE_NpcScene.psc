@@ -103,15 +103,15 @@ Function InitializeConfig()
 	enablecreaturebreathing = SLOVE_Config.GetInt("voice.creaturebreathing", 1)
 	malemoanmininterval     = SLOVE_Config.GetInt("voice.malemoanmininterval", 5) as float
 	malemoanmaxinterval     = SLOVE_Config.GetInt("voice.malemoanmaxinterval", 12) as float
-	creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 5) as float
-	creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 12) as float
+	creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 3) as float
+	creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 8) as float
 	npcfemalemoanmininterval = SLOVE_Config.GetInt("voice.npcfemalemoanmininterval", 6) as float
 	npcfemalemoanmaxinterval = SLOVE_Config.GetInt("voice.npcfemalemoanmaxinterval", 14) as float
 	intenseenjoyment        = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment", 75)
 	npcdepthintense         = SLOVE_Config.GetFloat("voice.npcdepthintense", 6.0)
 	; dedicated NPC-scene voice volume (own audio bus), default = partnervolume so it
 	; matches the old behavior until set. 0-100 -> 0-1 for SetGroupVolume.
-	npcvolume               = SLOVE_Config.GetInt("voice.npcscenevolume", SLOVE_Config.GetInt("voice.partnervolume", 100)) as float / 100
+	npcvolume               = SLOVE_Config.GetInt("voice.npcscenevolume", SLOVE_Config.GetInt("voice.partnervolume", 60)) as float / 100
 	enableprintdebug        = SLOVE_Config.GetInt("director.printdebug", 0)
 EndFunction
 
@@ -248,6 +248,9 @@ Function PlayMaleMoaning(bool intense)
 	lastMaleMoanTime = now
 	float minPause = malemoanmininterval
 	float maxPause = malemoanmaxinterval
+	if maxPause < minPause ;two separate settings: a longest below the shortest gives the shortest
+		maxPause = minPause
+	endif
 	if intense
 		minPause = minPause / 2.0
 		maxPause = maxPause / 2.0
@@ -297,6 +300,9 @@ Function PlayCreatureBreathing(bool intense)
 	lastCreatureBreathTime = now
 	float minPause = creaturebreathmininterval
 	float maxPause = creaturebreathmaxinterval
+	if maxPause < minPause ;two separate settings: a longest below the shortest gives the shortest
+		maxPause = minPause
+	endif
 	if intense
 		minPause = minPause / 2.0
 		maxPause = maxPause / 2.0

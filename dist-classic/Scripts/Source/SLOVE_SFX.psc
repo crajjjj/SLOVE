@@ -275,7 +275,7 @@ float gapeanalhuge
 
 Bool SearchingFoundVelocity
 Function InitializeConfigandForms()
-	volume = SLOVE_Config.GetInt("sfx.volume", 100) as float / 100
+	volume = SLOVE_Config.GetInt("sfx.volume", 60) as float / 100
 	;classic: the two velocity paths need node-collision data that does not exist
 	;here, so they are forced off regardless of SLOVE.toml - otherwise the poll would
 	;switch to the velocity rate waiting for samples that never arrive.
@@ -288,7 +288,7 @@ Function InitializeConfigandForms()
 	;sfx.useppathrust turns off this source alone. It reads no SexLab contact data,
 	;so the bridge being connected is all it needs.
 	useppathrust = 0
-	if SLOVE_Config.GetInt("sfx.usevelocity", 0) == 1 && SLOVE_Config.GetInt("sfx.useppathrust", 1) == 1 && AudioUtilPPA.IsConnected()
+	if SLOVE_Config.GetInt("sfx.usevelocity", 1) == 1 && SLOVE_Config.GetInt("sfx.useppathrust", 1) == 1 && AudioUtilPPA.IsConnected()
 		useppathrust = 1
 	endif
 	ppathrustturn = SLOVE_Config.GetFloat("sfx.ppathrustturn", 1.0)
@@ -301,6 +301,13 @@ Function InitializeConfigandForms()
 	timestosearch = SLOVE_Config.GetInt("sfx.timestosearch", 0)
 	velocitypoll = SLOVE_Config.GetFloat("sfx.velocitypoll", 0.1)
 	normalpoll = SLOVE_Config.GetFloat("sfx.normalpoll", 0.5)
+	;floors, the menu sliders' minimums: both re-arm the update loop
+	if velocitypoll < 0.05
+		velocitypoll = 0.05
+	endif
+	if normalpoll < 0.1
+		normalpoll = 0.1
+	endif
 	updateRate = velocitypoll
 	enableprintdebug = SLOVE_Config.GetInt("sfx.printdebug", 0)
 	gapevaginalaverage = SLOVE_Config.GetFloat("sfx.gapevaginalaverage", 2.0)

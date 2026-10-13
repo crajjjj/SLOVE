@@ -190,6 +190,9 @@ EndFunction
 Function InitializeConfig()
 	enable             = SLOVE_Config.GetInt("resistance.enable", 1)
 	pcmaxresistance    = SLOVE_Config.GetInt("resistance.pcmaxresistance", 600)
+	if pcmaxresistance < 1
+		pcmaxresistance = 1 ;it is a divisor
+	endif
 	pcnonvictimmult    = SLOVE_Config.GetInt("resistance.pcnonvictimmult", 60)
 	npcnonvictimmult   = SLOVE_Config.GetInt("resistance.npcnonvictimmult", 30)
 	pcvictimmult       = SLOVE_Config.GetInt("resistance.pcvictimmult", 120)

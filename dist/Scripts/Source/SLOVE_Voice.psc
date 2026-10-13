@@ -165,26 +165,26 @@ Function InitializeConfigValues()
 	;SLO VE: dropped - donotadvance* keys (stage-advance handshake), chancetoorgasmsquirt /
 	;enablethickcumleak / chancetoleakthickcum (cum shaders)
 	enablebrokenstatus = SLOVE_Config.GetInt("resistance.enablebrokenstatus", 1)
-	EnableHugePPScenario = SLOVE_Config.GetInt("voice.enablehugeppscenario",0)
-	EnableVictimscenario = SLOVE_Config.GetInt("voice.enablevictimscenario",0)
-	ChanceToCommentUnamused = SLOVE_Config.GetInt("voice.chancetocommentunamused",0) as float/100
-	ChanceToCommentonLeadinStage = SLOVE_Config.GetInt("voice.chancetocommentonleadinstage",0) as float/100
-	ChanceToCommentonNonIntenseStage = SLOVE_Config.GetInt("voice.chancetocommentonnonintensestage",0) as float /100
-	chancetocommentonintensestage = SLOVE_Config.GetInt("voice.chancetocommentonintensestage",0) as float /100
-	ChanceToCommentononAttackingStage = SLOVE_Config.GetInt("voice.chancetocommentononattackingstage",0) as float /100
-	ChanceToCommentonBlowjobStage = SLOVE_Config.GetInt("voice.chancetocommentonblowjobstage",0) as float /100
-	ChanceToCommentWhenCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenclosetoorgasm",0) as float /100
-	ChanceToCommentWhenMaleCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenmaleclosetoorgasm",0) as float /100
-	FemaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment",0)
+	EnableHugePPScenario = SLOVE_Config.GetInt("voice.enablehugeppscenario",1)
+	EnableVictimscenario = SLOVE_Config.GetInt("voice.enablevictimscenario",1)
+	ChanceToCommentUnamused = SLOVE_Config.GetInt("voice.chancetocommentunamused",15) as float/100
+	ChanceToCommentonLeadinStage = SLOVE_Config.GetInt("voice.chancetocommentonleadinstage",8) as float/100
+	ChanceToCommentonNonIntenseStage = SLOVE_Config.GetInt("voice.chancetocommentonnonintensestage",22) as float /100
+	chancetocommentonintensestage = SLOVE_Config.GetInt("voice.chancetocommentonintensestage",25) as float /100
+	ChanceToCommentononAttackingStage = SLOVE_Config.GetInt("voice.chancetocommentononattackingstage",22) as float /100
+	ChanceToCommentonBlowjobStage = SLOVE_Config.GetInt("voice.chancetocommentonblowjobstage",15) as float /100
+	ChanceToCommentWhenCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenclosetoorgasm",45) as float /100
+	ChanceToCommentWhenMaleCloseToOrgasm = SLOVE_Config.GetInt("voice.chancetocommentwhenmaleclosetoorgasm",40) as float /100
+	FemaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment",75)
 	intenseenjoyment = SLOVE_Config.GetInt("voice.intenseenjoyment", 50)
 	intenseFromBarOnly = SLOVE_Config.GetInt("voice.intense_from_bar_only", 1) == 1
-	MaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.maleorgasmhypeenjoyment",0)
-	EnableDDGagVoice = SLOVE_Config.GetInt("voice.enableddgagvoice",0)
-	EnableMaleVoice = SLOVE_Config.GetInt("voice.enablemalevoice",0)
-	ChanceForMaleToComment = SLOVE_Config.GetInt("voice.chanceformaletocomment",0) as float /100
+	MaleOrgasmHypeEnjoyment = SLOVE_Config.GetInt("voice.maleorgasmhypeenjoyment",75)
+	EnableDDGagVoice = SLOVE_Config.GetInt("voice.enableddgagvoice",1)
+	EnableMaleVoice = SLOVE_Config.GetInt("voice.enablemalevoice",1)
+	ChanceForMaleToComment = SLOVE_Config.GetInt("voice.chanceformaletocomment",30) as float /100
 	enablecreaturebreathing = SLOVE_Config.GetInt("voice.creaturebreathing", 1)
-	creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 5) as float
-	creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 12) as float
+	creaturebreathmininterval = SLOVE_Config.GetInt("voice.creaturebreathmininterval", 3) as float
+	creaturebreathmaxinterval = SLOVE_Config.GetInt("voice.creaturebreathmaxinterval", 8) as float
 	enablemalemoaning = SLOVE_Config.GetInt("voice.malemoaning", 1)
 	malemoanmininterval = SLOVE_Config.GetInt("voice.malemoanmininterval", 5) as float
 	malemoanmaxinterval = SLOVE_Config.GetInt("voice.malemoanmaxinterval", 12) as float
@@ -197,13 +197,13 @@ Function InitializeConfigValues()
 
 	MoanOnly  = SLOVE_Config.GetInt("voice.moanonly",0)
 	hypebeforeorgasm = SLOVE_Config.GetInt("voice.hypebeforeorgasm",0)
-	useblowjobsoundforkissing = SLOVE_Config.GetInt("voice.useblowjobsoundforkissing",0)
-	pcvolume = SLOVE_Config.GetInt("voice.pcvolume",0) as float /100
-	partnervolume = SLOVE_Config.GetInt("voice.partnervolume",0) as float /100
+	useblowjobsoundforkissing = SLOVE_Config.GetInt("voice.useblowjobsoundforkissing",1)
+	pcvolume = SLOVE_Config.GetInt("voice.pcvolume",60) as float /100
+	partnervolume = SLOVE_Config.GetInt("voice.partnervolume",60) as float /100
 	;orgasm cries ride their own volume bus (group pc_orgasm). Default = pcvolume, so
 	;there is no behavior change unless the user sets voice.orgasmvolume in SLOVE.toml.
-	orgasmvolume = SLOVE_Config.GetInt("voice.orgasmvolume", SLOVE_Config.GetInt("voice.pcvolume",0)) as float /100
-	EnablePrintDebug =  SLOVE_Config.GetInt("voice.printdebug",1)
+	orgasmvolume = SLOVE_Config.GetInt("voice.orgasmvolume", SLOVE_Config.GetInt("voice.pcvolume",60)) as float /100
+	EnablePrintDebug =  SLOVE_Config.GetInt("voice.printdebug",0)
 
 endfunction
 
@@ -601,6 +601,9 @@ Function PlayCreatureBreathing()
 	lastCreatureBreathTime = now
 	Float minPause = creaturebreathmininterval
 	Float maxPause = creaturebreathmaxinterval
+	if maxPause < minPause ;two separate settings: a longest below the shortest gives the shortest
+		maxPause = minPause
+	endif
 	if ASLCurrentlyintense
 		minPause = minPause / 2.0
 		maxPause = maxPause / 2.0
@@ -2208,6 +2211,9 @@ Function PlayMaleMoaning()
 	lastMaleMoanTime = now
 	Float minPause = malemoanmininterval
 	Float maxPause = malemoanmaxinterval
+	if maxPause < minPause ;two separate settings: a longest below the shortest gives the shortest
+		maxPause = minPause
+	endif
 	if ASLCurrentlyintense
 		minPause = minPause / 2.0
 		maxPause = maxPause / 2.0

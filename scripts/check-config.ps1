@@ -145,6 +145,7 @@ $tomlSections = @($toml.Values | ForEach-Object { $_.Table.ToLowerInvariant() } 
 Section 'Scripts <-> SLOVE.toml'
 $reads = @{}       # key -> list of "tree\file(line) GetX"
 $readTypes = @{}   # key -> getter names
+$fallbacks = @()   # one per read with a literal (or no) fallback: Key, Given, Text, Where
 $buses = @{}       # bus -> list of places
 foreach ($tree in @('papyrus\Source', 'papyrus\classic\Source')) {
     foreach ($file in (Get-ChildItem (Join-Path $root $tree) -Filter '*.psc')) {
@@ -165,6 +166,14 @@ foreach ($tree in @('papyrus\Source', 'papyrus\classic\Source')) {
                 if (-not $reads.ContainsKey($key)) { $reads[$key] = @(); $readTypes[$key] = @() }
                 $reads[$key] += $where
                 if ($readTypes[$key] -notcontains $getter) { $readTypes[$key] += $getter }
+            }
+            # the fallback of each read, for the check below. A fallback that is itself
+            # a read does not match here and is seen as that inner read. SLOVE_Test asks
+            # with -1 on purpose: it prints "missing" from it.
+            if ($file.Name -ne 'SLOVE_Test.psc') {
+                foreach ($m in [regex]::Matches($code, 'SLOVE_Config\.Get(?:Int|Float|String|Bool)\s*\(\s*"([^"]*)"\s*(,\s*(-?\d+(?:\.\d+)?|"[^"]*"|true|false)\s*)?\)', 'IgnoreCase')) {
+                    $fallbacks += [pscustomobject]@{ Key = $m.Groups[1].Value.ToLowerInvariant(); Given = $m.Groups[2].Success; Text = $m.Groups[3].Value; Where = $where }
+                }
             }
             foreach ($m in [regex]::Matches($code, 'AudioUtil\.SetGroupVolume\s*\(\s*(?:"([^"]*)")?', 'IgnoreCase')) {
                 if (-not $m.Groups[1].Success) {
@@ -193,7 +202,32 @@ foreach ($key in $scriptKeys) {
         }
     }
 }
-Write-Host "$($scriptKeys.Count) key(s) read by the scripts, $($tomlKeys.Count) in SLOVE.toml"
+
+# The fallback is what a setting runs on when its key is missing: a SLOVE.toml kept from
+# an older version, or one that no longer parses (then EVERY read gets its fallback). It
+# has to be the shipped value, or "a missing key uses the default" is not true: up to
+# 0.7.5 a file that did not parse meant voices at volume 0 and the voice debug log on.
+$invariant = [System.Globalization.CultureInfo]::InvariantCulture
+foreach ($f in $fallbacks) {
+    if (-not $toml.Contains($f.Key)) { continue }
+    $e = $toml[$f.Key]
+    $shown = $f.Text
+    if (-not $f.Given) { $shown = 'none' }
+    $same = $false
+    if ($e.Type -eq 'string') {
+        $same = ($f.Given -and $f.Text -ceq ('"' + $e.Value + '"')) -or (-not $f.Given -and $e.Value -eq '')
+    } elseif ($e.Type -eq 'bool') {
+        $same = ($f.Given -and $f.Text -ieq $e.Raw) -or (-not $f.Given -and -not $e.Value)
+    } else {
+        $number = 0.0
+        if (-not $f.Given) { $same = ([double]$e.Value -eq 0.0) }
+        elseif ([double]::TryParse($f.Text, [System.Globalization.NumberStyles]::Float, $invariant, [ref]$number)) {
+            $same = ([math]::Abs($number - [double]$e.Value) -lt 1e-9)
+        }
+    }
+    if (-not $same) { Fail "$($f.Where): $($f.Key) falls back to $shown but ships as $($e.Raw) - a missing key must run on the shipped value" }
+}
+Write-Host "$($scriptKeys.Count) key(s) read by the scripts, $($tomlKeys.Count) in SLOVE.toml, $($fallbacks.Count) fallback(s) equal to the shipped values"
 
 # ------------------------------------------------- 2. menu schema <-> toml ---
 Section 'SLOVE_Menu.toml <-> SLOVE.toml'
