@@ -97,9 +97,9 @@ is skipped, not played over it. Two things break that:
   `voice_no_interrupt = false`, so every new line cuts the playing one. SLO VE's copy
   sets it `true`, but only wins when SLO VE is installed **after** AudioUtil (below it
   in MO2's left pane). The rest of SLO VE's AudioUtil globals go with it: lipsync
-  block categories, gag and tongue detection, distance attenuation. Since 0.7.8 SLO VE
+  block categories, gag and tongue detection, distance attenuation. Since 0.7.7 SLO VE
   says so in the console once per session when it finds the wrong file in effect.
-- **The partner's climax** (fixed in 0.7.8). His cry and the player's reaction to it
+- **The partner's climax** (fixed in 0.7.7). His cry and the player's reaction to it
   ducked the player's moan group to silence, which took her spoken line with it. Only
   her own climax cry does that now; her reaction waits for the line, up to 4 s, then
   is skipped.
