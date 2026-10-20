@@ -175,6 +175,7 @@ bool BreathingAllowed = false
 int enablebreathing = 1
 float breathingupdateinseconds = 0.55
 float tonguemouthopenthreshold = 0.4
+float smoothspeed = 0.75 ;Mfg Fix NG transition speed of the face writes (lower = faster, 0 = at once)
 
 ;per-pass PPA snapshot (see FullExpressionPass) - the penetration checks read
 ;these instead of calling the bridge natives on every check
@@ -529,7 +530,12 @@ Bool Function FullExpressionPass()
 		endwhile
 	endif
 
-	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false)
+	;smoothspeed is Mfg Fix NG's per-actor transition speed (lower = faster, 0 = at
+	;once). It STAYS on the actor after this write and slides every channel toward
+	;its target at 1/speed units per second - AudioUtil's per-frame lipsync writes
+	;included. 0.75 blends the face nicely but smears an authored .lip file's
+	;articulation into a loudness-looking jaw; packs that ship lip files lower it.
+	MfgConsoleFuncExt.ApplyExpressionPresetSmooth(actorref, result, false, 0, 1.0, 1.0, 1.0, smoothspeed)
 	BreathIntense = Isintense()
 	BreathingAllowed = !(mouthblowjob || MFEEAddTongue || MFEEAddAhegao || EquippedTongue() || IsKissing() || IsCunnilingus())
 
@@ -571,7 +577,14 @@ Function BreathePass()
 		v = 100
 	endif
 
-	MfgConsoleFuncExt.SetPhoneme(actorref, 0, v, 0.4)
+	;the nudge's own slide, unless the configured face speed is faster: the speed
+	;sticks to the actor, and a line starting before the next full pass would
+	;otherwise lipsync through this slower one
+	float nudgespeed = 0.4
+	if smoothspeed < nudgespeed
+		nudgespeed = smoothspeed
+	endif
+	MfgConsoleFuncExt.SetPhoneme(actorref, 0, v, nudgespeed)
 EndFunction
 
 Float[] Function BuildTickPreset(float[] base, int varPct, bool mouthblowjob, bool brokenface)
@@ -947,6 +960,7 @@ Function InitializeConfigandForms()
 	pcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.pcintenseexpressionupdateinseconds", 1.6)
 	npcnonintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcnonintenseexpressionupdateinseconds", 2.1)
 	npcintenseexpressionupdateinseconds = SLOVE_Config.GetFloat("expressions.npcintenseexpressionupdateinseconds", 1.6)
+	smoothspeed = SLOVE_Config.GetFloat("expressions.smoothspeed", 0.75)
 	;floors, the menu sliders' minimums: each of these re-arms the update loop, so a
 	;hand-edited zero would run a full pass every frame (breathing 0 still means off)
 	if pcnonintenseexpressionupdateinseconds < 0.5
@@ -964,6 +978,9 @@ Function InitializeConfigandForms()
 	if breathingupdateinseconds > 0.0 && breathingupdateinseconds < 0.2
 		breathingupdateinseconds = 0.2
 	endif
+	if smoothspeed < 0.0 ;the menu's minimum: 0 writes the face at once (Mfg Fix NG leaves smooth mode)
+		smoothspeed = 0.0
+	endif
 
 	printdebug("enabletongue : " +enabletongue)
 	printdebug("fhutonguetype : " +fhutonguetype)
@@ -976,6 +993,7 @@ Function InitializeConfigandForms()
 	printdebug("enablebreathing : "+enablebreathing)
 	printdebug("breathingupdateinseconds : "+breathingupdateinseconds)
 	printdebug("tonguemouthopenthreshold : "+tonguemouthopenthreshold)
+	printdebug("smoothspeed : "+smoothspeed)
 	printdebug("pcnonintenseexpressionupdateinseconds : "+pcnonintenseexpressionupdateinseconds)
 	printdebug("pcintenseexpressionupdateinseconds : "+pcintenseexpressionupdateinseconds)
 	printdebug("npcnonintenseexpressionupdateinseconds : "+npcnonintenseexpressionupdateinseconds)

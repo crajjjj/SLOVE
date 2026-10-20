@@ -179,6 +179,7 @@ Facial expression engine. All face writes go through Mfg Fix NG.
 | `pcintenseexpressionupdateinseconds` | `1.6` | *(float)* PC face refresh on intense stages. |
 | `npcnonintenseexpressionupdateinseconds` | `2.1` | *(float)* NPC face refresh, soft. |
 | `npcintenseexpressionupdateinseconds` | `1.6` | *(float)* NPC face refresh, intense. |
+| `smoothspeed` | `0.75` | *(float)* Mfg Fix NG transition speed of the face writes: lower is faster, `0` applies at once. The speed stays on the actor and slides every channel, AudioUtil's lipsync included, so at `0.75` an authored `.lip` file reads like plain loudness lipsync in scenes. Packs that ship lip files want `0.1`. |
 | `enabletongue` | `1` | **P+ variant only.** The contact tongue, shown during cunnilingus and blowjobs. It needs SexLab P+'s oral contact detection; classic SexLab has none, so the classic variant never shows this tongue whatever the setting. Ahegao and its tongue are not affected. |
 | `tonguetype` | `1` | HALO HDT tongue model `1–10`; `0` = random per actor. |
 | `tonguetypekhajiit` | `-1` | The tongue model for Khajiit, who wear their own copies fitted to the muzzle: `-1` follows `tonguetype`, `0` = random per actor, `1` to `10` = that model. A named entry in `NPCTongue.json` still wins for that NPC. |

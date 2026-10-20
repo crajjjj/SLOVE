@@ -136,6 +136,10 @@ pcnonintenseexpressionupdateinseconds = 2.1
 pcintenseexpressionupdateinseconds = 1.6
 npcnonintenseexpressionupdateinseconds = 2.1
 npcintenseexpressionupdateinseconds = 1.6
+smoothspeed = 0.75             # Mfg Fix NG transition speed of the face writes: lower is faster,
+                               # 0 applies at once. The speed stays on the actor and slides EVERY
+                               # channel, AudioUtil's lipsync included, so an authored .lip file
+                               # reads like plain loudness lipsync at 0.75. Lip-file packs: try 0.1
 enabletongue = 1              # P+ ONLY. The contact tongue (shown during cunnilingus/blowjob)
                               # needs SexLab P+'s oral-contact detection; the classic variant
                               # has none, so it never shows a contact tongue regardless of this

@@ -535,6 +535,15 @@ unit = "s"
 tip = "Seconds between updates of an NPC's face on intense stages."
 
 [[setting]]
+key = "expressions.smoothspeed"
+group = "Updates"
+label = "Face transition speed"
+control = "float"
+min = 0.0
+max = 2.0
+tip = "Mfg Fix NG slide speed for the face writes: lower is faster, 0 applies at once. The slide also filters AudioUtil's mouth writes, so lower it (0.1) when authored lip files look like plain loudness lipsync in scenes."
+
+[[setting]]
 key = "expressions.enabletongue"
 group = "Tongue"
 label = "Contact tongue"

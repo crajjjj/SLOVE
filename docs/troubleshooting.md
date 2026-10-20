@@ -147,6 +147,11 @@ If those lines look healthy and you still hear nothing, work the console command
 - A **gagged** actor has lipsync suppressed by design (the device owns the mouth).
 - While the **climax/ahegao face owns the mouth**, lines play without lipsync so they can't fight the expression.
 - SexLab Survival's ahegao takes the mouth over while it's active.
+- **Authored `.lip` files look like plain loudness lipsync in a scene** but right with
+  `autest lipref` outside one: SLO VE's face writes leave Mfg Fix NG's per-actor slide
+  speed on the actor, and the slide filters AudioUtil's mouth writes too. Lower
+  `expressions.smoothspeed` (`0.1`). Also make sure `use_lip_files = true` sits in the
+  `AudioUtil.toml` that wins the file conflict, which is SLO VE's copy.
 
 ## Faces don't move
 
