@@ -450,6 +450,63 @@ String Function VoiceChannel(Actor a) Global
 	return "slove_np" + a.GetFormID()
 EndFunction
 
+;=== Voice lanes: the handle of the line last started on an actor's lane ===
+;Two lanes per speaker: the moan / comment lane (VoiceChannel above) and the orgasm
+;lane (the same name + "_orgasm", SLOVE_Voice). Written only by SLOVE_Director.PlaySound,
+;the one door every voice line leaves through; read to find out whether the lane is
+;still playing. AudioUtil handle ids restart at 1 with the game, so a handle written in
+;an earlier game session is stamped with the real time it was written: a stamp from
+;the future means the value is stale (a new launch), never a live line.
+String Function LaneKey(String asChannel) Global
+	if StringUtil.Find(asChannel, "_orgasm") > -1
+		return "SLOVE_VoiceLaneOrgasm"
+	endif
+	return "SLOVE_VoiceLane"
+EndFunction
+
+Function SetLaneHandle(Actor a, String asChannel, Int aiHandle) Global
+	string laneKey = LaneKey(asChannel) ;not "key": that is the vanilla Key form type
+	StorageUtil.SetIntValue(a, laneKey, aiHandle)
+	StorageUtil.SetFloatValue(a, laneKey + "At", Utility.GetCurrentRealTime())
+EndFunction
+
+;the handle still playing on the lane, or 0 when the lane is free
+Int Function LanePlaying(Actor a, String asKey) Global
+	int h = StorageUtil.GetIntValue(a, asKey, 0)
+	if h <= 0
+		return 0
+	endif
+	if StorageUtil.GetFloatValue(a, asKey + "At", 0.0) > Utility.GetCurrentRealTime() + 1.0
+		return 0 ;written in an earlier game session: the id may now belong to someone else's line
+	endif
+	if AudioUtil.IsHandlePlaying(h)
+		return h
+	endif
+	return 0
+EndFunction
+
+Bool Function LaneBusy(Actor a, String asChannel) Global
+	return LanePlaying(a, LaneKey(asChannel)) > 0
+EndFunction
+
+;wait for the actor's moan / comment lane to free up, at most afMaxSeconds.
+;True when it is free, at once or within the wait.
+Bool Function WaitForLane(Actor a, Float afMaxSeconds) Global
+	int h = LanePlaying(a, "SLOVE_VoiceLane")
+	if h <= 0
+		return true
+	endif
+	float waited = 0.0
+	while waited < afMaxSeconds
+		Utility.Wait(0.2)
+		waited += 0.2
+		if !AudioUtil.IsHandlePlaying(h)
+			return true
+		endif
+	endwhile
+	return false
+EndFunction
+
 ;=== Armor swap (port of Hentairim's BodySwitchtoLewdArmor / RestoreArmor) ===
 ;For the length of a scene an actor wears the scene version of what they have
 ;on. SLOVE/ArmorSwapping.json decides, in Hentairim's format (its

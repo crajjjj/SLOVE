@@ -88,6 +88,27 @@ things can cause it:
 Suppression is per-scene and self-restoring: SexLab's own moans return automatically in
 any scene SLO VE doesn't drive.
 
+## A moan cuts a spoken line short
+
+Since 0.7.8 a line that is still playing wins: the next line from the same speaker
+is dropped (`voice.nointerrupt`, on by default), and the partner's climax no longer
+silences the player's line. On an older SLO VE the two causes were:
+
+- **AudioUtil's own `AudioUtil.toml` is the one in effect.** It ships
+  `voice_no_interrupt = false`, so every new line cut the playing one. SLO VE's copy
+  sets it `true`, but only wins when SLO VE is installed **after** AudioUtil (below it
+  in MO2's left pane). The rest of SLO VE's AudioUtil globals go with it: lipsync
+  block categories, gag and tongue detection, distance attenuation. SLO VE now says
+  so in the console once per session when it finds the wrong file in effect.
+- **The partner's climax.** His cry and the player's reaction to it ducked the
+  player's moan group to silence, which took her spoken line with it. Only her own
+  climax cry does that now; her reaction waits for the line, up to 4 s, then is
+  skipped.
+
+What still ends a line early, by design: the scene ending (moan groups stop at
+once, climax groups after 6 s), a mute from another mod, and the player's own
+climax cry.
+
 ## Nobody is talking
 
 Work down the resolution chain:

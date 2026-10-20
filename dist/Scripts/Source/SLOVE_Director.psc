@@ -55,6 +55,7 @@ int enableExpressions
 int enablepcexpression
 int enablefemalenpcexpression
 int enablemalenpcexpression
+int nointerrupt ;voice.nointerrupt: a line still playing on a lane wins over a newcomer (PlaySound)
 int usephysicslabels
 float physicsfastvelocity
 float physicsslowfactor
@@ -446,6 +447,7 @@ Event DirectorOnSLSAhegaoStateChange(string eventName, string argString, float a
 EndEvent
 
 bool MfgFixConsoleWarned = false ;one console notice per session (log warns every load)
+bool AudioTomlConsoleWarned = false ;one console notice per session: the AudioUtil.toml in effect is not SLO VE's
 
 ;Mfg Fix NG functional probe: write a phoneme through the exact API every SLO VE
 ;face write uses (MfgConsoleFuncExt) and read it back through what the jaw gate
@@ -509,6 +511,7 @@ Function InitializeDirectorConfigs()
 	enablepcexpression = SLOVE_Config.GetInt("director.enablepcexpression", 1)
 	enablefemalenpcexpression = SLOVE_Config.GetInt("director.enablefemalenpcexpression", 1)
 	enablemalenpcexpression = SLOVE_Config.GetInt("director.enablemalenpcexpression", 1)
+	nointerrupt = SLOVE_Config.GetInt("voice.nointerrupt", 1)
 	enableresistance = SLOVE_Config.GetInt("resistance.enable", 1)
 	resenablepc = SLOVE_Config.GetInt("resistance.enablepc", 1)
 	resenablemalenpc = SLOVE_Config.GetInt("resistance.enablemalenpc", 1)
@@ -632,6 +635,20 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 	if !MfgFixConsoleWarned && StorageUtil.GetIntValue(None, "SLOVE_MfgFixBroken", 0) == 1
 		MfgFixConsoleWarned = true
 		MiscUtil.PrintConsole("SLO VE: Mfg Fix NG is missing or not working - faces will stick or deform. Install/update Mfg Fix NG (details in SLOVE.0.log).")
+	endif
+
+	;whose AudioUtil.toml is in effect? SLO VE ships its own (the globals: lipsync block
+	;categories, gag and tongue detection, distance attenuation, no-interrupt) and it
+	;only wins when SLO VE is installed after AudioUtil. AudioUtil's neutral copy has no
+	;lipsync.block_categories key, SLO VE's always has one - that tells the two apart.
+	;Voice lines no longer depend on it (voice.nointerrupt), the rest of the globals do:
+	;say so once per session, where the user is looking.
+	if !AudioTomlConsoleWarned
+		AudioTomlConsoleWarned = true
+		if SLOVE_Config.Available() && !TomlUtil.HasKey("SKSE/Plugins/AudioUtil/AudioUtil.toml", "lipsync.block_categories")
+			MiscUtil.PrintConsole("SLO VE: the AudioUtil.toml in effect is not SLO VE's - install SLO VE after AudioUtil (below it in MO2's left pane) so its config wins. Details in SLOVE.0.log.")
+			SLOVE_Log.WriteLog("Config : the AudioUtil.toml in effect is AudioUtil's neutral one (no lipsync.block_categories key). SLO VE's AudioUtil globals are not applied: lipsync block categories, gag and tongue detection, distance attenuation, voice_no_interrupt. Let SLO VE's SKSE\\Plugins\\AudioUtil\\AudioUtil.toml win the file conflict (install SLO VE after AudioUtil).", 1)
+		endif
 	endif
 
 	;Route THIS event by its OWN thread. An NPC-only scene is adopted for its ambient
@@ -1458,6 +1475,17 @@ Function PlaySound(String theSound, Actor actorMakingSound, Bool waitForCompleti
 		printdebug("Voice line dropped (muted by '" + SLOVE_Utils.MutedBy(actorMakingSound) + "') : " + theSound)
 		return
 	endif
+	;a line still playing on this lane wins; the newcomer is dropped. It is what
+	;AudioUtil's voice_no_interrupt = true gives, enforced here because that key lives
+	;in AudioUtil.toml and AudioUtil's own copy of that file ships it false: wherever
+	;that copy wins the file conflict, every new line cut the playing one short
+	;("moans interrupting spoken lines all the time"). Per lane, so other speakers
+	;still overlap and the orgasm lane never contends with the moan lane.
+	;voice.nointerrupt = 0 hands the decision back to AudioUtil.
+	if nointerrupt == 1 && channel != "" && SLOVE_Utils.LaneBusy(actorMakingSound, channel)
+		printdebug("Voice line dropped (this speaker's lane is still playing) : " + theSound)
+		return
+	endif
 	bool mouthOwned = FaceOwnsMouth(actorMakingSound)
 	if audioUtilTagAPI == 0
 		if AudioUtil.GetAPIVersion() >= 6
@@ -1475,6 +1503,9 @@ Function PlaySound(String theSound, Actor actorMakingSound, Bool waitForCompleti
 	endif
 	if enableprintdebug == 1
 		TraceVoiceLine(theSound, actorMakingSound, group, channel, facts, h)
+	endif
+	if h > 0 && channel != ""
+		SLOVE_Utils.SetLaneHandle(actorMakingSound, channel, h)
 	endif
 	if waitForCompletion
 		AudioUtil.WaitForHandle(h)

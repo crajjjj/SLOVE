@@ -1783,8 +1783,24 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 		;track previous sound
 		PreviousSound = soundToPlay
 
-		if soundPriority >2
-			AudioUtil.DuckGroup("pc_low")
+		;climax handling on the player's lanes. This used to duck pc_low to silence for
+		;EVERY priority-3 line, so the partner's cry (the DefaultMaleOrgasm call, routed through
+		;this branch with his voice)
+		;and her own reactions to it muted whatever she was in the middle of saying: "the
+		;partner's orgasm cuts off the player's line". Now only her OWN climax cry takes
+		;the lane (a climax interrupts speech); a reaction of hers (surprised, knee-jerk,
+		;a mouthful) waits for her line to end, within reason, and is skipped when it
+		;does not. His cry is on his own lane and simply overlaps, as other speakers do.
+		bool laneFree = true
+		if soundPriority > 2 && audioActor == mainFemaleActor
+			if theSound == "Orgasm"
+				AudioUtil.DuckGroup("pc_low")
+			else
+				laneFree = SLOVE_Utils.WaitForLane(mainFemaleActor, 4.0)
+				if !laneFree
+					Printdebug("Voice line skipped (her own line still playing after 4 s) : " + debugtext)
+				endif
+			endif
 		endif
 
 		if IsUnconcious()
@@ -1794,7 +1810,7 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 		endif
 
 		;re-check: the scene may have ended - or a menu frozen it - during the pre-delay wait
-		if !TrackerRemoved && !SLOVE_Utils.GamePaused()
+		if laneFree && !TrackerRemoved && !SLOVE_Utils.GamePaused()
 			String pcGroup = "pc_low"
 			if soundPriority >= 3
 				pcGroup = "pc_orgasm"     ;climax cries ride their own volume bus (voice.orgasmvolume)

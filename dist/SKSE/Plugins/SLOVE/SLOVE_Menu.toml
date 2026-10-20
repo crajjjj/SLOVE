@@ -275,6 +275,13 @@ unit = "s"
 tip = "Longest silence between the player's moans or lines on intense stages, in seconds."
 
 [[setting]]
+key = "voice.nointerrupt"
+group = "How often she speaks"
+label = "Let a line finish"
+control = "flag"
+tip = "A line still playing wins: a new line from the same speaker is dropped instead of cutting it short. Off: AudioUtil's voice_no_interrupt decides, and AudioUtil's own config lets the new line cut the old one."
+
+[[setting]]
 key = "voice.intenseenjoyment"
 group = "Intensity and orgasm"
 label = "Intense from enjoyment"
