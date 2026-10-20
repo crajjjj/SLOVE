@@ -156,7 +156,6 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 | `pcmoanmaxinterval` | `2.0` | *(float)* ...maximum. Set it equal to the minimum for a fixed gap. |
 | `pcmoanintensemininterval` | `0.4` | *(float)* The same gap on intense stages, minimum. |
 | `pcmoanintensemaxinterval` | `1.3` | *(float)* ...maximum. |
-| `nointerrupt` | `1` | A line still playing wins: a new line from the same speaker is dropped instead of cutting it short, so moans never interrupt a spoken line. Per speaker, so different speakers still overlap, and a climax cry has its own lane. `0` hands the decision to AudioUtil's `voice_no_interrupt`, and AudioUtil's own `AudioUtil.toml` ships that `false` (the new line cuts the old one). |
 
 ### Volume
 

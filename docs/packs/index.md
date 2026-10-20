@@ -168,7 +168,7 @@ Every voice line plays into a **group** (a live volume bus) and optionally a **c
 - **SFX groups:** `sfx` (startup level from `sfx.volume`), `oneshot`.
 - **SFX channels:** `sfx_main_<position>` and `sfx_contact_<position>` — each actor's continuous stream and their one-shots never cut each other off.
 
-`voice_no_interrupt = true` (default) means a speaker whose channel is still playing **skips** the new line rather than cutting the old one short. Different speakers still overlap freely. Since 0.7.8 SLO VE enforces the same rule itself (`voice.nointerrupt`), whichever `AudioUtil.toml` is in effect.
+`voice_no_interrupt = true` (default) means a speaker whose channel is still playing **skips** the new line rather than cutting the old one short. Different speakers still overlap freely.
 
 ## Diagnosing resolution
 

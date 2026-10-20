@@ -453,8 +453,10 @@ EndFunction
 ;=== Voice lanes: the handle of the line last started on an actor's lane ===
 ;Two lanes per speaker: the moan / comment lane (VoiceChannel above) and the orgasm
 ;lane (the same name + "_orgasm", SLOVE_Voice). Written only by SLOVE_Director.PlaySound,
-;the one door every voice line leaves through; read to find out whether the lane is
-;still playing. AudioUtil handle ids restart at 1 with the game, so a handle written in
+;the one door every voice line leaves through; read by SLOVE_Voice to let the player's
+;reaction to the partner's climax wait for her own line instead of muting it. Whether a
+;NEW line may cut a playing one is AudioUtil's call ([general] voice_no_interrupt), not
+;decided here. AudioUtil handle ids restart at 1 with the game, so a handle written in
 ;an earlier game session is stamped with the real time it was written: a stamp from
 ;the future means the value is stale (a new launch), never a live line.
 String Function LaneKey(String asChannel) Global
@@ -483,10 +485,6 @@ Int Function LanePlaying(Actor a, String asKey) Global
 		return h
 	endif
 	return 0
-EndFunction
-
-Bool Function LaneBusy(Actor a, String asChannel) Global
-	return LanePlaying(a, LaneKey(asChannel)) > 0
 EndFunction
 
 ;wait for the actor's moan / comment lane to free up, at most afMaxSeconds.

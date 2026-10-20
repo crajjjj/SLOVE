@@ -58,7 +58,6 @@ int enableExpressions
 int enablepcexpression
 int enablefemalenpcexpression
 int enablemalenpcexpression
-int nointerrupt ;voice.nointerrupt: a line still playing on a lane wins over a newcomer (PlaySound)
 int usephysicslabels
 float physicsfastvelocity
 float physicsslowfactor
@@ -501,7 +500,6 @@ Function InitializeDirectorConfigs()
 	enablepcexpression = SLOVE_Config.GetInt("director.enablepcexpression", 1)
 	enablefemalenpcexpression = SLOVE_Config.GetInt("director.enablefemalenpcexpression", 1)
 	enablemalenpcexpression = SLOVE_Config.GetInt("director.enablemalenpcexpression", 1)
-	nointerrupt = SLOVE_Config.GetInt("voice.nointerrupt", 1)
 	enableresistance = SLOVE_Config.GetInt("resistance.enable", 1)
 	resenablepc = SLOVE_Config.GetInt("resistance.enablepc", 1)
 	resenablemalenpc = SLOVE_Config.GetInt("resistance.enablemalenpc", 1)
@@ -643,12 +641,12 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 		MiscUtil.PrintConsole("SLO VE: Mfg Fix NG is missing or not working - faces will stick or deform. Install/update Mfg Fix NG (details in SLOVE.0.log).")
 	endif
 
-	;whose AudioUtil.toml is in effect? SLO VE ships its own (the globals: lipsync block
-	;categories, gag and tongue detection, distance attenuation, no-interrupt) and it
-	;only wins when SLO VE is installed after AudioUtil. AudioUtil's neutral copy has no
+	;whose AudioUtil.toml is in effect? SLO VE ships its own (the globals: voice_no_interrupt,
+	;lipsync block categories, gag and tongue detection, distance attenuation) and it only
+	;wins when SLO VE is installed after AudioUtil. AudioUtil's neutral copy has no
 	;lipsync.block_categories key, SLO VE's always has one - that tells the two apart.
-	;Voice lines no longer depend on it (voice.nointerrupt), the rest of the globals do:
-	;say so once per session, where the user is looking.
+	;With the neutral copy in effect every new line cuts the one still playing (its
+	;voice_no_interrupt is false): say so once per session, where the user is looking.
 	if !AudioTomlConsoleWarned
 		AudioTomlConsoleWarned = true
 		if SLOVE_Config.Available() && !TomlUtil.HasKey("SKSE/Plugins/AudioUtil/AudioUtil.toml", "lipsync.block_categories")
@@ -1464,17 +1462,6 @@ Function PlaySound(String theSound, Actor actorMakingSound, Bool waitForCompleti
 	;(-1, the scene's last moments) is judged on the thread the mute was set in.
 	if SLOVE_Utils.MuteWritten(actorMakingSound) && SLOVE_Utils.MuteLevel(actorMakingSound, ActorThreadID(actorMakingSound)) > 0
 		printdebug("Voice line dropped (muted by '" + SLOVE_Utils.MutedBy(actorMakingSound) + "') : " + theSound)
-		return
-	endif
-	;a line still playing on this lane wins; the newcomer is dropped. It is what
-	;AudioUtil's voice_no_interrupt = true gives, enforced here because that key lives
-	;in AudioUtil.toml and AudioUtil's own copy of that file ships it false: wherever
-	;that copy wins the file conflict, every new line cut the playing one short
-	;("moans interrupting spoken lines all the time"). Per lane, so other speakers
-	;still overlap and the orgasm lane never contends with the moan lane.
-	;voice.nointerrupt = 0 hands the decision back to AudioUtil.
-	if nointerrupt == 1 && channel != "" && SLOVE_Utils.LaneBusy(actorMakingSound, channel)
-		printdebug("Voice line dropped (this speaker's lane is still playing) : " + theSound)
 		return
 	endif
 	bool mouthOwned = FaceOwnsMouth(actorMakingSound)
