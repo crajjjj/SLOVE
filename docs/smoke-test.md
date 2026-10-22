@@ -214,7 +214,8 @@ SLOVE.toml (back to 0 afterwards). Static probes need ConsoleUtil.
    ~5–12 s (faster when intense); climax whine replaces a running breath; no
    human lines from the creature.
 4. **Body SFX** (`sfx.enable=1`): slush/impact rate follows the thrusting, successive
-   slushes replace, ejac one-shot at climax, kiss SFX, all stop at scene end.
+   slushes replace, ejac one-shot at climax (for a male player too), kiss SFX,
+   all stop at scene end except an ejac one-shot already in flight.
 5. **SLS ahegao** (SLS ≥ 0.707): face + moan-lipsync yield while active
    (moans stay audible — played with `blockLipSync=true`, so the mouth stays on
    the SLS face); survives save→reload mid-ahegao (Director re-seeds

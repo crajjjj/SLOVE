@@ -68,6 +68,7 @@ Function PerformInitialization()
 
 	;SFX Initialize
 	AudioUtil.SetGroupVolume("sfx", volume)
+	AudioUtil.SetGroupVolume("sfx_climax", volume) ;the ejaculation one-shot's bus (see SFXOrgasm)
 	printdebug("initialized complete")
 	RegisterForSingleUpdate(0.1)
 EndFunction
@@ -106,12 +107,23 @@ Event SFXOrgasm(Form actorhavingorgasm, Int thread)
 		return
 	endif
 
-	if FuckingPartner == Playerref || actorlist[0] == Playerref
-		AudioUtil.PlaySFX(EjacSound, Playerref, 1.0, "sfx", "sfx_ejac_" + position)
-	elseif !IsPlayer
-		;NPC-on-NPC climax (NPC-only scene): play the ejaculation SFX on the receiver
-		AudioUtil.PlaySFX(EjacSound, actorlist[0], 1.0, "sfx", "sfx_ejac_" + position)
+	;the one-shot sits at the receiver: the measured partner when the detector knows
+	;one, else position 0; at the player whenever the player is on either side. A male
+	;player used to match neither of the two old branches (player as receiver, or a
+	;non-player giver) and heard nothing - the Hentairim original only ever voiced a
+	;female player's partner
+	Actor playAt = FuckingPartner
+	if playAt == none && actorlist
+		playAt = actorlist[0]
 	endif
+	if IsPlayer || playAt == Playerref
+		playAt = Playerref
+	endif
+	;its own group, not "sfx": DirectorEndScene stops "sfx" the instant the scene
+	;ends, and SexLab P+'s Legacy climax type fires the orgasm inside EndAnimation,
+	;so the clip was cut as soon as the actors were cleaned up. sfx_climax is never
+	;stopped at scene end; the clips are 3 s at most and ring out
+	AudioUtil.PlaySFX(EjacSound, playAt, 1.0, "sfx_climax", "sfx_ejac_" + position)
 
 EndEvent
 

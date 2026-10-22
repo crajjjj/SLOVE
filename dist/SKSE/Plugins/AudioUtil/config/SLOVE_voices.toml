@@ -367,6 +367,7 @@ partner_low = 1.0
 npc_low = 1.0                  # NPC-only scenes: ambient voice (SLOVE.toml voice.npcscenevolume)
 npc_high = 1.0                 # NPC-only scenes: orgasm cries
 sfx = 1.0
+sfx_climax = 1.0               # the ejaculation one-shot: follows sfx.volume, rings out at scene end
 oneshot = 1.0
 
 # ---------- voice slots ----------

@@ -165,7 +165,7 @@ You never have to match spacing or case between a pack's folder names, the TOML,
 Every voice line plays into a **group** (a live volume bus) and optionally a **channel** (an exclusivity lane — a new line on an occupied channel replaces the old one).
 
 - **Voice groups:** `pc_low`, `pc_high`, `partner_low`, `partner_high` — startup levels in `[groups]`, runtime levels from `voice.pcvolume` / `voice.partnervolume`.
-- **SFX groups:** `sfx` (startup level from `sfx.volume`), `oneshot`.
+- **SFX groups:** `sfx` and `sfx_climax` (both at `sfx.volume`; the climax bus carries the ejaculation one-shot and rings out at scene end), `oneshot`.
 - **SFX channels:** `sfx_main_<position>` and `sfx_contact_<position>` — each actor's continuous stream and their one-shots never cut each other off.
 
 `voice_no_interrupt = true` (default) means a speaker whose channel is still playing **skips** the new line rather than cutting the old one short. Different speakers still overlap freely.

@@ -841,6 +841,8 @@ Function DirectorEndScene()
 	;immediately, but leave the *_high voice groups (orgasm lines play there at
 	;priority>1) for SLOVE_Voice.RemoveTracker to ring out briefly - cutting the
 	;climax cry the instant the scene ends is why the Orgasm folder seemed silent.
+	;The ejaculation one-shot plays on sfx_climax for the same reason (SexLab P+'s
+	;Legacy climax type fires it inside EndAnimation) and is not stopped here either.
 	AudioUtil.StopGroup("pc_low")
 	AudioUtil.StopGroup("partner_low")
 	AudioUtil.StopGroup("sfx")

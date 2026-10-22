@@ -159,6 +159,7 @@ pc_low = 1.0
 partner_high = 1.0
 partner_low = 1.0
 sfx = 1.0
+sfx_climax = 1.0
 oneshot = 1.0
 ```
 
@@ -167,9 +168,10 @@ oneshot = 1.0
 | `pc_low` / `pc_high` | the player's voice (soft / intense lines) |
 | `partner_low` / `partner_high` | NPC partner voices |
 | `sfx` | the body-SFX engine |
+| `sfx_climax` | the ejaculation one-shot (same runtime level as `sfx`; rings out at scene end) |
 | `oneshot` | out-of-scene one-shots |
 
-**How the low/high split is used.** The two lanes of a speaker share one volume — `voice.pcvolume` sets both `pc_low` and `pc_high`, and `voice.partnervolume` both `partner_*`. `low`/`high` is a **priority lane, not a loudness difference**: normal moans and chatter play on `_low`, while climax/orgasm cries play on `_high`. SLO VE uses that split to shape a scene automatically — it **ducks `pc_low` while an NPC is speaking** so the player's mundane lines don't muddy the partner's, and **at scene end it stops the `_low` buses immediately but lets the `_high` buses ring out for a short grace** so an in-flight orgasm cry can finish. None of this is configurable — the only dials you set are the two volumes in [`SLOVE.toml`](slove.md#volume).
+**How the low/high split is used.** The two lanes of a speaker share one volume: `voice.pcvolume` sets both `pc_low` and `pc_high`, and `voice.partnervolume` both `partner_*`. `low`/`high` is a **priority lane, not a loudness difference**: normal moans and chatter play on `_low`, while climax/orgasm cries play on `_high`. SLO VE uses that split to shape a scene automatically. It **ducks `pc_low` while an NPC is speaking** so the player's mundane lines don't muddy the partner's, and **at scene end it stops the `_low` buses immediately but lets the `_high` buses ring out for a short grace** so an in-flight orgasm cry can finish. The ejaculation one-shot gets the same grace on `sfx_climax` while the rest of the body SFX on `sfx` stop at once. None of this is configurable; the only dials you set are the two volumes in [`SLOVE.toml`](slove.md#volume).
 
 ## `[[slot]]`
 
