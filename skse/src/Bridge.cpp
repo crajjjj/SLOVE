@@ -127,7 +127,7 @@ namespace Bridge
 				{ "voice.partnervolume"sv, { "partner_low"sv, "partner_high"sv } },
 				{ "voice.orgasmvolume"sv, { "pc_orgasm"sv } },
 				{ "voice.npcscenevolume"sv, { "npc_low"sv, "npc_high"sv } },
-				{ "sfx.volume"sv, { "sfx"sv } },
+				{ "sfx.volume"sv, { "sfx"sv, "sfx_climax"sv } },
 			} };
 			return table;
 		}
