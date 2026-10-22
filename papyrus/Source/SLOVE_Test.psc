@@ -361,7 +361,7 @@ Function Willpower(Int aiValue) Global
 		endif
 		StorageUtil.SetIntValue(a, "SLOVE_Resistance", v)
 	endif
-	MiscUtil.PrintConsole("SLO VE: " + a.GetDisplayName() + " willpower=" + v + " brokenhours=" + broken + " recovers " + rate + "% per game hour from now" + sent + " (" + SLOVE_Utils.BrokenCount() + " actor(s) broken)")
+	MiscUtil.PrintConsole("SLO VE: " + a.GetDisplayName() + " willpower=" + v + " brokenhours=" + broken + " recovers " + rate + " percent per game hour from now" + sent + " (" + SLOVE_Utils.BrokenCount() + " actor(s) broken)")
 EndFunction
 
 ;Try the armor swap (director.enablearmorswap) on the player without a scene.
