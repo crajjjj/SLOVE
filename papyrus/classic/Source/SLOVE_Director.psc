@@ -1157,10 +1157,10 @@ Function TestMilk(Bool abIntense)
 		if milkMax > 0.0
 			int fullness = Math.Ceiling(MME_Storage.getMilkCurrent(playerref) / milkMax * 100)
 			if fullness <= milkmmeminfullness
-				MiscUtil.PrintConsole("SLOVE milk: MME fullness " + fullness + "% at/below milk.mmeminfullness (" + milkmmeminfullness + "%) - a live scene would SKIP this squirt. Fill up or lower milk.mmeminfullness.")
+				MiscUtil.PrintConsole("SLOVE milk: MME fullness " + fullness + " percent, at/below milk.mmeminfullness (" + milkmmeminfullness + " percent) - a live scene would SKIP this squirt. Fill up or lower milk.mmeminfullness.")
 				return
 			endif
-			MiscUtil.PrintConsole("SLOVE milk: MME fullness " + fullness + "% (above " + milkmmeminfullness + "%) - the squirt will drain the reserve.")
+			MiscUtil.PrintConsole("SLOVE milk: MME fullness " + fullness + " percent (above " + milkmmeminfullness + " percent) - the squirt will drain the reserve.")
 		else
 			MiscUtil.PrintConsole("SLOVE milk: MME present but not managing the player - squirting normally, no drain.")
 		endif
