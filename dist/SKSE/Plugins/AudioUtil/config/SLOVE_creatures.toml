@@ -819,6 +819,14 @@ Orgasm = [
   'Sound\FX\NPC\Charus\Injured\NPC_Chaurus_Injured_02.wav',
   'Sound\fx\npc\charus\attack\npc_chaurus_attack_01.wav',
 ]
+Breathing = [
+  'Sound\fx\npc\charus\npc_chaurus_breathe_lp.wav',
+  'Sound\fx\npc\charus\mandibles\npc_chaurus_mandibles_01.wav',
+  'Sound\fx\npc\charus\mandibles\npc_chaurus_mandibles_02.wav',
+  'Sound\fx\npc\charus\mandibles\npc_chaurus_mandibles_03.wav',
+  'Sound\fx\npc\charus\feed\npc_chaurus_feed_01.wav',
+  'Sound\fx\npc\charus\feed\npc_chaurus_feed_02.wav',
+]
 
 [[slot]]  # Spriggan (a single fx file exists - spriggan voices are dialogue-side)
 id = "C9"

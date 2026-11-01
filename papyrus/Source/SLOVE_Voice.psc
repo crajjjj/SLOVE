@@ -1311,8 +1311,11 @@ String[] Function ResolveSpeakerAct(Actor speaker, String actDir = "", String ac
 	;act - the same rule PPAPlace states above. The lead is untouched: her act
 	;already runs through PPAPlace inside the label chain.
 	;ppaSnap is the caller's job (BuildFacts and the NPC dispatch both supply it)
-	;- None means a straggler call site, and the overlay just stays out
-	if !lead && actDir == "" && actPlace == "" && ppaSnap != None
+	;- None or empty means a straggler call site, and the overlay just stays out.
+	;Tested by truthiness: a Papyrus array compared against None logs "Cannot cast
+	;from None to Float[]" at run time and answers garbage, so the overlay never
+	;reliably ran (one such error per partner/creature line in Papyrus.0.log).
+	if !lead && actDir == "" && actPlace == "" && ppaSnap
 		int ownSite = 0
 		if ppaSnap.length > 2
 			ownSite = ppaSnap[2] as int

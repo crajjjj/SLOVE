@@ -332,10 +332,14 @@ PullOut = "Penetrated Tell Male to Pull Out"
 "Penetrating Comments" = "Amused"
 
 [category_fallbacks.male]
-# creatures (C1-C10) only define an Orgasm list, so per-scene creature ambience
-# (SLOVE_Voice requests "Breathing") falls back to it - they growl/pant their
-# vanilla sounds. Give a C-slot its own "Breathing" category to override.
-Breathing = "Orgasm"
+# No Breathing -> Orgasm here (it used to be). This table is shared with the
+# creature slots (sex = "all" reads the male aliases and fallbacks), and the hop
+# was meant for a C-slot that ships no Breathing list. Every C-slot ships one
+# now, and the hop also reached the HUMAN male packs, which have no Breathing
+# folder at all: a bandit who turned werewolf kept his MaleBandit voice type,
+# AudioUtil routed him to M4, and his breathing cadence played that pack's
+# climax cries every few seconds for the whole scene. A slot without Breathing
+# stays silent on that beat instead.
 # male-routed cunnilingus (male PC / male-only scenes): no male pack ships
 # Licking* folders, so degrade to the stock vMaleMoan sets on M0 - exactly
 # what BlowjobActionSoft/-Intense resolved to before Licking existed.

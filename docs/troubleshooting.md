@@ -159,6 +159,15 @@ If those lines look healthy and you still hear nothing, work the console command
 - `pc_female_slot`/`pc_male_slot` are **reserved**: no NPC can ever resolve to them. If you routed an NPC to `F1`, that's why she isn't using it.
 - Set `log_level = "debug"` and read the resolution lines in `AudioUtil.log`.
 
+**A creature partner repeats the male climax cry** every few seconds, a werewolf
+growling like a man: two causes, both fixed in SLO VE 0.7.9 with AudioUtil 0.9.32.
+An NPC who transforms keeps the human voice type of his NPC record, and AudioUtil
+used to route by voice type before race, so the werewolf landed on a male pack;
+and SLO VE's shared male fallback table sent a missing `Breathing` to `Orgasm`, so
+every breath on the creature cadence was a climax cry. With `voice.printdebug` the
+route reads `Play 'breathing' actor=... slot=M4 ... -> ...\Orgasm\02.wav` in
+`Logs\Script\User\SLOVE.0.log`; after the fix it is `slot=C1` and a `Breathing` file.
+
 ## Mouths don't move
 
 - Lipsync needs a **loose PCM wav**. BSA-packed and compressed audio plays without mouth movement — this is expected for creature slots.

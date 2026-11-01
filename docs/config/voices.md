@@ -135,7 +135,6 @@ RimjobComments = "Blowjob Remarks"
 RimjobForced = "BlowjobActionSoft"
 
 [category_fallbacks.male]
-Breathing = "Orgasm"     # creature ambience reuses the climax clips
 Licking = "BlowjobActionSoft"   # male-routed cunnilingus degrades to stock male moans
 LickingIntense = "BlowjobActionIntense"
 LickingComments = "BlowjobActionSoft"
