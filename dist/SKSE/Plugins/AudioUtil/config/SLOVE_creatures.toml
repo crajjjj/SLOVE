@@ -60,6 +60,7 @@ BearBlackRace = "C16"
 BearSnowRace = "C16"
 'Cave Bear' = "C16"
 'Snow Bear' = "C16"
+DLC2WerebearBeastRace = "C16"  # a transformed werebear; AudioUtil 0.9.32+ tries this before his human voicetype
 SabreCatRace = "C17"
 DLC2BoarRace = "C18"
 DLC2MountedRieklingRace = "C41"
