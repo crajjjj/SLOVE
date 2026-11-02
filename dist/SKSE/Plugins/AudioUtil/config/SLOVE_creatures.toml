@@ -19,15 +19,20 @@
 #
 # Two categories per slot: Orgasm fires at climax, Breathing is rolled
 # periodically by SLOVE_Voice during the scene (see SLOVE.toml [voice]
-# creaturebreathing*). A slot with no usable ambience material omits Breathing -
-# the [category_fallbacks.male] Breathing = "Orgasm" hop then covers it (creature
-# slots share the male category tables), so C8 growls its Orgasm pool instead.
+# creaturebreathing*). Every slot ships both. A slot without Breathing is silent
+# between climaxes: there is deliberately no Breathing -> Orgasm fallback (it
+# used to be in SLOVE_voices.toml, and since the male category tables are shared
+# with the human male packs it also turned a werewolf routed to a male pack into
+# a climax cry on every breath). Keep Breathing clips short, about 2 s: a creature
+# in an NPC-only scene climaxes on the same channel it breathes on, and AudioUtil
+# skips a line while that channel is still playing.
 #
 # DEPENDENCY: the fox (C19) and dragon (C28) slots are sourced ENTIRELY from
 # More Nasty Critters, and the lurker (C23) and hagraven (C27) slots mostly so.
-# Without MNC installed those categories resolve nothing - which is why the
-# C11-C41 slots carry fallback = "C0", so a missing file degrades to the generic
-# creature growls instead of to silence.
+# Without MNC installed those slots play nothing: AudioUtil trusts an explicit
+# list as written (its load-time audit logs each missing file), so a missing file
+# never reaches the fallback = "C0" those slots carry. That fallback only covers
+# a category a slot does not list at all.
 
 [race_map]
 # ---- C0-C10 (base species) ----
@@ -810,7 +815,7 @@ Breathing = [
   'Sound\FX\DLC01\NPC\DogHusky\NPC_DogHusky_Idle_Whine_08.wav',
 ]
 
-[[slot]]  # Chaurus (vanilla folder is misspelled 'Charus'; only three fx files exist)
+[[slot]]  # Chaurus (the vanilla folder is misspelled 'Charus')
 id = "C8"
 sex = "all"
 [slot.categories]
@@ -820,12 +825,9 @@ Orgasm = [
   'Sound\fx\npc\charus\attack\npc_chaurus_attack_01.wav',
 ]
 Breathing = [
-  'Sound\fx\npc\charus\npc_chaurus_breathe_lp.wav',
   'Sound\fx\npc\charus\mandibles\npc_chaurus_mandibles_01.wav',
   'Sound\fx\npc\charus\mandibles\npc_chaurus_mandibles_02.wav',
   'Sound\fx\npc\charus\mandibles\npc_chaurus_mandibles_03.wav',
-  'Sound\fx\npc\charus\feed\npc_chaurus_feed_01.wav',
-  'Sound\fx\npc\charus\feed\npc_chaurus_feed_02.wav',
 ]
 
 [[slot]]  # Spriggan (a single fx file exists - spriggan voices are dialogue-side)

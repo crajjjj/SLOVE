@@ -28,6 +28,7 @@ int PartnerStraponCache = 0
 ;PPAPlace's last contradicting hole per direction (its two-sample debounce)
 String PPAPrevPlaceRcv = ""
 String PPAPrevPlaceGiv = ""
+String PPAPrevPlaceOwn = "" ;the same two-read rule for a non-lead speaker's own site (ResolveSpeakerAct)
 ;--- voice-all-actors: every male in the scene may speak with his own AudioUtil slot
 Actor[] sceneMales                 ;all non-PC males (incl. schlonged females)
 Bool mainMaleIsVoiced = false      ;true only when mainMaleActor is a human male/schlonged futa; the partner fallback (e.g. a creature) must stay silent
@@ -315,6 +316,7 @@ Function FindActorsAndVoices()
 	PartnerStraponCache = 0
 	PPAPrevPlaceRcv = ""
 	PPAPrevPlaceGiv = ""
+	PPAPrevPlaceOwn = ""
 
 	Actor[] actorList = MasterScript.GetPositions()
 	Int actorCount = actorList.Length
@@ -1316,22 +1318,32 @@ String[] Function ResolveSpeakerAct(Actor speaker, String actDir = "", String ac
 	;from None to Float[]" at run time and answers garbage, so the overlay never
 	;reliably ran (one such error per partner/creature line in Papyrus.0.log).
 	if !lead && actDir == "" && actPlace == "" && ppaSnap
-		int ownSite = 0
-		if ppaSnap.length > 2
-			ownSite = ppaSnap[2] as int
-		endif
+		int ownSite = SLOVE_PPA.SiteOf(ppaSnap)
 		if ownSite == 1
 			dir = "giv" ;a penis in THEIR mouth - this speaker is the one giving oral
 			place = "oral"
 			imp = NpcImplementFor(speaker)
-		elseif ownSite == 2
-			dir = "rcv"
-			place = "anal"
-			imp = NpcImplementFor(speaker)
-		elseif ownSite == 3
-			dir = "rcv"
-			place = "vaginal"
-			imp = NpcImplementFor(speaker)
+		elseif ownSite == 2 || ownSite == 3
+			String ownHole = "anal"
+			if ownSite == 3
+				ownHole = "vaginal"
+			endif
+			;the two-read rule PPAPlace applies, for the same reason: the site can
+			;flicker between the anus and the vagina for a frame. Only the lead's
+			;partner has a hole from the labels to contradict (bystanders get none),
+			;and PPAPlace has just debounced that very reading on his behalf when the
+			;lead gives, so a raw read here must not undo it. A hole that agrees, or
+			;a speaker with no hole from the labels, takes the site at once.
+			bool holdLabel = false
+			if place == "anal" || place == "vaginal"
+				holdLabel = place != ownHole && PPAPrevPlaceOwn != ownHole
+				PPAPrevPlaceOwn = ownHole
+			endif
+			if !holdLabel
+				dir = "rcv"
+				place = ownHole
+				imp = NpcImplementFor(speaker)
+			endif
 		elseif ownSite == 4
 			dir = "rcv"
 			place = "dp"
@@ -1340,7 +1352,7 @@ String[] Function ResolveSpeakerAct(Actor speaker, String actDir = "", String ac
 			dir = "giv" ;their hands on a penis - a handjob, whoever gives it
 			place = "hand"
 			imp = NpcImplementFor(speaker)
-		elseif dir == "" && Sexlab.GetGender(speaker) == 1
+		elseif dir == "" && MasterScript.GetGender(speaker) == 1
 			int npcCtx = SLOVE_PPA.CtxOf(ppaSnap)
 			if Math.LogicalAnd(npcCtx, 128) == 128
 				dir = "giv"

@@ -218,7 +218,7 @@ Orgasm = [
 | `F0v2`-`F0v8` | female | female | the same mapping over `vFemaleMoan02`..`08` (05/06/08 ship no `hot`, so their climax categories use `medium`), `fallback = "F0B"` |
 | `M1`-`M8` | male | male | scan `Sound\fx\SLOVE\M1`..`M8`, `fallback` round-robin over `M0`/`M0B`/`M0C`/`M0D` |
 | `M0`-`M0D` | male | male | non-verbal categories only, folder refs into SexLab's `vMaleMoan01`..`04` |
-| `C0`-`C10` | creatures | all | explicit vanilla-BSA file lists, `Orgasm` + usually `Breathing`; `C0` is the catch-all |
+| `C0`-`C10` | creatures | all | explicit vanilla-BSA file lists, `Orgasm` + `Breathing`; `C0` is the catch-all |
 | `C11`-`C41` | creatures | all | 31 more species, same construction, `fallback = "C0"` (fox and dragon need More Nasty Critters) |
 | `SFX0` | voices | all | ~50 folder refs into `Sound\fx\SloveSFX` (+ `Smack`, `PullOutGape` from `Sound\fx\SLOVE\Sounds`) |
 

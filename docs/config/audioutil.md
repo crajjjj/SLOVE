@@ -26,9 +26,10 @@ sound_priority = 128
 voice_3d = true
 voice_no_interrupt = true
 default_female_slot = "F0"
-default_male_slot = "M1"
+default_male_slot = "M0"
+default_creature_slot = "C0"
 pc_female_slot = "F1"
-pc_male_slot = ""
+pc_male_slot = "M1"
 ```
 
 | Key | SLO VE ships | Meaning |

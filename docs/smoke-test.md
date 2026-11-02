@@ -118,8 +118,8 @@ python -c "import tomllib; tomllib.load(open(r'...\SLOVE.toml','rb'))"
 
 **Pass:** all parse; the base `AudioUtil.toml` has only `[general]`/`[ppa]`/
 `[lipsync]`/`[gag]` (no `[[slot]]`/routing - those are overlay-only); in
-`SLOVE_creatures.toml`, creature slots C1-C10 each expose `Orgasm` (plus
-`Breathing` where material exists - C8 legitimately has none) and `[race_map]`
+`SLOVE_creatures.toml`, creature slots C0-C41 each expose `Orgasm` and
+`Breathing` and `[race_map]`
 contains the creature hints incl. `Husky`; and the `SFX0` slot is present in
 `SLOVE_voices.toml`. No slot id may appear in two overlays (a duplicate silently
 replaces the whole slot), and no `[[slot]]` may lack both `path` and

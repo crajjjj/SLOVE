@@ -171,7 +171,7 @@ Plus one creature-only category:
 
 | Category | Notes |
 |---|---|
-| `Breathing` | creature ambience, rolled through the scene. Falls back to `Orgasm` so creature slots that define only `Orgasm` still pant. |
+| `Breathing` | creature ambience, rolled through the scene. No fallback: a creature slot without it is silent between climaxes. |
 
 !!! info "Aliases run *after* an exact folder match"
     A pack that *does* ship a `Struggling Overt` folder uses it; only packs without one hit the alias. Same for the other aliased names.
