@@ -8,7 +8,7 @@ The male packs are **bundled** — nothing to download. They install to `Data\So
 
 | Slot | Voice | Routed from |
 |---|---|---|
-| `M1` | Even Toned | `MaleEvenToned` (+ remapped commoner/young/drunk/old-kindly voicetypes) — also `default_male_slot` |
+| `M1` | Even Toned | `MaleEvenToned` (+ remapped commoner/young/drunk/old-kindly voicetypes). The shipped config also reserves it as `pc_male_slot` |
 | `M2` | Argonian | `MaleArgonian`, race hint `Argonian` |
 | `M3` | Brute | `MaleBrute` (+ commander/soldier/old-grumpy), `MaleBandit` |
 | `M4` | Nord | `MaleNord` (+ guard/nord-commander), `MaleBandit`, race hint `Nord` |
@@ -90,9 +90,7 @@ All creature slots are `sex = "all"` so they resolve regardless of what sex the 
 | `Orgasm` | at climax |
 | `Breathing` | rolled periodically through the scene by the voice engine (`voice.creaturebreathing`, interval from `creaturebreathmin/maxinterval`, halved on intense stages) |
 
-`[category_fallbacks.male]` maps `Breathing = "Orgasm"`, so a creature slot that defines only `Orgasm` still pants — it reuses those clips. Give a slot its own `Breathing` list to override.
-
-Slots with no usable vanilla ambience simply omit `Breathing` (`C8` Chaurus) and stay silent between climaxes. Some vanilla creatures ship almost no `Sound\FX` material at all — Falmer and Spriggan combat barks live in the *voice* archives, not fx — which is why those lists are thin.
+Every shipped creature slot has both lists. A slot without `Breathing` stays silent between climaxes: there is no fallback to `Orgasm`, because a breath that reuses climax clips is a climax cry every few seconds. Keep `Breathing` clips short, about 2 s, so a breath is over before the climax line needs the channel. Some vanilla creatures ship almost no `Sound\FX` material at all (Falmer and Spriggan combat barks live in the *voice* archives, not fx), which is why those lists are thin.
 
 ### Adding a creature
 
