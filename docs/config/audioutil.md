@@ -40,7 +40,7 @@ pc_male_slot = ""
 | `voice_no_interrupt` | `true` | `true` = skip a new line while that speaker's channel is still playing, so a line finishes. Per speaker — different speakers still overlap. `false` = cut the old line off. Orgasm cries run on their **own** per-speaker lane, so an ordinary moan never drops the climax cry (and vice-versa) during multi-orgasm scenes. |
 | `default_female_slot` | `"F0"` | Unrouted female NPCs speak the stock SexLab moans. |
 | `default_male_slot` | `"M0"` | Unrouted male NPCs speak the stock SexLab male moans. Creatures never come here. |
-| `default_creature_slot` | `"C0"` | A creature (race without `ActorTypeNPC`) that no pin, race hint or voicetype routes growls from the generic creature slot instead of a human pack. Since AudioUtil 0.9.32 a creature tries its race hint before its voicetype, so a transformed NPC keeps his creature voice. |
+| `default_creature_slot` | `"C0"` | A creature (race without `ActorTypeNPC`) that no pin, race hint or voicetype routes growls from the generic creature slot instead of a human pack. Since AudioUtil 0.9.32 a humanoid in beast form (werewolf, vampire lord) tries its race hint before the voicetype of its NPC record, so a transformed NPC keeps his creature voice. |
 | `pc_female_slot` | `"F1"` | **Reserved for the player.** The PC always resolves here and no NPC ever does. |
 | `pc_male_slot` | `"M1"` | Same for a male PC. |
 | `sfx_slot` | *(default `"SFX0"`)* | The slot whose categories `PlaySFX` checks before the flat `[sfx]` table. |

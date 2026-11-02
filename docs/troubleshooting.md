@@ -162,7 +162,8 @@ If those lines look healthy and you still hear nothing, work the console command
 **A creature partner repeats the male climax cry** every few seconds, a werewolf
 growling like a man: two causes, both fixed in SLO VE 0.7.9 with AudioUtil 0.9.32.
 An NPC who transforms keeps the human voice type of his NPC record, and AudioUtil
-used to route by voice type before race, so the werewolf landed on a male pack;
+used to route by voice type before race, so the werewolf landed on a male pack
+(0.9.32 routes a humanoid in beast form by race first);
 and SLO VE's shared male fallback table sent a missing `Breathing` to `Orgasm`, so
 every breath on the creature cadence was a climax cry. With `voice.printdebug` the
 route reads `Play 'breathing' actor=... slot=M4 ... -> ...\Orgasm\02.wav` in
