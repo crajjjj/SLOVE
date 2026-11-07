@@ -355,10 +355,10 @@ Bool Function FullExpressionPass()
 	;times this cycle, and each native getter takes the bridge's lock
 	PassPPACtx = 0
 	PassPPADepth = 0.0
-	if AudioUtilPPA.IsConnected()
-		PassPPACtx = AudioUtilPPA.GetContext(actorref)
+	if SLOVE_PPA.IsConnected()
+		PassPPACtx = SLOVE_PPA.GetContext(actorref)
 		if PassPPACtx > 0
-			PassPPADepth = AudioUtilPPA.GetDepth(actorref)
+			PassPPADepth = SLOVE_PPA.GetDepth(actorref)
 		endif
 	endif
 
@@ -2191,7 +2191,7 @@ endfunction
 
 ;Which orifice is penetrated is decided by the authored animation LABELS - they
 ;are the reliable authority and never disagree with themselves mid-thrust. The
-;AudioUtilPPA bridge does NOT override them here (it used to, which lost anal
+;PPA bridge does NOT override them here (it used to, which lost anal
 ;detection whenever PPA classified a DP as a single act, and flickered off on a
 ;momentary depth dip). Live measurement is applied separately, only where it is
 ;actually wanted, via MeasuredPenetrationActive() at the huge-partner ahegao gate.

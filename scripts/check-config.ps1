@@ -12,9 +12,10 @@
 #   dist\SKSE\Plugins\SLOVE\SLOVE_Menu.toml     how the in-game menu presents it
 #   docs\config\slove.md                        its row in the reference tables
 #
-# The same goes for the three things SLOVE.dll mirrors from elsewhere: the volume
+# The same goes for the four things SLOVE.dll mirrors from elsewhere: the volume
 # buses the scripts set (Bridge.cpp), the SKSE Menu Framework exports the menu
-# calls (Env.cpp probes them at load) and its copy of AudioUtil's TomlEdit.h.
+# calls (Env.cpp probes them at load), the natives the scripts declare
+# (Papyrus.cpp binds them) and its copy of AudioUtil's TomlEdit.h.
 #
 # Adding a setting = a script read + a toml line + a [[setting]] + a docs row;
 # this script names whichever one is missing. It reads the two toml files with a
@@ -468,6 +469,35 @@ if (-not (Test-Path $bridgePath)) {
     $idle = @($probes | Where-Object { $used -notcontains $_ })
     if ($idle.Count) { Fail "Env.cpp probes exports nothing calls: $($idle -join ', ') - a framework without them would switch the menu off for nothing" }
     Write-Host "$($probes.Count) export(s) probed, $calls call site(s)"
+
+    # A native the scripts declare but the DLL does not bind fails on every call
+    # at run time (and compiles fine); one the DLL binds that no script declares
+    # is dead. Script.Function on both sides, both variants' scripts.
+    Section 'Papyrus natives: scripts <-> skse\src\Papyrus.cpp'
+    $declared = @()
+    foreach ($dir in @('papyrus\Source', 'papyrus\classic\Source')) {
+        foreach ($file in (Get-ChildItem (Join-Path $root $dir) -Filter '*.psc')) {
+            foreach ($line in (Read-Lines $file.FullName)) {
+                $code = Get-PapyrusCode $line
+                $m = [regex]::Match($code, '(?i)\bFunction\s+(\w+)\s*\(.*\)\s*native\b')
+                if ($m.Success) { $declared += "$($file.BaseName).$($m.Groups[1].Value)" }
+            }
+        }
+    }
+    $declared = @($declared | Sort-Object -Unique)
+    $papyrusCpp = Read-Utf8 (Join-Path $skse 'src\Papyrus.cpp')
+    $scriptNames = @{}
+    foreach ($m in [regex]::Matches($papyrusCpp, '\b(k\w+Script)\s*=\s*"(\w+)"sv')) { $scriptNames[$m.Groups[1].Value] = $m.Groups[2].Value }
+    $bound = @()
+    foreach ($m in [regex]::Matches($papyrusCpp, 'RegisterFunction\(\s*"(\w+)"sv\s*,\s*(k\w+Script)\b')) {
+        $script = $scriptNames[$m.Groups[2].Value]
+        if (-not $script) { Fail "Papyrus.cpp registers $($m.Groups[1].Value) under $($m.Groups[2].Value), which names no script"; continue }
+        $bound += "$script.$($m.Groups[1].Value)"
+    }
+    $bound = @($bound | Sort-Object -Unique)
+    if (Compare-Sets 'the scripts (native)' $declared 'Papyrus.cpp' $bound) {
+        Write-Host "$($bound.Count) native(s), declared and bound"
+    }
 
     Section 'Vendored files'
     $readme = Read-Utf8 (Join-Path $skse 'extern\SKSEMenuFramework\README.txt')

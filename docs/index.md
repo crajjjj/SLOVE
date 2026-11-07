@@ -33,7 +33,7 @@ Everything is configured in plain **TOML** files that reload live from the conso
 - [SLOVE.toml Reference](config/slove.md) — every behaviour key: voice, expressions, sfx, resistance, milk
 - [In-Game Settings Menu](config/menu.md) - the same settings, changed in game (optional, needs SKSE Menu Framework)
 - [Voice Overlays Reference](config/voices.md) - every slot and routing table
-- [AudioUtil.toml Reference](config/audioutil.md) — the engine globals SLO VE sets: lipsync, gag, PPA
+- [AudioUtil.toml Reference](config/audioutil.md): the engine globals SLO VE sets (lipsync, gag)
 - [Willpower / Resistance](resistance.md) — how the optional break system works and how to tune it
 - [Tuning Cunnilingus Detection (P+)](cunnilingus-detection.md) — the two `SexLab.ini` settings that decide when `CUN` fires
 - [Troubleshooting & Logs](troubleshooting.md) — the two log files, the console diagnostics, and "why is nobody talking"
@@ -52,7 +52,7 @@ Data\
   SKSE\Plugins\AudioUtil\config\SLOVE_male.toml       ← male voice slots
   SKSE\Plugins\AudioUtil\config\SLOVE_creatures.toml  ← creature voice slots
   SKSE\Plugins\AudioUtil\config\SLOVE_voices.toml     ← actor→voice routing + SFX
-  SKSE\Plugins\AudioUtil\AudioUtil.toml               ← engine globals (lipsync, gag, PPA)
+  SKSE\Plugins\AudioUtil\AudioUtil.toml               ← engine globals (lipsync, gag)
 ```
 
 Reload either side after an edit without leaving the game:

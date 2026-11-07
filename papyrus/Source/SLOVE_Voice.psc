@@ -1373,22 +1373,13 @@ String[] Function ResolveSpeakerAct(Actor speaker, String actDir = "", String ac
 	return act
 EndFunction
 
-;AudioUtil exposes PPA's penetration site from API v9 (0.9.21). Probed once and
-;cached tri-state, exactly like Director's tagged-playback probe: on an older
-;AudioUtil the native cannot bind and would take every voice line down with it,
-;so the label chain simply stays authoritative there.
+;SAVE-COMPAT ONLY: the variable and the function stay for saves holding this
+;effect. The site used to come from AudioUtilPPA, from AudioUtil API v9 on, and
+;was probed here; since 0.7.10 SLOVE.dll's own bridge always has it.
 int audioUtilSiteAPI
 
 Bool Function PPASiteAvailable()
-	if audioUtilSiteAPI == 0
-		if AudioUtil.GetAPIVersion() >= 9
-			audioUtilSiteAPI = 1
-		else
-			audioUtilSiteAPI = -1
-			SLOVE_Log.WriteLog("SLO VE Voice : AudioUtil API v" + AudioUtil.GetAPIVersion() + " predates the PPA penetration site (v9 / 0.9.21) - place facts come from the animation labels alone", 0)
-		endif
-	endif
-	return audioUtilSiteAPI == 1
+	return true
 EndFunction
 
 ;The place fact. PPA is asked FIRST for every act, whatever the labels said, and
@@ -1418,8 +1409,7 @@ EndFunction
 ;AudioUtil docs/ppa-api-assumptions.md section 6) - hence the narrow blast
 ;radius: when PPA says nothing useful, every line behaves exactly as before.
 String Function PPAPlace(String labelPlace, String dir)
-	;cached local probe first, so an AudioUtil too old for this costs no externals
-	if !PPASiteAvailable() || !AudioUtilPPA.IsConnected()
+	if !SLOVE_PPA.IsConnected()
 		return labelPlace
 	endif
 	Actor receiver = mainFemaleActor
@@ -1429,7 +1419,7 @@ String Function PPAPlace(String labelPlace, String dir)
 	if receiver == None
 		return labelPlace
 	endif
-	int site = AudioUtilPPA.GetPenetrationSite(receiver)
+	int site = SLOVE_PPA.GetPenetrationSite(receiver)
 	String ppaPlace = ""
 	if site == 1        ;Mouth
 		ppaPlace = "oral"

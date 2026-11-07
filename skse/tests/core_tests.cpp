@@ -5,8 +5,10 @@
 // CHECK counts failures and main returns non-zero when there are any.
 
 #include "core/ConfigDoc.h"
+#include "core/Labels.h"
 #include "core/Model.h"
 #include "core/Schema.h"
+#include "core/Thrust.h"
 
 #include <algorithm>
 #include <cmath>
@@ -696,6 +698,120 @@ namespace
 	}
 }
 
+namespace
+{
+	// The label engine against the Papyrus ladders it replaced
+	// (SLOVE_Hentairim_Tags before 0.7.10, both variants).
+	void TestLabels()
+	{
+		using Labels::Kind;
+		const auto set = [](std::initializer_list<std::string_view> a_tags) {
+			Labels::TagSet tags;
+			for (const auto tag : a_tags) {
+				tags.Add(tag);
+			}
+			return tags;
+		};
+		const auto label = [](const Labels::TagSet& a_tags, Kind a_kind, int a_stage, int a_position, bool a_asl = false) {
+			return Labels::Label(a_tags, a_kind, a_stage, a_position, a_asl);
+		};
+
+		const Labels::TagSet none;
+		Check(label(none, Kind::Stimulation, 1, 0) == "LDI", "no tag: stimulation is lead-in");
+		Check(label(none, Kind::PenisAction, 1, 1) == "LDI", "no tag: penis action is lead-in");
+		Check(label(none, Kind::Oral, 1, 0) == "LDI", "no tag: oral is lead-in");
+		Check(label(none, Kind::Penetration, 1, 0) == "LDI", "no tag: penetration is lead-in");
+		Check(label(none, Kind::Ending, 1, 0) == "LDI", "no tag: ending is lead-in");
+		Check(label(none, Kind::SFX, 1, 0).empty(), "no tag: no SFX tag");
+
+		// <stage><letter><code>, letters A-E for positions 0-4
+		const auto pen = set({ "3ASVP", "3BSDV", "3CFBJ", "3DSST", "3EENO" });
+		Check(label(pen, Kind::Penetration, 3, 0) == "SVP", "3ASVP is position 0's penetration");
+		Check(label(pen, Kind::Penetration, 3, 1) == "LDI", "3ASVP is not position 1's");
+		Check(label(pen, Kind::Penetration, 2, 0) == "LDI", "3ASVP is not stage 2's");
+		Check(label(pen, Kind::PenisAction, 3, 1) == "SDV", "letter B is position 1");
+		Check(label(pen, Kind::Oral, 3, 2) == "FBJ", "letter C is position 2");
+		Check(label(pen, Kind::Stimulation, 3, 3) == "SST", "letter D is position 3");
+		Check(label(pen, Kind::Ending, 3, 4) == "ENO", "letter E is position 4");
+		Check(label(set({ "12ASAP" }), Kind::Penetration, 12, 0) == "SAP", "a two-digit stage");
+		Check(label(set({ "3asvp" }), Kind::Penetration, 3, 0) == "SVP", "tags match ignoring case");
+		// past E there is no letter, as the Papyrus string had none
+		Check(label(set({ "3SVP" }), Kind::Penetration, 3, 5) == "SVP", "position 5 has no letter");
+		Check(label(set({ "3SVP" }), Kind::Penetration, 3, -1) == "SVP", "a negative position has no letter");
+		Check(label(set({ "3SVP" }), Kind::Penetration, 3, 0) == "LDI", "position 0 needs its letter");
+
+		// precedence
+		Check(label(set({ "1ASVP", "1ASDP" }), Kind::Penetration, 1, 0) == "SDP", "double-pen outranks its vaginal part");
+		Check(label(set({ "1ASVP", "1AFCG" }), Kind::Penetration, 1, 0) == "FCG", "cowgirl outranks straight vaginal");
+		Check(label(set({ "1AFVP", "1ASAP" }), Kind::Penetration, 1, 0) == "SAP", "slow anal before fast vaginal");
+		Check(label(set({ "1AKIS", "1ACUN" }), Kind::Oral, 1, 0) == "CUN", "cunnilingus outranks kissing");
+		Check(label(set({ "1AKIS", "1ASBJ" }), Kind::Oral, 1, 0) == "SBJ", "a blowjob outranks kissing");
+		Check(label(set({ "1ACUN", "1ARIM" }), Kind::Oral, 1, 0) == "RIM", "a rimjob outranks everything oral");
+		Check(label(set({ "1AENI", "1AENO" }), Kind::Ending, 1, 0) == "ENO", "outside before inside");
+		Check(label(set({ "1BFFJ", "1BSMF" }), Kind::PenisAction, 1, 1) == "SMF", "a slow motion before a fast footjob");
+		Check(label(set({ "2SS", "2FC" }), Kind::SFX, 2, 0) == "FC", "claps before slushes");
+		Check(label(set({ "2NA" }), Kind::SFX, 2, 3) == "NA", "the SFX tag is scene-wide");
+
+		// P+ reads no scene-wide ASL code
+		const auto asl = set({ "4SV", "5FB", "6EN", "7DP", "8SR", "9LI", "10FA" });
+		Check(label(asl, Kind::Penetration, 4, 0) == "LDI", "P+: no ASL fallback");
+		Check(label(asl, Kind::Ending, 6, 0) == "LDI", "P+: no ASL ending");
+
+		// classic: the ASL fallback layer, receiver = A, givers = B+
+		Check(label(asl, Kind::Penetration, 4, 0, true) == "SVP", "ASL SV: the receiver is penetrated");
+		Check(label(asl, Kind::Penetration, 4, 1, true) == "LDI", "ASL SV: a giver is not");
+		Check(label(asl, Kind::PenisAction, 4, 1, true) == "SDV", "ASL SV: a giver delivers");
+		Check(label(asl, Kind::PenisAction, 4, 0, true) == "LDI", "ASL SV: the receiver does not");
+		Check(label(asl, Kind::PenisAction, 4, -1, true) == "SDV", "ASL: any position but 0 gives");
+		Check(label(asl, Kind::Oral, 5, 0, true) == "FBJ", "ASL FB: the receiver's mouth");
+		Check(label(asl, Kind::PenisAction, 5, 1, true) == "FMF", "ASL FB: a giver's fast motion");
+		Check(label(asl, Kind::Ending, 6, 3, true) == "ENI", "ASL EN: every position ends inside");
+		Check(label(asl, Kind::Penetration, 7, 0, true) == "SDP", "ASL DP: slow double-pen");
+		Check(label(asl, Kind::Penetration, 8, 0, true) == "SVP", "ASL SR: vaginal");
+		Check(label(asl, Kind::Oral, 8, 0, true) == "SBJ", "ASL SR: and a blowjob");
+		Check(label(asl, Kind::Penetration, 9, 0, true) == "LDI", "ASL LI: lead-in");
+		Check(label(asl, Kind::Penetration, 10, 0, true) == "FAP", "ASL FA: fast anal");
+		Check(label(asl, Kind::Stimulation, 4, 0, true) == "LDI", "ASL has no stimulation code");
+		Check(label(set({ "4SV", "4ASAP" }), Kind::Penetration, 4, 0, true) == "SAP", "a per-position code outranks ASL");
+		Check(label(set({ "4LI", "4SV" }), Kind::Penetration, 4, 0, true) == "LDI", "ASL LI is checked first");
+
+		const auto all = Labels::Labels(pen, Kind::Penetration, 3, 2, false);
+		Check(all.size() == 2 && all[0] == "SVP" && all[1] == "LDI", "one kind for every position");
+		Check(Labels::Labels(pen, Kind::Penetration, 3, 0, false).empty(), "no positions, no labels");
+	}
+
+	// The turn detector against the Papyrus PPAThrustStep it replaced.
+	void TestThrust()
+	{
+		using Beat = ThrustDetector::Beat;
+		const float turn = 1.0f;
+
+		ThrustDetector detector;
+		Check(detector.Step(2.0f, 0.0, turn).beat == Beat::None, "the first sample only primes");
+		Check(detector.Step(5.0f, 0.2, turn).beat == Beat::None, "going in is no beat");
+		Check(detector.Step(8.0f, 0.4, turn).beat == Beat::None, "still going in");
+		Check(detector.Step(7.5f, 0.5, turn).beat == Beat::None, "jitter under the hysteresis is no turn");
+		auto impact = detector.Step(6.9f, 0.6, turn);
+		Check(impact.beat == Beat::Impact, "coming back by the hysteresis is the impact");
+		Check(std::abs(impact.timeToThrust - 0.4f) < 1e-4f, "the inward stroke took trough to peak", std::to_string(impact.timeToThrust));
+		Check(std::abs(impact.stroke - 6.0f) < 1e-4f, "the stroke is peak minus trough", std::to_string(impact.stroke));
+		Check(detector.Step(3.0f, 0.8, turn).beat == Beat::None, "pulling out is no beat");
+		auto reentry = detector.Step(4.1f, 1.0, turn);
+		Check(reentry.beat == Beat::Reentry, "heading back in by the hysteresis is the re-entry");
+		Check(std::abs(reentry.timeToThrust - 0.4f) < 1e-4f, "the re-entry carries the last stroke's time");
+
+		// a shallow wobble turns without a stroke to sound
+		ThrustDetector shallow;
+		shallow.Step(5.0f, 0.0, turn);
+		shallow.Step(5.5f, 0.1, turn);
+		Check(shallow.Step(4.4f, 0.2, turn).beat == Beat::None, "a turn after a stroke under the hysteresis is silent");
+
+		detector.Reset();
+		Check(detector.Step(9.0f, 2.0, turn).beat == Beat::None, "after a reset the first sample primes again");
+		Check(detector.Step(7.9f, 2.1, turn).beat == Beat::None, "and a primed peak has no stroke behind it");
+	}
+}
+
 int main(int argc, char** argv)
 {
 	if (argc < 2) {
@@ -709,6 +825,8 @@ int main(int argc, char** argv)
 		return 2;
 	}
 
+	TestLabels();
+	TestThrust();
 	TestLiterals();
 	TestDocument(original);
 	TestSchema(dir, original);

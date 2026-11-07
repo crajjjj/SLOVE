@@ -56,219 +56,61 @@ endfunction
 
 
 string Function StimulationLabel(string anim , int stage , Int ActorPos) Global
-
-	string ActorPosition = ""
-
-	if ActorPos == 0
-		ActorPosition = "A"
-	elseif ActorPos == 1
-		ActorPosition = "B"
-	elseif ActorPos == 2
-		ActorPosition = "C"
-	elseif ActorPos == 3
-		ActorPosition = "D"
-	elseif ActorPos == 4
-		ActorPosition = "E"
-	endif
-
-	if HasASLTag(anim, stage+ActorPosition + "SST")
-		return "SST"
-	elseif HasASLTag(anim, stage+ActorPosition + "FST")
-		returN "FST"
-	elseif HasASLTag(anim, stage+ActorPosition + "BST")
-		return "BST"
-	else
-		return "LDI" ;default lead in if no stimulating actions
-	endif
-
+	return LabelOf(anim, stage, ActorPos, 0)
 endfunction
 
 string Function PenetrationLabel(string anim , int stage , Int ActorPos) Global
-
-	string ActorPosition = ""
-
-	if ActorPos == 0
-		ActorPosition = "A"
-	elseif ActorPos == 1
-		ActorPosition = "B"
-	elseif ActorPos == 2
-		ActorPosition = "C"
-	elseif ActorPos == 3
-		ActorPosition = "D"
-	elseif ActorPos == 4
-		ActorPosition = "E"
-	endif
-
-	;precedence matches the voice dispatcher's branch order (SLOVE_Voice.OnUpdate):
-	;double-pen, then cowgirl, then straight vaginal/anal. A DP stage semantically IS
-	;vaginal+anal, so if the ASL DB co-tags SDP with SVP/SAP, checking the component
-	;first would mask DP (dropping the PlayGettingFuckedDouble branch); same for cowgirl
-	;vs straight. Single-tag stages are unaffected.
-	if HasASLTag(anim, stage+ActorPosition + "SDP")
-		return "SDP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FDP")
-		return "FDP"
-	elseif HasASLTag(anim, stage+ActorPosition + "SCG")
-		return "SCG"
-	elseif HasASLTag(anim, stage+ActorPosition + "FCG")
-		return "FCG"
-	elseif HasASLTag(anim, stage+ActorPosition + "SAC")
-		return "SAC"
-	elseif HasASLTag(anim, stage+ActorPosition + "FAC")
-		return "FAC"
-	elseif HasASLTag(anim, stage+ActorPosition + "SVP")
-		return "SVP"
-	elseif HasASLTag(anim, stage+ActorPosition + "SAP")
-		return "SAP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FVP")
-		return "FVP"
-	elseif HasASLTag(anim, stage+ActorPosition + "FAP")
-		return "FAP"
-	else
-		return "LDI" ;Default lead in if no stimulating actions
-	endif
+	;precedence (in the DLL) matches the voice dispatcher's branch order
+	;(SLOVE_Voice.OnUpdate): double-pen, then cowgirl, then straight vaginal/anal
+	return LabelOf(anim, stage, ActorPos, 3)
 endfunction
 
 string Function PenisActionLabel(string anim , int stage , Int ActorPos) Global
-
-	string ActorPosition = ""
-
-	if ActorPos == 0
-		ActorPosition = "A"
-	elseif ActorPos == 1
-		ActorPosition = "B"
-	elseif ActorPos == 2
-		ActorPosition = "C"
-	elseif ActorPos == 3
-		ActorPosition = "D"
-	elseif ActorPos == 4
-		ActorPosition = "E"
-	endif
-
-	if HasASLTag(anim, stage+ActorPosition + "SDV")
-		return "SDV"
-	elseif HasASLTag(anim, stage+ActorPosition + "FDV")
-		return "FDV"
-	elseif HasASLTag(anim, stage+ActorPosition + "SDA")
-		retuRN "SDA"
-	elseif HasASLTag(anim, stage+ActorPosition + "FDA")
-		return "FDA"
-	elseif HasASLTag(anim, stage+ActorPosition + "SHJ")
-		reTURN "SHJ"
-	elseif HasASLTag(anim, stage+ActorPosition + "FHJ")
-		return "FHJ"
-	elseif HasASLTag(anim, stage+ActorPosition + "STF")
-		reTURN "STF"
-	elseif HasASLTag(anim, stage+ActorPosition + "FTF")
-		return "FTF"
-	elseif HasASLTag(anim, stage+ActorPosition + "SMF")
-		RETURN "SMF"
-	elseif HasASLTag(anim, stage+ActorPosition + "FMF")
-		return "FMF"
-	elseif HasASLTag(anim, stage+ActorPosition + "SFJ")
-		reTURN "SFJ"
-	elseif HasASLTag(anim, stage+ActorPosition + "FFJ")
-		returN "FFJ"
-	else
-		reTURN "LDI" ;default lead in if no stimulating actions
-	endif
+	return LabelOf(anim, stage, ActorPos, 1)
 endfunction
 
-
 String Function OralLabel(string anim , int stage , Int ActorPos) Global
-
-	string ActorPosition = ""
-
-	if ActorPos == 0
-		ActorPosition = "A"
-	elseif ActorPos == 1
-		ActorPosition = "B"
-	elseif ActorPos == 2
-		ActorPosition = "C"
-	elseif ActorPos == 3
-		ActorPosition = "D"
-	elseif ActorPos == 4
-		ActorPosition = "E"
-	endif
-
-	;precedence: the genital-oral actions win over KIS. Many scenes tag a stage with
-	;BOTH kissing and the real oral action; checking KIS first masked cunnilingus/blowjob
-	;(dropping its voice AND the licking tongue). Kissing is the fallback oral action.
-	;RIM (performing a rimjob) is checked first: it only exists as an explicit authored
-	;tag (no converter emits it), so when present it is the most specific signal.
-	if HasASLTag(anim, stage+ ActorPosition + "RIM")
-		return "RIM"
-	elseif HasASLTag(anim, stage+ ActorPosition + "CUN")
-		return "CUN"
-	elseif HasASLTag(anim, stage+ ActorPosition + "FBJ")
-		return "FBJ"
-	elseif HasASLTag(anim, stage+ ActorPosition + "SBJ")
-		return "SBJ"
-	elseif HasASLTag(anim, stage+ ActorPosition + "KIS")
-		return "KIS"
-	else
-		return "LDI"
-	endif
-
+	;precedence (in the DLL): RIM, then the genital-oral actions, KIS last
+	return LabelOf(anim, stage, ActorPos, 2)
 endfunction
 
 String Function EndingLabel(string anim , int stage , Int ActorPos) Global
 	;Labels that identify actions on partners
-
-	string ActorPosition = ""
-
-	if ActorPos == 0
-		ActorPosition = "A"
-	elseif ActorPos == 1
-		ActorPosition = "B"
-	elseif ActorPos == 2
-		ActorPosition = "C"
-	elseif ActorPos == 3
-		ActorPosition = "D"
-	elseif ActorPos == 4
-		ActorPosition = "E"
-	endif
-
-	if HasASLTag(anim, stage+ ActorPosition + "ENO")
-		return "ENO"
-	elseif HasASLTag(anim, stage+ ActorPosition + "ENI")
-		return "ENI"
-	else
-		Return "LDI"
-	endif
-
+	return LabelOf(anim, stage, ActorPos, 4)
 endfunction
-
-
 
 string Function GetSFX(string anim , int stage) Global
 	;SFX tag for the body-SFX engine (SLOVE_SFX): claps SC/MC/FC, slushes
-	;SS/MS/FS/RS, NA = explicitly silent. Ported from HentaiRimTags.GetSFX.
-	if HasASLTag(anim, stage+"SC")
-		return "SC"
-	elseif HasASLTag(anim, stage+"MC")
-		return "MC"
-	elseif HasASLTag(anim, stage+"FC")
-		return "FC"
-	elseif HasASLTag(anim, stage+"SS")
-		return "SS"
-	elseif HasASLTag(anim, stage+"MS")
-		return "MS"
-	elseif HasASLTag(anim, stage+"FS")
-		return "FS"
-	elseif HasASLTag(anim, stage+"RS")
-		return "RS"
-	elseif HasASLTag(anim, stage+"NA")
-		return "NA"
-	endif
-
-	;no SFX tag on this stage - return the empty string EXPLICITLY. Falling off the
-	;end of a String function returns None, which the caller's String variable then
-	;coerces to "" anyway, but only after a per-stage "Assigning None to a non-object
-	;variable" warning in the Papyrus log (the compiler does not check all paths)
-	return ""
+	;SS/MS/FS/RS, NA = explicitly silent, "" = no SFX tag on this stage
+	return LabelOf(anim, stage, 0, 5)
 endfunction
 
+;---------------- the classifier (SLOVE.dll, core\Labels.cpp) ----------------
+;Since 0.7.10 the ladders that turned tags into labels live in the DLL, which gets
+;the scene's tags once per question instead of one IsSceneTag call per candidate
+;code. asTags + asMoreTags = every tag of the scene (either may be None). aiKind:
+;0 stimulation, 1 penis action, 2 oral, 3 penetration, 4 ending, 5 the stage's SFX
+;tag (position ignored). abASLFallback = derive per-position labels from the
+;scene-wide ASL codes, which only the classic variant asks for.
+String[] Function ClassifyStage(String[] asTags, String[] asMoreTags, Int aiStage, Int aiPositions, Int aiKind, Bool abASLFallback) native global
+String Function ClassifyOne(String[] asTags, String[] asMoreTags, Int aiStage, Int aiPosition, Int aiKind, Bool abASLFallback) native global
+
+;IsSceneTag sees a scene's tag list AND the annotations a player added in P+'s
+;scene editor; GetSceneTags leaves the annotations out, so both lists go over.
+String Function LabelOf(string anim, int stage, int pos, int kind) Global
+	return ClassifyOne(SexLabRegistry.GetSceneTags(anim), SexLabRegistry.GetSceneAnnotations(anim), stage, pos, kind, false)
+EndFunction
+
+;One kind for every position of actorlist. None for an empty list, as before.
+String[] Function LabelsOf(string anim, int stage, actor[] actorlist, int kind) Global
+	int n = 0
+	if actorlist
+		n = actorlist.length
+	endif
+	return ClassifyStage(SexLabRegistry.GetSceneTags(anim), SexLabRegistry.GetSceneAnnotations(anim), stage, n, kind, false)
+EndFunction
+
+;GetLabel (above, uncalled) still asks IsSceneTag one code at a time
 bool Function HasASLTag(string anim, string tag) Global
 	return SexLabRegistry.IsSceneTag(anim, tag)
 EndFunction
@@ -292,51 +134,21 @@ endfunction
 
 
 String[] Function GetStimulationlabelarr(string anim , int stage , actor[] actorlist) Global
-	int z
-	string[] result
-	while z < actorList.length
-		result = papyrusutil.pushstring(result , StimulationLabel(anim , stage , z))
-		z += 1
-	endwhile
-	return result
+	return LabelsOf(anim, stage, actorlist, 0)
 endfunction
 
 String[] Function GetPenisActionlabelarr(string anim , int stage , actor[] actorlist) Global
-	int z
-	string[] result
-	while z < actorList.length
-		result = papyrusutil.pushstring(result , PenisActionLabel(anim , stage , z))
-		z += 1
-	endwhile
-	return result
+	return LabelsOf(anim, stage, actorlist, 1)
 endfunction
 
 String[] Function GetOrallabelarr(string anim , int stage , actor[] actorlist) Global
-	int z
-	string[] result
-	while z < actorList.length
-		result = papyrusutil.pushstring(result , OralLabel(anim , stage , z))
-		z += 1
-	endwhile
-	return result
+	return LabelsOf(anim, stage, actorlist, 2)
 endfunction
 
 String[] Function GetPenetrationLabelarr(string anim , int stage , actor[] actorlist) Global
-	int z
-	string[] result
-	while z < actorList.length
-		result = papyrusutil.pushstring(result , PenetrationLabel(anim , stage , z))
-		z += 1
-	endwhile
-	return result
+	return LabelsOf(anim, stage, actorlist, 3)
 endfunction
 
 String[] Function GetEndingLabelarr(string anim , int stage , actor[] actorlist) Global
-	int z
-	string[] result
-	while z < actorList.length
-		result = papyrusutil.pushstring(result , EndingLabel(anim , stage , z))
-		z += 1
-	endwhile
-	return result
+	return LabelsOf(anim, stage, actorlist, 4)
 endfunction

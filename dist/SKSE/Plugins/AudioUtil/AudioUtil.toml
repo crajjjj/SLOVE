@@ -78,7 +78,7 @@ pc_female_slot = "F1"
 pc_male_slot = "M1"
 
 [ppa]
-enable = true                 # Accurate Penetration bridge: drives thrust-synced SFX + contact one-shots
+enable = true                 # AudioUtil's PPA bridge, for other mods: SLO VE reads PPA through SLOVE.dll
 event_rate_ms = 2000          # min interval per receiver for AudioUtilPPA_Update events (floored at 1000)
 
 [lipsync]

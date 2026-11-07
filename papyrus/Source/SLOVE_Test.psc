@@ -277,6 +277,14 @@ Function DumpState() Global
 	MiscUtil.PrintConsole("  pcvolume=" + SLOVE_Config.GetInt("voice.pcvolume", -1) + " voiceallactors=" + SLOVE_Config.GetInt("voice.voiceallactors", -1))
 	MiscUtil.PrintConsole("  player slot=" + AudioUtil.GetSlotForActor(Game.GetPlayer()))
 	MiscUtil.PrintConsole("  esp loaded=" + SLOVE_Utils.isDependencyReady("SLOVE.esp"))
+	;the natives first: without the DLL a SLOVE_PPA call would only log an unbound native
+	bool natives = SLOVE_Utils.HasNatives()
+	bool ppa = false
+	if natives
+		ppa = SLOVE_PPA.IsConnected()
+	endif
+	MiscUtil.PrintConsole("  SLOVE.dll loaded=" + natives + " - false = no scene labels and no PPA readings: reinstall SLO VE")
+	MiscUtil.PrintConsole("  Accurate Penetration connected=" + ppa)
 	MiscUtil.PrintConsole("  contact detection (SexLab P+ 2.19+)=" + SLOVE_Utils.HasInteractionAPI() + " - false = stage tags only (no physics labels, thrust-paced SFX, insertion/kiss/oral one-shots or live oral detection)")
 EndFunction
 

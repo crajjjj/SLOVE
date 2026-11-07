@@ -68,8 +68,10 @@ through the Director so consumers stay firewall-clean): `GetResistance(a)`,
 `IsBroken(a)` - both gated on `resistance.enable`, consumed by
 `SLOVE_Voice.ASLIsBroken()` and `SLOVE_Expressions.IsBroken()`.
 
-Known leaks (documented, acceptable): `SLOVE_Hentairim_Tags.HasASLTag` calls
-`SexlabRegistry.IsSceneTag`; `GetLegacyStageNum` uses
+Known leaks (documented, acceptable): `SLOVE_Hentairim_Tags` reads the scene's
+tags (`SexlabRegistry.GetSceneTags` / `GetSceneAnnotations`, and `IsSceneTag`
+in the uncalled `GetLabel`); its classifier in `SLOVE.dll` is scheme-specific
+but framework-free, so an OStim backend reuses it only if it keeps the scheme; `GetLegacyStageNum` uses
 `SexlabRegistry.GetAllStages` (director-internal). Pragmatic port leaks:
 `SLOVE_SFX` and `SLOVE_Resistance` still hold their own
 `SexLabThread` handle for high-frequency reads (positions, velocity, interaction

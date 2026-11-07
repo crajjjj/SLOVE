@@ -65,6 +65,13 @@ Bool Function HasInteractionAPI() Global
 	return SKSE.GetPluginVersion("SexLabUtil") >= 0x02130000
 EndFunction
 
+;SLOVE.dll is loaded. Since 0.7.10 the scripts need it on every scene (the label
+;engine and the PPA readings are its natives); without it every label reads
+;None and the log fills with unbound-native errors. For the warnings only.
+Bool Function HasNatives() Global
+	return SKSE.GetPluginVersion("SLOVE") != -1
+EndFunction
+
 ;The running SexLab P+ version as "major.minor.patch", "" when its plugin is
 ;missing. For log lines only - gate on HasInteractionAPI.
 String Function SexLabPPVersion() Global

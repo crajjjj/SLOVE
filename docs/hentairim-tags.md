@@ -2,8 +2,9 @@
 
 Source: *Hentairim P+ Guide* by Shimizu ("Hentairim Tags", "Change/Find Animation"
 and "Stage Maker" sections). Kept in-repo as the porting reference for the SLSB scene-tag
-scheme that **`SLOVE_Hentairim_Tags`** classifies — SLO VE's label engine reads these tags
-via `SexlabRegistry.IsSceneTag` and turns them into the label codes the Voice / Expressions /
+scheme that **`SLOVE_Hentairim_Tags`** classifies. SLO VE's label engine reads a scene's tags
+(`SexlabRegistry.GetSceneTags` + `GetSceneAnnotations`) and its classifier in `SLOVE.dll`
+(`skse/src/core/Labels.cpp`) turns them into the label codes the Voice / Expressions /
 SFX effects consume. This is the annotation scheme SLO VE ports from Hentairim/IVDT; the
 external scene tags themselves live in the SLSB data (loaded with SexLab P+), not in this repo.
 

@@ -10,7 +10,7 @@ They live under `Documents\My Games\Skyrim Special Edition\`:
 |---|---|---|
 | **SLO VE script log** | `Logs\Script\User\SLOVE.0.log` | Script and dependency errors: a missing mod, an unresolvable spell, a sound that didn't play. Written by SLO VE itself — **not** the general Papyrus log, and it needs no INI changes. |
 | **AudioUtil log** | `SKSE\AudioUtil.log` | Everything audio: which slot an actor resolved to, which category resolved to which folder, TOML parse errors and overlay warnings. **This is the file for any voice problem.** |
-| **Settings menu log** | `SKSE\SLOVE.log` | Only the [in-game settings menu](config/menu.md): whether SKSE Menu Framework was found, and why the menu is off when it is. A different file from the script log above, despite the name. |
+| **SLOVE.dll log** | `SKSE\SLOVE.log` | SLO VE's own SKSE plugin: whether it loaded and bound its natives, whether Accurate Penetration connected (`PPA connected`), and for the [in-game settings menu](config/menu.md) whether SKSE Menu Framework was found and why the menu is off when it is. A different file from the script log above, despite the name. |
 
 !!! note "Mod Organizer 2 users"
     Logs go to the real `Documents\My Games\...` folder, **not** into MO2's virtual file system or the Overwrite folder.
@@ -67,9 +67,10 @@ Every `SLOVE_Test` / `SLOVE_Config` command also has a short alias (`slovetest a
 1. **Is `SLOVE.esp` enabled?** `SLOVE_Test DumpState` prints `esp loaded=`. If it's `False`, the plugin isn't active.
 2. **Is AudioUtil installed and loading?** If `SKSE\AudioUtil.log` doesn't exist, the DLL never loaded — check `skse64.log` for why (usually a game-version or Address Library mismatch). SLO VE fails *open*: without the DLL every setting falls back to its default and nothing plays.
 3. **Are you launching through SKSE?**
-4. **Did the quest start?** SLO VE's quest is start-game-enabled and ships `Seq\SLOVE.seq`. On an existing save give it a few seconds after load. If the SEQ file is missing from your install, the quest won't auto-start.
-5. **Is full Hentairim p+ *driving* at the same time?** SLO VE is a standalone port of Hentairim's voice/face system, so letting both drive at once makes them fight over the same actors. You don't have to uninstall Hentairim, though — keep it for its animation **tag database** with its IVDT / expression / SFX / resistance modules switched **off**, and let SLO VE take over. See [Using with Hentairim & PPA](hentairim-and-ppa.md).
-6. **Is it an NPC-only scene that never got adopted?** NPC-only scenes *are* processed since 0.5.x (`enablenpcscenes = 1`, the default). But an NPC scene is still skipped if it's farther than `npcscenedistance` (≈2048 units) from the player, if `maxnpcscenes` concurrent NPC scenes are already running, or if `enablenpcscenes = 0`. See [NPC-only scenes](config/slove.md#npc-only-scenes).
+4. **Is `SLOVE.dll` loading?** SLO VE's scripts need it on every scene (it classifies the scene labels). `slovetest dump` prints `SLOVE.dll loaded=`, and `SLOVE.0.log` says `SLOVE.dll is not loaded` at every load when it is missing. If `SKSE\SLOVE.log` does not exist, check `skse64.log` for why, the same as for AudioUtil. Reinstalling SLO VE puts the DLL back (it is in the installer's core files).
+5. **Did the quest start?** SLO VE's quest is start-game-enabled and ships `Seq\SLOVE.seq`. On an existing save give it a few seconds after load. If the SEQ file is missing from your install, the quest won't auto-start.
+6. **Is full Hentairim p+ *driving* at the same time?** SLO VE is a standalone port of Hentairim's voice/face system, so letting both drive at once makes them fight over the same actors. You don't have to uninstall Hentairim, though: keep it for its animation **tag database** with its IVDT / expression / SFX / resistance modules switched **off**, and let SLO VE take over. See [Using with Hentairim & PPA](hentairim-and-ppa.md).
+7. **Is it an NPC-only scene that never got adopted?** NPC-only scenes *are* processed since 0.5.x (`enablenpcscenes = 1`, the default). But an NPC scene is still skipped if it's farther than `npcscenedistance` (≈2048 units) from the player, if `maxnpcscenes` concurrent NPC scenes are already running, or if `enablenpcscenes = 0`. See [NPC-only scenes](config/slove.md#npc-only-scenes).
 
 ## Doubled voices, or the mouth twitching between two expressions
 
@@ -230,11 +231,11 @@ Causes, most common first:
 - Thrust-paced sounds need speed data from SLPP interactions (SexLab P+ 2.19+). A penetration stage where SexLab reports no contact plays **no** thrust sounds while `sfx.usevelocity = 1`; set it to `0` to pace them from the scene labels instead. `sfx.printdebug = 1` shows what it's getting.
 - **Two sets of thrust sounds at once?** Accurate Penetration plays its own, and SLO VE times its own off PPA's depth. Keep one: see [Hentairim & PPA](hentairim-and-ppa.md#thrust-sounds).
 - **Don't** reach for `useadaptivevelocity` first; it's the heaviest path in the mod and needs `timestosearch > 0` as well.
-- Gape one-shots need the Accurate Penetration bridge. The four `gape*` thresholds are unitless — calibrate them from the `printdebug` pull-out line in your own scenes.
+- Gape one-shots need Accurate Penetration (`slovetest dump`: `Accurate Penetration connected=True`). The four `gape*` thresholds are unitless: calibrate them from the `printdebug` pull-out line in your own scenes.
 
 ## The in-game settings menu is missing or does not save
 
-The **SLO VE** pages in the Mod Control Panel need SKSE Menu Framework. If the entry is not there, or a change does not stick, `SKSE\SLOVE.log` says why. The menu's own page lists every message and what to do: [In-game settings menu](config/menu.md#if-something-is-wrong). The rest of SLO VE does not depend on the menu.
+The **SLO VE** pages in the Mod Control Panel need SKSE Menu Framework. If the entry is not there, or a change does not stick, `SKSE\SLOVE.log` says why. The menu's own page lists every message and what to do: [In-game settings menu](config/menu.md#if-something-is-wrong). The rest of SLO VE does not depend on the menu (it does depend on `SLOVE.dll` itself, which also carries the menu).
 
 ## Reporting a problem
 

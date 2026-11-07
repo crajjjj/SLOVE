@@ -37,8 +37,10 @@ install trap in `CLAUDE.md`.
 
 Every native declared in `AudioUtil/papyrus/Source/AudioUtil.psc` must have a
 matching `REGISTERFUNC(<name>, ...)` in `AudioUtil/src/PapyrusAPI.cpp`, and
-vice versa (same for AudioUtilPPA / TomlUtil script names). Grep both lists and
-diff the name sets.
+vice versa (same for the TomlUtil script name). Grep both lists and diff the
+name sets. SLO VE's own natives (`SLOVE_PPA`, `SLOVE_Hentairim_Tags`, bound by
+`skse\src\Papyrus.cpp`) need no grep: `check-config.ps1` compares those two
+sets on every build.
 
 **Pass:** sets identical. Also: if any existing native's **parameter list**
 changed, confirm §1 was run with the pex-delete (stale consumer pex = runtime
@@ -58,7 +60,8 @@ baseline (as of 2026-07): in `SLOVE_Voice` / `SLOVE_Expressions` / `SLOVE_SFX`
 only the CK-filled `SexLabFramework Property SexLab`, the
 `SexLabThread CurrentThread` variable, and the duplicated legacy-stage helper
 (`SexlabRegistry.GetAllStages` / `StageExists`); in `SLOVE_Hentairim_Tags`
-the two documented leaks (`HasASLTag`, `GetLegacyStageNum`). **Any hit not on
+the documented leaks (the tag reads in `LabelOf` / `LabelsOf`, `HasASLTag`,
+`GetLegacyStageNum`). **Any hit not on
 this list = firewall breach** — a new OStim-blocking dependency; see
 `docs/framework-adapter.md`. (Note: CLAUDE.md states the rule more strictly
 than the code has ever satisfied; judge new code against this baseline, and
