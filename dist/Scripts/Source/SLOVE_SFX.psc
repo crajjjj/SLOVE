@@ -570,7 +570,13 @@ String Function GetImpactSoundToPlay(float TimetoThrust)
 		PrintDebug("GetImpactSoundToPlay: StageShouldplayClap is false, returning none")
 		return ""
 	endif
+	return ImpactSoundFor(TimetoThrust)
+EndFunction
 
+;The impact variant by how long the inward stroke took, whatever the stage's tags.
+;GetImpactSoundToPlay asks the stage's clap rule first; a PPA-measured impact
+;(SFXOnPPAImpact) comes here directly.
+String Function ImpactSoundFor(float TimetoThrust)
 	PRINTDEBUG("GetImpactSound | TimetoThrust: " + TimetoThrust)
 	if TimetoThrust <= 0.25
 		PrintDebug("GetImpactSoundToPlay: Returning FastI")
@@ -673,7 +679,8 @@ EndFunction
 ;each turn that much late.
 int useppathrust ;sfx.usevelocity and sfx.useppathrust are on and the PPA bridge is connected
 float ppathrustturn
-bool PPAThrustNoData ;PPA measured nothing on this stage - not asked again until the next one
+bool PPAThrustNoData ;PPA measured nothing - not asked again before PPAThrustRetryAt (or the next stage)
+float PPAThrustRetryAt ;real time PPA is asked again after a no-data verdict
 ;SAVE-COMPAT ONLY (with PPAThrustStep below): the detector's state from before 0.7.10
 bool PPAThrustRising
 float PPAThrustPeak
@@ -714,7 +721,15 @@ Event SFXOnPPAImpact(string eventName, string strArg, float numArg, Form sender)
 		return
 	endif
 	PrintDebug("PPA thrust: impact | " + strArg + " | TimetoThrust=" + numArg)
-	PlayThrustBeat(PPAThrustReceiver, PPAThrustType, numArg, true)
+	;a measured impact claps on every stage: PPA saw the thrust reach its deepest.
+	;The stage's clap tags (SC/MC/FC, or Doggy) are for the label and contact-speed
+	;paces, which cannot see an impact; asked here they silenced the claps of every
+	;untagged scene. The slush follows as before (PlayThrustBeat without the impact)
+	String ImpactVelocitySFX = ImpactSoundFor(numArg)
+	if ImpactVelocitySFX != ""
+		AudioUtil.PlaySFX(ImpactVelocitySFX, PPAThrustReceiver, 1.0, "sfx", "sfx_impact_" + position)
+	endif
+	PlayThrustBeat(PPAThrustReceiver, PPAThrustType, numArg, false)
 EndEvent
 
 Event SFXOnPPAReentry(string eventName, string strArg, float numArg, Form sender)
@@ -735,6 +750,15 @@ EndEvent
 Function StopPPAThrust()
 	PPAThrustReceiver = none
 	SLOVE_PPA.UnwatchThrusts(actorref)
+EndFunction
+
+;PPA has nothing for this actor's pair: the stage paces itself, and PPA is asked
+;again in 2 s. It used to be asked again only on the next stage, so one empty
+;reading right after a pull-out kept PPA out for the rest of a long stage.
+Function PPAThrustNoDataFor(string asWhy)
+	PPAThrustNoData = true
+	PPAThrustRetryAt = Utility.GetCurrentRealTime() + 2.0
+	PrintDebug("PPA thrust: " + asWhy + " - the stage's own pacing, PPA asked again in 2 s")
 EndFunction
 
 ;SAVE-COMPAT ONLY: uncalled since 0.7.10 (the detector is core\Thrust.h in
@@ -780,8 +804,17 @@ EndFunction
 ;the caller's tick is spent. False = PPA has nothing for this actor's receiver,
 ;and the caller paces the stage its own way.
 Bool Function RunPPAThrustSFX()
-	if useppathrust != 1 || PPAThrustNoData
+	if useppathrust != 1
 		return false
+	endif
+	if PPAThrustNoData
+		;real time restarts with the game, so a retry time more than 2 s ahead is from
+		;before a load and counts as passed
+		float wait = PPAThrustRetryAt - Utility.GetCurrentRealTime()
+		if wait > 0.0 && wait <= 2.0
+			return false
+		endif
+		PPAThrustNoData = false
 	endif
 	;whom this actor is penetrating: the contact detector's answer when there is
 	;one (P+ 2.19), else the labels'
@@ -793,9 +826,12 @@ Bool Function RunPPAThrustSFX()
 	if receiver != none
 		depth = SLOVE_PPA.GetPairDepth(actorref, receiver)
 	endif
-	if receiver == none || (depth <= 0.0 && SLOVE_PPA.GetContext(receiver) == 0)
-		;nobody to read, or PPA is not tracking them at all
-		PPAThrustNoData = true
+	if receiver == none
+		PPAThrustNoDataFor("no receiver named by contact or labels")
+		return false
+	elseif depth <= 0.0 && SLOVE_PPA.GetContext(receiver) == 0
+		;PPA is not tracking them at all
+		PPAThrustNoDataFor("nothing measured on " + receiver.GetDisplayName())
 		return false
 	endif
 	PrintDebug("Running PPA thrust SFX on " + receiver.GetDisplayName() + " | depth=" + depth)
@@ -813,7 +849,9 @@ Bool Function RunPPAThrustSFX()
 	PPAThrustReceiver = receiver
 	float now = Utility.GetCurrentRealTime()
 	float seenAt = now ;when PPA last measured a depth above zero - the grace starts here
-	while !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && DirectorLastPhysicsLabelTime == MasterScript.GetDirectorLastPhysicsLabelTime() && !UpdateNow
+	;a stage change or the scene's end hands the stage back; a change of the contact
+	;(physics) labels alone does not, see below
+	while !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && !UpdateNow
 		;asked every tick, not once: a game load drops every watch (this loop can
 		;resume from a save) and a dispelled effect's unwatch can drop this one; the
 		;same pair asked again keeps a running watch, so this is what brings it back
@@ -825,10 +863,32 @@ Bool Function RunPPAThrustSFX()
 		elseif now - seenAt > 1.5
 			;out for this long is not part of a thrust: PPA lost the pair, or the
 			;labels name a penetration that is not happening. Hand the stage back.
-			PrintDebug("PPA thrust: no depth for 1.5s - back to the stage's own pacing")
 			StopPPAThrust()
-			PPAThrustNoData = true
+			PPAThrustNoDataFor("no depth for 1.5 s")
 			return false
+		endif
+		;SexLab's contact labels can flicker during a thrust (vaginal <-> lead-in about
+		;once a second in a fast scene) while PPA keeps measuring. Each flicker used to
+		;end this loop and hand the stage to label or contact-speed pacing. Now the
+		;labels are refreshed in place (intensity, clap rule, partner) and the timing
+		;goes on; 1.5 s without depth above is what hands the stage back.
+		if DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime() && OnPCThread()
+			float labelTime = DirectorLastLabelTime
+			bool stageEvent = UpdateNow
+			string sceneBefore = CurrentSceneID
+			string stageBefore = currentStageID
+			int stageNumBefore = currentstage
+			HentairimUpdateStageData()
+			if stageEvent || DirectorLastLabelTime != labelTime || CurrentSceneID != sceneBefore || currentStageID != stageBefore || currentstage != stageNumBefore
+				;the stage changed with it: the next update starts that stage afresh
+				StopPPAThrust()
+				return true
+			endif
+			if IsGivingAnalPenetration()
+				PPAThrustType = 2
+			elseif IsGivingVaginalPenetration()
+				PPAThrustType = 1
+			endif
 		endif
 		ProcessContactEdges()
 		Utility.Wait(updateRate)
