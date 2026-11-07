@@ -95,7 +95,8 @@ and depth from the physics, rather than the animation's stage tag.
 ### Thrust sounds
 
 With PPA connected, SLO VE times its thrust sounds off PPA's measured depth: the
-clap lands as the depth turns at its deepest point, on any SexLab build. SLO VE
+clap lands as the depth turns at its deepest point, on every penetration stage
+(the stage's clap tags only matter without PPA) and on any SexLab build. SLO VE
 follows every frame PPA reports and each partner's own depth, so with two
 partners on one actor, each partner's thrusts get their own sounds. This is on by
 default (`sfx.useppathrust`, with `sfx.usevelocity` as the master switch); where
@@ -107,9 +108,8 @@ Pick one:
 - **PPA's sounds only:** install SLO VE's *Silence contact SFX (for PPA users)*
   option in the installer.
 - **SLO VE's sounds only:** set `Enabled = false` under `[SoundEffects]` in PPA's
-  `accurate-penetration.toml`. You keep SLO VE's sound set and its rules (claps only
-  on stages that call for them, size-matched variants, the `sfx` volume group) at
-  PPA's timing.
+  `accurate-penetration.toml`. You keep SLO VE's sound set and its rules
+  (size-matched variants, the `sfx` volume group) at PPA's timing.
 
 ### It's safe to share
 
