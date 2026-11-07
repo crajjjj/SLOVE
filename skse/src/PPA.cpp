@@ -21,18 +21,19 @@ namespace PPA
 			std::vector<Partner> partners;
 		};
 
-		struct ThrustWatch
+		struct Watcher
 		{
-			RE::ActorHandle      giver;
-			std::uint32_t        receiver = 0;  // native actor handle
-			float                turn = 1.0f;
-			Core::ThrustDetector detector;
+			RE::ActorHandle   giver;
+			std::uint32_t     receiver = 0;  // native actor handle
+			Core::ThrustWatch watch;
+			std::string       impactEvent;   // SLOVE_PPAImpact_<giver FormID>
+			std::string       reentryEvent;  // SLOVE_PPAReentry_<giver FormID>
 		};
 
 		struct Beat
 		{
 			RE::ActorHandle giver;
-			bool            impact = false;
+			std::string     event;
 			float           timeToThrust = 0.0f;
 			std::string     text;
 		};
@@ -45,7 +46,7 @@ namespace PPA
 		// static teardown at game exit, and objects that are never freed stay valid
 		// for the callback's whole lifetime.
 		std::unordered_map<std::uint32_t, Receiver>&    g_receivers = *new std::unordered_map<std::uint32_t, Receiver>();
-		std::unordered_map<std::uint32_t, ThrustWatch>& g_watches = *new std::unordered_map<std::uint32_t, ThrustWatch>();  // giver handle -> watch
+		std::unordered_map<std::uint32_t, Watcher>&     g_watches = *new std::unordered_map<std::uint32_t, Watcher>();  // giver handle -> watch
 		std::mutex&                                     g_lock = *new std::mutex();
 
 		double NowSeconds()
@@ -58,16 +59,24 @@ namespace PPA
 			return a_actor ? a_actor->GetHandle().native_handle() : 0;
 		}
 
-		// Under g_lock. The depth a watch reads: its giver's own when PPA lists
-		// the giver, else the receiver's deepest.
-		float DepthFor(const Receiver& a_receiver, std::uint32_t a_giver)
+		// Under g_lock. The giver's own depth when PPA lists the giver among the
+		// receiver's partners this frame.
+		std::optional<float> OwnDepth(const Receiver& a_receiver, std::uint32_t a_giver)
 		{
 			for (const auto& partner : a_receiver.partners) {
 				if (partner.handle == a_giver) {
 					return partner.depth;
 				}
 			}
-			return a_receiver.snapshot.depth;
+			return std::nullopt;
+		}
+
+		// The event names carry the giver, so a beat reaches only the SFX effect
+		// that registered for it (the giver's), not every effect in every scene.
+		// Papyrus spells an Int as a signed decimal, so the FormID is printed so.
+		std::string EventName(std::string_view a_prefix, const RE::Actor* a_giver)
+		{
+			return std::format("{}_{}", a_prefix, static_cast<std::int32_t>(a_giver->GetFormID()));
 		}
 
 		void SendBeat(const Beat& a_beat)
@@ -83,7 +92,7 @@ namespace PPA
 					return;
 				}
 				SKSE::ModCallbackEvent event{
-					RE::BSFixedString{ a_beat.impact ? "SLOVE_PPAImpact" : "SLOVE_PPAReentry" },
+					RE::BSFixedString{ a_beat.event },
 					RE::BSFixedString{ a_beat.text },
 					a_beat.timeToThrust,
 					giver.get()
@@ -149,31 +158,32 @@ namespace PPA
 					// "Ending is always sent" (the PPA author). A watch on this receiver
 					// stays (SLOVE_SFX ends it), but its next run starts fresh
 					g_receivers.erase(key);
-					for (auto& [giver, watch] : g_watches) {
-						if (watch.receiver == key) {
-							watch.detector.Reset();
+					for (auto& [giver, watcher] : g_watches) {
+						if (watcher.receiver == key) {
+							watcher.watch.Reset();
 						}
 					}
 					return;
 				}
 				auto& stored = g_receivers[key];
 				stored = std::move(receiver);
-				for (auto& [giver, watch] : g_watches) {
-					if (watch.receiver != key) {
+				for (auto& [giver, watcher] : g_watches) {
+					if (watcher.receiver != key) {
 						continue;
 					}
-					const float pairDepth = DepthFor(stored, giver);
-					const auto  result = watch.detector.Step(pairDepth, now, watch.turn);
+					const auto result = watcher.watch.Feed(OwnDepth(stored, giver), stored.snapshot.depth, now);
 					if (result.beat == Core::ThrustDetector::Beat::None) {
 						continue;
 					}
+					const bool impact = result.beat == Core::ThrustDetector::Beat::Impact;
+					const float depthNow = watcher.watch.LastDepth();
 					Beat beat;
-					beat.giver = watch.giver;
-					beat.impact = result.beat == Core::ThrustDetector::Beat::Impact;
+					beat.giver = watcher.giver;
+					beat.event = impact ? watcher.impactEvent : watcher.reentryEvent;
 					beat.timeToThrust = result.timeToThrust;
-					beat.text = beat.impact ?
-					                std::format("stroke={:.2f} | depth={:.2f}", result.stroke, pairDepth) :
-					                std::format("depth={:.2f}", pairDepth);
+					beat.text = impact ?
+					                std::format("stroke={:.2f} | depth={:.2f}", result.stroke, depthNow) :
+					                std::format("depth={:.2f}", depthNow);
 					beats.push_back(std::move(beat));
 				}
 			}
@@ -263,7 +273,8 @@ namespace PPA
 		if (it == g_receivers.end()) {
 			return 0.0f;
 		}
-		return DepthFor(it->second, KeyOf(a_giver));
+		const auto own = OwnDepth(it->second, KeyOf(a_giver));
+		return own ? *own : it->second.snapshot.depth;
 	}
 
 	void Watch(RE::Actor* a_giver, RE::Actor* a_receiver, float a_turn)
@@ -273,12 +284,23 @@ namespace PPA
 		if (giver == 0 || receiver == 0) {
 			return;
 		}
-		ThrustWatch watch;
-		watch.giver = a_giver->GetHandle();
-		watch.receiver = receiver;
-		watch.turn = std::max(0.1f, a_turn);  // the script's floor too
+		const float turn = std::max(0.1f, a_turn);  // the script's floor too
 		std::scoped_lock lock{ g_lock };
-		g_watches[giver] = watch;
+		// The SFX loop asks again every tick, so a watch dropped by a game load
+		// (Reset) or by another effect's Unwatch comes back within a tick: the
+		// same pair again keeps its run, anything else starts a new one.
+		if (const auto it = g_watches.find(giver);
+			it != g_watches.end() && it->second.receiver == receiver && it->second.watch.Turn() == turn) {
+			return;
+		}
+		Watcher watcher{
+			a_giver->GetHandle(),
+			receiver,
+			Core::ThrustWatch{ turn },
+			EventName("SLOVE_PPAImpact", a_giver),
+			EventName("SLOVE_PPAReentry", a_giver)
+		};
+		g_watches.insert_or_assign(giver, std::move(watcher));
 	}
 
 	void Unwatch(RE::Actor* a_giver)

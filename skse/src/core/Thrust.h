@@ -10,6 +10,8 @@
 // it sees every frame PPA reports, for one giver-receiver pair. The logic is the
 // Papyrus one unchanged.
 
+#include <optional>
+
 namespace Core
 {
 	class ThrustDetector
@@ -83,5 +85,68 @@ namespace Core
 		double _peakAt = 0.0;
 		double _troughAt = 0.0;
 		float  _lastTime = 0.0f;  // how long the last inward stroke took
+	};
+
+	// One giver -> receiver pair, fed one PPA frame at a time: picks the depth
+	// the detector reads and caps how often a beat may fire.
+	class ThrustWatch
+	{
+	public:
+		// The detector used to see one sample per sfx.velocitypoll (0.1 s by
+		// default), which capped beats at that rate; frames come far faster, so
+		// jitter above a low hysteresis could fire a beat per frame. A beat closer
+		// than this to the last one is not sent (the detector still advances).
+		static constexpr double kMinBeatGap = 0.1;
+
+		explicit ThrustWatch(float a_turn) :
+			_turn(a_turn) {}
+
+		float Turn() const { return _turn; }
+
+		// The receiver's interaction ended: the next frame starts a new run.
+		void Reset()
+		{
+			_detector.Reset();
+			_ownSeen = false;
+		}
+
+		// a_own = the giver's own depth when PPA lists the giver among the
+		// receiver's partners this frame, else nullopt; a_deepest = the
+		// receiver's deepest. Until PPA has listed the giver once, the watch reads
+		// the deepest (one number per receiver, as before 0.7.10). From then on it
+		// reads only the giver's own, and a frame without it is skipped: switching
+		// back and forth between two partners' depths would read as strokes.
+		ThrustDetector::Result Feed(const std::optional<float>& a_own, float a_deepest, double a_now)
+		{
+			float depth = a_deepest;
+			if (a_own) {
+				if (!_ownSeen) {
+					_ownSeen = true;
+					_detector.Reset();  // a new signal: no stroke runs across the switch
+				}
+				depth = *a_own;
+			} else if (_ownSeen) {
+				return {};
+			}
+			_depth = depth;
+			auto result = _detector.Step(depth, a_now, _turn);
+			if (result.beat != ThrustDetector::Beat::None) {
+				if (a_now - _lastBeatAt < kMinBeatGap) {
+					result.beat = ThrustDetector::Beat::None;
+				} else {
+					_lastBeatAt = a_now;
+				}
+			}
+			return result;
+		}
+
+		float LastDepth() const { return _depth; }  // what the last fed frame read, for the log text
+
+	private:
+		ThrustDetector _detector;
+		float          _turn;
+		bool           _ownSeen = false;
+		float          _depth = 0.0f;
+		double         _lastBeatAt = -1.0e9;
 	};
 }

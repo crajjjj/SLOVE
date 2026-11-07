@@ -1373,13 +1373,25 @@ String[] Function ResolveSpeakerAct(Actor speaker, String actDir = "", String ac
 	return act
 EndFunction
 
-;SAVE-COMPAT ONLY: the variable and the function stay for saves holding this
-;effect. The site used to come from AudioUtilPPA, from AudioUtil API v9 on, and
-;was probed here; since 0.7.10 SLOVE.dll's own bridge always has it.
+;SAVE-COMPAT ONLY: uncalled since 0.7.10 (SLOVE.dll's own bridge always has the
+;site); kept byte-identical for saves holding this effect, which may hold a stack
+;inside it. What it did:
+;AudioUtil exposes PPA's penetration site from API v9 (0.9.21). Probed once and
+;cached tri-state, exactly like Director's tagged-playback probe: on an older
+;AudioUtil the native cannot bind and would take every voice line down with it,
+;so the label chain simply stays authoritative there.
 int audioUtilSiteAPI
 
 Bool Function PPASiteAvailable()
-	return true
+	if audioUtilSiteAPI == 0
+		if AudioUtil.GetAPIVersion() >= 9
+			audioUtilSiteAPI = 1
+		else
+			audioUtilSiteAPI = -1
+			SLOVE_Log.WriteLog("SLO VE Voice : AudioUtil API v" + AudioUtil.GetAPIVersion() + " predates the PPA penetration site (v9 / 0.9.21) - place facts come from the animation labels alone", 0)
+		endif
+	endif
+	return audioUtilSiteAPI == 1
 EndFunction
 
 ;The place fact. PPA is asked FIRST for every act, whatever the labels said, and

@@ -65,11 +65,15 @@ Bool Function HasInteractionAPI() Global
 	return SKSE.GetPluginVersion("SexLabUtil") >= 0x02130000
 EndFunction
 
-;SLOVE.dll is loaded. Since 0.7.10 the scripts need it on every scene (the label
-;engine and the PPA readings are its natives); without it every label reads
-;None and the log fills with unbound-native errors. For the warnings only.
+;A SLOVE.dll with the natives is loaded. Since 0.7.10 the scripts need it on
+;every scene (the label engine and the PPA readings are its natives); without
+;it labels read lead-in, PPA reads nothing and the log fills with unbound-native
+;errors. 0.7.0 to 0.7.9 shipped a menu-only SLOVE.dll, so a version below 0.7.10
+;counts as missing. Packed like every CommonLib plugin version:
+;major<<24 | minor<<16 | patch<<4, so 0.7.10 is 0x000700A0; -1 = not loaded.
+;For the warnings only.
 Bool Function HasNatives() Global
-	return SKSE.GetPluginVersion("SLOVE") != -1
+	return SKSE.GetPluginVersion("SLOVE") >= 0x000700A0
 EndFunction
 
 ;The running SexLab P+ version as "major.minor.patch", "" when its plugin is

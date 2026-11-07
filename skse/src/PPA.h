@@ -10,10 +10,13 @@
 //
 // Thrust watches: SLOVE_SFX asks for one giver -> receiver pair while a
 // penetration stage plays, and the turn detector (core/Thrust.h) runs on every
-// PPA frame of that pair. Each turn is a mod event, sender = the giver:
-//   SLOVE_PPAImpact   numArg = how long the inward stroke took (s), strArg = the
-//                     stroke and depth, for the sfx.printdebug line
-//   SLOVE_PPAReentry  numArg = the last inward stroke's time, strArg = the depth
+// PPA frame of that pair (Core::ThrustWatch picks the depth and caps the beat
+// rate). Each turn is a mod event named after the giver, so only the giver's
+// own SFX effect receives it; sender = the giver:
+//   SLOVE_PPAImpact_<FormID>   numArg = how long the inward stroke took (s),
+//                              strArg = the stroke and depth, for sfx.printdebug
+//   SLOVE_PPAReentry_<FormID>  numArg = the last inward stroke's time, strArg = the depth
+// <FormID> is the giver's FormID as Papyrus prints an Int (signed decimal).
 
 namespace PPA
 {
@@ -46,8 +49,10 @@ namespace PPA
 	// (what one number per receiver always gave). 0 = nothing measured.
 	float PairDepth(RE::Actor* a_giver, RE::Actor* a_receiver);
 
-	// Start (or restart) the thrust watch of a_giver on a_receiver; a_turn is the
-	// hysteresis (sfx.ppathrustturn). One watch per giver.
+	// Start the thrust watch of a_giver on a_receiver; a_turn is the hysteresis
+	// (sfx.ppathrustturn). One watch per giver. Asking again for the same pair
+	// and hysteresis keeps the running watch, so the SFX loop asks on every tick:
+	// that is what brings a watch back after a load or a stale effect's Unwatch.
 	void Watch(RE::Actor* a_giver, RE::Actor* a_receiver, float a_turn);
 	void Unwatch(RE::Actor* a_giver);
 

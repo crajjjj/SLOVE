@@ -12,10 +12,11 @@
 #   dist\SKSE\Plugins\SLOVE\SLOVE_Menu.toml     how the in-game menu presents it
 #   docs\config\slove.md                        its row in the reference tables
 #
-# The same goes for the four things SLOVE.dll mirrors from elsewhere: the volume
+# The same goes for the five things SLOVE.dll mirrors from elsewhere: the volume
 # buses the scripts set (Bridge.cpp), the SKSE Menu Framework exports the menu
 # calls (Env.cpp probes them at load), the natives the scripts declare
-# (Papyrus.cpp binds them) and its copy of AudioUtil's TomlEdit.h.
+# (Papyrus.cpp binds them) and its copies of AudioUtil's TomlEdit.h and PPA
+# interface header.
 #
 # Adding a setting = a script read + a toml line + a [[setting]] + a docs row;
 # this script names whichever one is missing. It reads the two toml files with a
@@ -479,13 +480,15 @@ if (-not (Test-Path $bridgePath)) {
         foreach ($file in (Get-ChildItem (Join-Path $root $dir) -Filter '*.psc')) {
             foreach ($line in (Read-Lines $file.FullName)) {
                 $code = Get-PapyrusCode $line
-                $m = [regex]::Match($code, '(?i)\bFunction\s+(\w+)\s*\(.*\)\s*native\b')
+                # both orders: "native global" (ours) and "global native" (SKSE's)
+                $m = [regex]::Match($code, '(?i)\bFunction\s+(\w+)\s*\(.*\)\s*(?:global\s+)?native\b')
                 if ($m.Success) { $declared += "$($file.BaseName).$($m.Groups[1].Value)" }
             }
         }
     }
     $declared = @($declared | Sort-Object -Unique)
-    $papyrusCpp = Read-Utf8 (Join-Path $skse 'src\Papyrus.cpp')
+    # code only: a commented-out registration binds nothing
+    $papyrusCpp = ((Read-Lines (Join-Path $skse 'src\Papyrus.cpp')) | ForEach-Object { Get-CppCode $_ }) -join "`n"
     $scriptNames = @{}
     foreach ($m in [regex]::Matches($papyrusCpp, '\b(k\w+Script)\s*=\s*"(\w+)"sv')) { $scriptNames[$m.Groups[1].Value] = $m.Groups[2].Value }
     $bound = @()
@@ -516,6 +519,21 @@ if (-not (Test-Path $bridgePath)) {
         Warn 'skse\src\core\TomlEdit.h differs from AudioUtil\src\TomlEdit.h - copy it over again (never edit the copy) and rerun core-tests'
     } else {
         Write-Host 'TomlEdit.h is identical to AudioUtil''s'
+    }
+
+    # The PPA interface is AudioUtil's recreated header; only its opening comment
+    # is ours, so the two are compared from the first #include on
+    $ours = Join-Path $skse 'src\API\AccuratePenetrationAPI.h'
+    $theirs = Join-Path (Split-Path $root -Parent) 'AudioUtil\include\API\AccuratePenetrationAPI.h'
+    if (-not (Test-Path $theirs)) {
+        Write-Host 'AccuratePenetrationAPI.h: no AudioUtil checkout beside this repo to compare with'
+    } else {
+        $body = { param($path) $text = (Read-Utf8 $path) -replace "`r`n", "`n"; $at = $text.IndexOf('#include'); if ($at -lt 0) { $text } else { $text.Substring($at) } }
+        if ((& $body $ours) -ne (& $body $theirs)) {
+            Warn 'skse\src\API\AccuratePenetrationAPI.h differs from AudioUtil''s below the opening comment - take AudioUtil''s fix over (and check skse\src\PPA.cpp against AudioUtil''s PPABridge)'
+        } else {
+            Write-Host 'AccuratePenetrationAPI.h matches AudioUtil''s'
+        }
     }
 }
 
