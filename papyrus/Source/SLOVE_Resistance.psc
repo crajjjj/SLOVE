@@ -255,8 +255,8 @@ EndEvent
 ; PPA reports "physically inserted right now"; if the bridge isn't tracking this
 ; actor, fall back to the Director's position/penetration labels (SexLab p+).
 bool Function IsGettingFucked()
-	if AudioUtilPPA.IsConnected() && AudioUtilPPA.GetContext(Actorref) > 0
-		return AudioUtilPPA.GetDepth(Actorref) > 0.0
+	if SLOVE_PPA.IsConnected() && SLOVE_PPA.GetContext(Actorref) > 0
+		return SLOVE_PPA.GetDepth(Actorref) > 0.0
 	endif
 	; --- label fallback ---
 	if IsVictim

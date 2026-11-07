@@ -95,9 +95,11 @@ and depth from the physics, rather than the animation's stage tag.
 ### Thrust sounds
 
 With PPA connected, SLO VE times its thrust sounds off PPA's measured depth: the
-clap lands as the depth turns at its deepest point, on any SexLab build. This is
-on by default (`sfx.useppathrust`, with `sfx.usevelocity` as the master switch);
-where PPA reports no depth, the stage keeps the pacing it had before.
+clap lands as the depth turns at its deepest point, on any SexLab build. SLO VE
+follows every frame PPA reports and each partner's own depth, so with two
+partners on one actor, each partner's thrusts get their own sounds. This is on by
+default (`sfx.useppathrust`, with `sfx.usevelocity` as the master switch); where
+PPA reports no depth, the stage keeps the pacing it had before.
 
 PPA also plays thrust sounds **of its own**, so out of the box you hear both sets.
 Pick one:
@@ -111,14 +113,17 @@ Pick one:
 
 ### It's safe to share
 
-SLO VE only **reads** PPA (through AudioUtil) — it never drives it, so PPA can feed
-any number of mods at once. Running it for something else (including Hentairim's own
+SLO VE only **reads** PPA (through its own `SLOVE.dll`, since 0.7.10). It never
+drives it, so PPA can feed any number of mods at once. Running it for something else (including Hentairim's own
 SFX, if you left that on) doesn't conflict with SLO VE reading it too.
 
 ### Enable & verify
 
-1. Install PPA — no patch needed.
-2. Make sure the bridge is on: `[ppa] enable = true` in `AudioUtil.toml` (the default).
-3. In-game, `AudioUtil.log` shows a **`PPA bridge connected`** line at load.
+1. Install PPA. No patch and no setting needed: `SLOVE.dll` connects to it by itself.
+2. In-game, `SKSE\SLOVE.log` shows a **`PPA connected`** line at load, and
+   `slovetest dump` prints `Accurate Penetration connected=True`.
+
+AudioUtil's own `[ppa]` section no longer matters to SLO VE (it read PPA through
+AudioUtil up to 0.7.9); it is there for other mods that use AudioUtil's bridge.
 
 See [Troubleshooting & Logs](troubleshooting.md) if it doesn't connect.

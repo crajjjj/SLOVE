@@ -48,7 +48,7 @@ pc_male_slot = "M1"
 
 ## `[ppa]`
 
-The optional **Accurate Penetration** bridge. When PPA is installed, SLO VE uses *measured* penetration depth and gape instead of authored scene labels — thrust-synced SFX, contact one-shots, expression penetration checks, and the resistance system's "is she being penetrated" test.
+AudioUtil's own **Accurate Penetration** bridge, for mods that read PPA through AudioUtil. **SLO VE no longer uses it:** since 0.7.10 `SLOVE.dll` reads PPA itself (see [Using with Hentairim & PPA](../hentairim-and-ppa.md)), so these keys change nothing for SLO VE. SLO VE's preset leaves the bridge on for the other mods.
 
 ```toml
 [ppa]

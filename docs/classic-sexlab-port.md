@@ -66,8 +66,8 @@ The thread type changes from `SexLabThread` (P+) to **`sslThreadController`**
    itself (`SVP` vs `FVP`), so it tracks the tag database rather than the real
    animation speed or any AnimSpeed override.
 
-   **`sfx.usecontactsfx` is still honoured.** The PPA bridge (Accurate Penetration
-   via AudioUtil) is framework-independent — only the *edge detection* and the
+   **`sfx.usecontactsfx` is still honoured.** The PPA bridge (Accurate Penetration,
+   read by `SLOVE.dll`) is framework-independent: only the *edge detection* and the
    receiver lookup ever used SLPP. `ProcessContactEdges()` therefore derives its
    penetration edge from the label system (`IsGivingVaginalPenetration` /
    `IsGivingAnalPenetration`) and resolves the receiver via

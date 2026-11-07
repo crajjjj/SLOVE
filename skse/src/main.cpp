@@ -1,15 +1,18 @@
 #include "Bridge.h"
 #include "Env.h"
 #include "Menu.h"
+#include "PPA.h"
+#include "Papyrus.h"
 
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
 using namespace SKSE;
 
-// SLOVE.dll - the SLO VE in-game settings menu. It is a convenience on top of a
-// mod that runs entirely without it, so nothing in here may take the game down:
-// no report_and_fail, and a step that fails only disables the menu.
+// SLOVE.dll - the natives the SLO VE scripts call (the label engine's classifier
+// and SLO VE's own Accurate Penetration bridge, see Papyrus.h) and the optional
+// in-game settings menu. Nothing in here may take the game down: no
+// report_and_fail, and a step that fails only switches its own feature off.
 
 namespace
 {
@@ -47,16 +50,22 @@ namespace
 			case MessagingInterface::kDataLoaded:
 				// every SKSE plugin is loaded by now: what is not here will not come
 				Env::Detect(g_skse);
+				PPA::TryConnect();  // on the main thread, where PPA wants its listeners registered
 				Menu::Register();
 				break;
 			case MessagingInterface::kPreLoadGame:
 				Bridge::OnVmReset();
+				PPA::Reset();
 				break;
 			case MessagingInterface::kPostLoadGame:
-			case MessagingInterface::kNewGame:
 				// a reload asked for before the load went down with the old VM
 				Bridge::OnVmReset();
 				Bridge::Pump();
+				break;
+			case MessagingInterface::kNewGame:
+				Bridge::OnVmReset();
+				Bridge::Pump();
+				PPA::Reset();
 				break;
 			default:
 				break;
@@ -82,6 +91,10 @@ SKSEPluginLoad(const LoadInterface* a_skse)
 	// and that one throws inside a noexcept function when the log cannot be created
 	Init(a_skse, false);
 	g_skse = a_skse;
+
+	if (const auto* papyrus = GetPapyrusInterface(); !papyrus || !papyrus->Register(Papyrus::Register)) {
+		log::error("Papyrus natives could not be registered: the SLO VE scripts will log unbound native calls");
+	}
 
 	if (const auto* messaging = GetMessagingInterface()) {
 		messaging->RegisterListener(OnMessage);

@@ -32,7 +32,7 @@ Optional: ConsoleUtil — for the in-game console test/reload commands.
 
 INSTALLATION
 
-Use a mod manager (MO2 recommended). SLO VE is loose scripts, sounds, and TOML config, plus one small ESL-flagged plugin and one small SKSE plugin (the optional settings menu). There is nothing to build and nothing you have to configure first.
+Use a mod manager (MO2 recommended). SLO VE is loose scripts, sounds, and TOML config, plus one small ESL-flagged plugin and one small SKSE plugin (the scene-label engine, the Accurate Penetration reader and the optional settings menu). There is nothing to build and nothing you have to configure first.
 
 1. Install the hard requirements first, each per its own instructions: SKSE64, SexLab Framework P+ 2.17+ (2.19+ for the contact-detection features), PapyrusUtil, Mfg Fix NG (MfgConsoleFunc/Ext), and AudioUtil - the folder-based audio / lipsync / TOML framework SLO VE runs on. AudioUtil must be present or SLO VE has no voice engine.
 

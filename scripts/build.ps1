@@ -10,9 +10,10 @@
 # scripts, SLOVE.toml, the menu schema and the docs), which also writes the
 # generated SLOVE.defaults.toml.
 #
-# The full build also compiles skse\ (SLOVE.dll, the in-game settings menu:
-# xmake 3.0+, VS 2022, the CommonLibSSE-NG submodule) and runs its core-tests
-# against the shipped SLOVE.toml. A FOMOD is never packaged without it.
+# The full build also compiles skse\ (SLOVE.dll: the natives the scripts call
+# and the in-game settings menu; xmake 3.0+, VS 2022, the CommonLibSSE-NG
+# submodule) and runs its core-tests against the shipped SLOVE.toml. A FOMOD is
+# never packaged without it.
 #
 # SLO VE ships two script sets that differ only in the framework-facing scripts
 # (Director, SFX, Expressions, Resistance, Hentairim_Tags, NpcScene, ThreadHook):
@@ -70,11 +71,12 @@ function Assert-PluginDll([string]$path) {
     if ($machine -ne 0x8664) { throw "$path is not an x64 image (machine 0x$($machine.ToString('X4')))" }
 }
 
-# The in-game settings menu (skse\: xmake + CommonLibSSE-NG). skse\xmake.lua
-# copies the DLL, and only the DLL, to dist\SKSE\Plugins; Build-Fomod then ships
-# it in Core like everything else under dist.
+# SLOVE.dll: the scripts' natives and the in-game settings menu (skse\: xmake +
+# CommonLibSSE-NG). skse\xmake.lua copies the DLL, and only the DLL, to
+# dist\SKSE\Plugins; Build-Fomod then ships it in Core like everything else
+# under dist.
 function Build-Plugin {
-    Write-Host '=== Building SLOVE.dll (in-game settings menu) -> dist\SKSE\Plugins ===' -ForegroundColor Cyan
+    Write-Host '=== Building SLOVE.dll (natives + settings menu) -> dist\SKSE\Plugins ===' -ForegroundColor Cyan
     $skse = Join-Path $root 'skse'
 
     $xmake = $env:XMAKE_EXE
@@ -124,7 +126,7 @@ function Build-Plugin {
     # it does not change byte-identical, and the schema must describe every key.
     $out = Join-Path $skse 'build\windows\x64\release'
     & (Join-Path $out 'core-tests.exe') (Join-Path $root 'dist\SKSE\Plugins\SLOVE')
-    if ($LASTEXITCODE -ne 0) { throw "core-tests FAILED (exit $LASTEXITCODE) - the menu's config writer or its schema is broken" }
+    if ($LASTEXITCODE -ne 0) { throw "core-tests FAILED (exit $LASTEXITCODE) - the label engine, the thrust detector, the menu's config writer or its schema is broken" }
 
     $built = Join-Path $out 'SLOVE.dll'
     $dll = Join-Path $root 'dist\SKSE\Plugins\SLOVE.dll'

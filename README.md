@@ -22,7 +22,7 @@ reference, troubleshooting.
 Soft (auto-detected, optional): SKSE Menu Framework (the in-game settings
 menu), MFEE, sr_fillherup (tongue), Devious Devices
 (gag), SexLab Survival (ahegao yield), SOS/TNG (huge-partner detection),
-Accurate Penetration via AudioUtilPPA (measured penetration/gape),
+Accurate Penetration (measured penetration/gape, read by SLOVE.dll),
 Oninus Lactis NG (nipple squirts during scenes, `[milk]` in SLOVE.toml;
 with Milk Mod Economy also installed, squirts require and drain her milk).
 
@@ -81,9 +81,10 @@ Full reference: <https://crajjjj.github.io/SLOVE/config/>
 ## Build (dev)
 
 `powershell scripts\build.ps1` checks that the settings are in step
-(`scripts\check-config.ps1`), builds `SLOVE.dll` (the in-game settings menu,
-`skse\`: xmake 3.0+, VS 2022; run `git submodule update --init --recursive`
-once) and tests it, compiles both script sets via Pyro and writes the FOMOD
+(`scripts\check-config.ps1`), builds `SLOVE.dll` (the natives the scripts call, SLO VE's
+Accurate Penetration bridge and the in-game settings menu, `skse\`: xmake
+3.0+, VS 2022; run `git submodule update --init --recursive` once) and tests
+it, compiles both script sets via Pyro and writes the FOMOD
 `Release\SLO_VE_v<version>.zip`. `-NoFomod -NoPlugin` builds the scripts alone.
 ESP authored via houseCARL (see repo history).
 

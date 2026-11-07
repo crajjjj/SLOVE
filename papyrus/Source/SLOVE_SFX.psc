@@ -292,7 +292,7 @@ Function InitializeConfigandForms()
 	;sfx.useppathrust turns off this source alone. It reads no SexLab contact data,
 	;so the bridge being connected is all it needs.
 	useppathrust = 0
-	if SLOVE_Config.GetInt("sfx.usevelocity", 1) == 1 && SLOVE_Config.GetInt("sfx.useppathrust", 1) == 1 && AudioUtilPPA.IsConnected()
+	if SLOVE_Config.GetInt("sfx.usevelocity", 1) == 1 && SLOVE_Config.GetInt("sfx.useppathrust", 1) == 1 && SLOVE_PPA.IsConnected()
 		useppathrust = 1
 	endif
 	ppathrustturn = SLOVE_Config.GetFloat("sfx.ppathrustturn", 1.0)
@@ -657,24 +657,32 @@ Function AdvanceThrust(float speed)
 EndFunction
 
 ;------------------------------ thrust sync from PPA depth ------------------------------
-;Accurate Penetration reports, through AudioUtil's bridge, how deep the receiver is
-;penetrated right now. Depth rising is the thrust going in, depth falling is the
-;pull-out, and the turn between the two is the moment of impact - the reversal
-;SexLab P+ 2.19's unsigned speed can no longer show. No SexLab contact data is read,
-;so this block is the same in both script variants and works on every P+ version.
-;A turn counts once the depth has come back by ppathrustturn from its extreme. That
-;hysteresis keeps jitter around a held-deep pose from firing claps, at the price of
-;hearing each turn that much late. GetDepth is the receiver's DEEPEST partner, so
-;two partners on one receiver share one signal and both play its beats.
+;Accurate Penetration measures how deep the receiver is penetrated, every frame.
+;Depth rising is the thrust going in, depth falling is the pull-out, and the turn
+;between the two is the moment of impact - the reversal SexLab P+ 2.19's unsigned
+;speed can no longer show. Since 0.7.10 the turn detector runs inside SLOVE.dll on
+;every PPA frame of this actor's pair (SLOVE_PPA.WatchThrusts), and each turn
+;arrives here as one event; RunPPAThrustSFX only keeps the watch for the stage,
+;hands the stage back when PPA stops measuring, and runs the contact edges. The
+;depth is this actor's own inside the receiver when PPA lists this actor among the
+;receiver's partners, so two partners on one receiver each get their own beats;
+;else it is the receiver's deepest. No SexLab contact data is read, so this block
+;is the same in both script variants and works on every P+ version. A turn counts
+;once the depth has come back by ppathrustturn from its extreme: that hysteresis
+;keeps jitter around a held-deep pose from firing claps, at the price of hearing
+;each turn that much late.
 int useppathrust ;sfx.usevelocity and sfx.useppathrust are on and the PPA bridge is connected
 float ppathrustturn
 bool PPAThrustNoData ;PPA measured nothing on this stage - not asked again until the next one
+;SAVE-COMPAT ONLY (with PPAThrustStep below): the detector's state from before 0.7.10
 bool PPAThrustRising
 float PPAThrustPeak
 float PPAThrustTrough
 float PPAThrustPeakAt ;real time the current extreme was reached
 float PPAThrustTroughAt
 float PPAThrustLastTime ;how long the last inward stroke took
+Actor PPAThrustReceiver ;whom the watch is on; None while no watch runs, and beats are then ignored
+int PPAThrustType ;the 1 = vaginal / 2 = anal the sound pickers key on, for the watch's beats
 
 ;One thrust beat on akOn: the impact (when asked for and the stage calls for claps)
 ;and the slush, both picked by how long the inward stroke took.
@@ -691,6 +699,46 @@ Function PlayThrustBeat(Actor akOn, int aiType, float afTimeToThrust, bool abImp
 	endif
 EndFunction
 
+;The watch's beats (SLOVE_PPA.WatchThrusts), sender = the giver. Every SFX effect
+;hears every actor's beats, so the first line filters. The full beat lands when the
+;thrust turns at its deepest, and on a non-intense stage a slush when it turns back
+;in: the two events SLO VE read off the velocity sign up to 0.6.25 ("reversal from
+;inside" / "from outside").
+Event SFXOnPPAImpact(string eventName, string strArg, float numArg, Form sender)
+	if sender as Actor != actorref || PPAThrustReceiver == none
+		return
+	endif
+	;a frozen scene measures no turns, but a beat queued just before the freeze can
+	;still arrive: consumed, not played, as on the contact-speed path
+	if SLOVE_Utils.GamePaused()
+		return
+	endif
+	PrintDebug("PPA thrust: impact | " + strArg + " | TimetoThrust=" + numArg)
+	PlayThrustBeat(PPAThrustReceiver, PPAThrustType, numArg, true)
+EndEvent
+
+Event SFXOnPPAReentry(string eventName, string strArg, float numArg, Form sender)
+	if sender as Actor != actorref || PPAThrustReceiver == none || !CanPlayReverseIn
+		return
+	endif
+	if SLOVE_Utils.GamePaused()
+		return
+	endif
+	PlayThrustBeat(PPAThrustReceiver, PPAThrustType, numArg, false)
+EndEvent
+
+Event OnEffectFinish(Actor akTarget, Actor akCaster)
+	;a watch left running would keep the DLL sending this actor's beats to nobody
+	SLOVE_PPA.UnwatchThrusts(akTarget)
+EndEvent
+
+Function StopPPAThrust()
+	PPAThrustReceiver = none
+	SLOVE_PPA.UnwatchThrusts(actorref)
+EndFunction
+
+;SAVE-COMPAT ONLY: uncalled since 0.7.10 (the detector is core\Thrust.h in
+;SLOVE.dll now); kept byte-identical for saves holding this effect.
 ;Feeds one depth sample to the turn detector and plays what it finds: the full beat
 ;when the thrust turns at its deepest, and on a non-intense stage a slush when it
 ;turns back in. These are the two events SLO VE read off the velocity sign up to
@@ -728,8 +776,9 @@ Function PPAThrustStep(Actor akReceiver, int aiType, float afDepth, float afNow)
 EndFunction
 
 ;Times the thrust sounds off PPA's depth for as long as this stage lasts and PPA
-;keeps measuring. True = it did, and the caller's tick is spent. False = PPA has
-;nothing for this actor's receiver, and the caller paces the stage its own way.
+;keeps measuring: the watch runs for the length of this call. True = it did, and
+;the caller's tick is spent. False = PPA has nothing for this actor's receiver,
+;and the caller paces the stage its own way.
 Bool Function RunPPAThrustSFX()
 	if useppathrust != 1 || PPAThrustNoData
 		return false
@@ -742,28 +791,30 @@ Bool Function RunPPAThrustSFX()
 	endif
 	float depth = 0.0
 	if receiver != none
-		depth = AudioUtilPPA.GetDepth(receiver)
+		depth = SLOVE_PPA.GetPairDepth(actorref, receiver)
 	endif
-	if receiver == none || (depth <= 0.0 && AudioUtilPPA.GetContext(receiver) == 0)
+	if receiver == none || (depth <= 0.0 && SLOVE_PPA.GetContext(receiver) == 0)
 		;nobody to read, or PPA is not tracking them at all
 		PPAThrustNoData = true
 		return false
 	endif
 	PrintDebug("Running PPA thrust SFX on " + receiver.GetDisplayName() + " | depth=" + depth)
-	int type = 1 ;the 1 = vaginal / 2 = anal the sound pickers key on
+	PPAThrustType = 1
 	if IsGivingAnalPenetration()
-		type = 2
+		PPAThrustType = 2
 	endif
 	updateRate = velocitypoll
+	;here and not only at effect start: an effect from a save made mid-scene before
+	;0.7.10 never registered for them. Registering again is harmless
+	RegisterForModEvent("SLOVE_PPAImpact", "SFXOnPPAImpact")
+	RegisterForModEvent("SLOVE_PPAReentry", "SFXOnPPAReentry")
+	;set before the external call: a beat may arrive as soon as the watch runs
+	PPAThrustReceiver = receiver
+	SLOVE_PPA.WatchThrusts(actorref, receiver, ppathrustturn)
 	float now = Utility.GetCurrentRealTime()
 	float seenAt = now ;when PPA last measured a depth above zero - the grace starts here
-	PPAThrustRising = true
-	PPAThrustPeak = depth
-	PPAThrustTrough = depth
-	PPAThrustPeakAt = now
-	PPAThrustTroughAt = now
 	while !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && DirectorLastPhysicsLabelTime == MasterScript.GetDirectorLastPhysicsLabelTime() && !UpdateNow
-		depth = AudioUtilPPA.GetDepth(receiver)
+		depth = SLOVE_PPA.GetPairDepth(actorref, receiver)
 		now = Utility.GetCurrentRealTime()
 		if depth > 0.0
 			seenAt = now
@@ -771,13 +822,14 @@ Bool Function RunPPAThrustSFX()
 			;out for this long is not part of a thrust: PPA lost the pair, or the
 			;labels name a penetration that is not happening. Hand the stage back.
 			PrintDebug("PPA thrust: no depth for 1.5s - back to the stage's own pacing")
+			StopPPAThrust()
 			PPAThrustNoData = true
 			return false
 		endif
-		PPAThrustStep(receiver, type, depth, now)
 		ProcessContactEdges()
 		Utility.Wait(updateRate)
 	endwhile
+	StopPPAThrust()
 	return true
 EndFunction
 
@@ -1143,9 +1195,9 @@ Function PlayPullOutGape()
 		;vaginal ever stretches), and the stronger result wins
 		float vagopening = 0.0
 		float analopening = 0.0
-		if AudioUtilPPA.IsConnected()
-			vagopening = AudioUtilPPA.GetVaginalOpening(LastPenReceiver)
-			analopening = AudioUtilPPA.GetAnalOpening(LastPenReceiver)
+		if SLOVE_PPA.IsConnected()
+			vagopening = SLOVE_PPA.GetVaginalOpening(LastPenReceiver)
+			analopening = SLOVE_PPA.GetAnalOpening(LastPenReceiver)
 		endif
 		printdebug("Contact edge: pull-out detected, vagopening=" + vagopening + " analopening=" + analopening)
 		if vagopening > 0.0 || analopening > 0.0

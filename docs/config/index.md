@@ -8,7 +8,7 @@ There are three layers, in two different systems. Knowing which file owns what s
 |---|---|---|---|
 | `SKSE\Plugins\SLOVE\SLOVE.toml` | **Behaviour** — what plays, how often, how strongly: voice, expressions, sfx, resistance, milk | SLO VE's scripts (via AudioUtil's TomlUtil) | `SLOVE_Config Reload` |
 | `SKSE\Plugins\AudioUtil\config\SLOVE_*.toml` | **Content** - the voice slots (female / male / creature), the actor→voice routing, the category maps, the SFX slot | the AudioUtil DLL | `au reload` |
-| `SKSE\Plugins\AudioUtil\AudioUtil.toml` | **Engine globals** — lipsync, gag, PPA bridge, default/reserved slots, sound flags | the AudioUtil DLL | `au reload` |
+| `SKSE\Plugins\AudioUtil\AudioUtil.toml` | **Engine globals**: lipsync, gag, default/reserved slots, sound flags | the AudioUtil DLL | `au reload` |
 
 Rule of thumb:
 

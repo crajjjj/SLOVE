@@ -329,6 +329,11 @@ Function Maintenance()
 	;cached probe is SAVED, and a player who upgrades AudioUtil mid-save would
 	;otherwise keep the untagged fallback forever with nothing in the log to say so
 	audioUtilTagAPI = 0
+	;the label engine and the PPA readings are SLOVE.dll natives: without the DLL
+	;nothing below works, so say so first (and at the first scene, in the console)
+	if !SLOVE_Utils.HasNatives()
+		SLOVE_Utils.WritetoErrorlogs("Director", "SLOVE.dll is not loaded: no scene labels, no PPA readings. Reinstall SLO VE (the DLL is in its Core files) and check SLOVE.log and skse64.log in the SKSE logs folder")
+	endif
 	PerformInitialization()
 	;Other Parameters
 	InitializeDirectorConfigs()
@@ -436,6 +441,7 @@ Event DirectorOnSLSAhegaoStateChange(string eventName, string argString, float a
 EndEvent
 
 bool MfgFixConsoleWarned = false ;one console notice per session (log warns every load)
+bool NativesConsoleWarned = false ;the same for a missing SLOVE.dll
 bool AudioTomlConsoleWarned = false ;one console notice per session: the AudioUtil.toml in effect is not SLO VE's
 
 ;Mfg Fix NG functional probe: write a phoneme through the exact API every SLO VE
@@ -639,6 +645,10 @@ Event DirectorSceneStart(string eventName, string argString, float argNum, form 
 	if !MfgFixConsoleWarned && StorageUtil.GetIntValue(None, "SLOVE_MfgFixBroken", 0) == 1
 		MfgFixConsoleWarned = true
 		MiscUtil.PrintConsole("SLO VE: Mfg Fix NG is missing or not working - faces will stick or deform. Install/update Mfg Fix NG (details in SLOVE.0.log).")
+	endif
+	if !NativesConsoleWarned && !SLOVE_Utils.HasNatives()
+		NativesConsoleWarned = true
+		MiscUtil.PrintConsole("SLO VE: SLOVE.dll is not loaded - no scene labels, voices and SFX misfire. Reinstall SLO VE (details in SLOVE.0.log).")
 	endif
 
 	;whose AudioUtil.toml is in effect? SLO VE ships its own (the globals: voice_no_interrupt,
