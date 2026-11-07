@@ -94,11 +94,20 @@ endfunction
 ;scene-wide ASL codes, which only the classic variant asks for.
 String[] Function ClassifyStage(String[] asTags, String[] asMoreTags, Int aiStage, Int aiPositions, Int aiKind, Bool abASLFallback) native global
 String Function ClassifyOne(String[] asTags, String[] asMoreTags, Int aiStage, Int aiPosition, Int aiKind, Bool abASLFallback) native global
+;kinds 0-4 of one position, in that order
+String[] Function ClassifyPosition(String[] asTags, String[] asMoreTags, Int aiStage, Int aiPosition, Bool abASLFallback) native global
 
 ;IsSceneTag sees a scene's tag list AND the annotations a player added in P+'s
 ;scene editor; GetSceneTags leaves the annotations out, so both lists go over.
+;Without SLOVE.dll (the Director says so at load) every native answers None: the
+;helpers then answer lead-in, as a scene without any tag database does, so no
+;`!= "LDI"` check anywhere takes its branch on nothing.
 String Function LabelOf(string anim, int stage, int pos, int kind) Global
-	return ClassifyOne(SexLabRegistry.GetSceneTags(anim), SexLabRegistry.GetSceneAnnotations(anim), stage, pos, kind, false)
+	string label = ClassifyOne(SexLabRegistry.GetSceneTags(anim), SexLabRegistry.GetSceneAnnotations(anim), stage, pos, kind, false)
+	if label == "" && kind < 5
+		return "LDI"
+	endif
+	return label
 EndFunction
 
 ;One kind for every position of actorlist. None for an empty list, as before.
@@ -107,7 +116,22 @@ String[] Function LabelsOf(string anim, int stage, actor[] actorlist, int kind) 
 	if actorlist
 		n = actorlist.length
 	endif
-	return ClassifyStage(SexLabRegistry.GetSceneTags(anim), SexLabRegistry.GetSceneAnnotations(anim), stage, n, kind, false)
+	string[] labels = ClassifyStage(SexLabRegistry.GetSceneTags(anim), SexLabRegistry.GetSceneAnnotations(anim), stage, n, kind, false)
+	if !labels && n > 0
+		return PapyrusUtil.StringArray(n, "LDI")
+	endif
+	return labels
+EndFunction
+
+;One position's five labels, [0] stimulation [1] penis action [2] oral
+;[3] penetration [4] ending, from one tag read: what the per-actor effects ask
+;for on every update. Always 5 entries.
+String[] Function GetPositionLabels(string anim, int stage, int pos) Global
+	string[] labels = ClassifyPosition(SexLabRegistry.GetSceneTags(anim), SexLabRegistry.GetSceneAnnotations(anim), stage, pos, false)
+	if !labels || labels.length != 5
+		return PapyrusUtil.StringArray(5, "LDI")
+	endif
+	return labels
 EndFunction
 
 ;GetLabel (above, uncalled) still asks IsSceneTag one code at a time

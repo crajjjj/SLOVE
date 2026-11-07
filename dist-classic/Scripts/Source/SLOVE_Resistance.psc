@@ -500,26 +500,13 @@ Function ComputeOwnThreadLabels(actor char)
 	endif
 	sslBaseAnimation anim = CurrentThread.Animation
 	int stagenum = CurrentThread.Stage
-	string[] stim = SLOVE_Hentairim_Tags.GetStimulationlabelarr(anim, stagenum, al)
-	string[] pa = SLOVE_Hentairim_Tags.GetPenisActionlabelarr(anim, stagenum, al)
-	string[] orl = SLOVE_Hentairim_Tags.GetOrallabelarr(anim, stagenum, al)
-	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(anim, stagenum, al)
-	string[] endlbl = SLOVE_Hentairim_Tags.GetEndingLabelarr(anim, stagenum, al)
-	if idx < stim.length
-		StimulationLabel = stim[idx]
-	endif
-	if idx < pa.length
-		PenisActionLabel = pa[idx]
-	endif
-	if idx < orl.length
-		OralLabel = orl[idx]
-	endif
-	if idx < pen.length
-		PenetrationLabel = pen[idx]
-	endif
-	if idx < endlbl.length
-		EndingLabel = endlbl[idx]
-	endif
+	;one tag read and one classify for this position's five labels (since 0.7.10)
+	string[] lbl = SLOVE_Hentairim_Tags.GetPositionLabels(anim, stagenum, idx)
+	StimulationLabel = lbl[0]
+	PenisActionLabel = lbl[1]
+	OralLabel = lbl[2]
+	PenetrationLabel = lbl[3]
+	EndingLabel = lbl[4]
 EndFunction
 
 bool Function IsgettingPenetrated()

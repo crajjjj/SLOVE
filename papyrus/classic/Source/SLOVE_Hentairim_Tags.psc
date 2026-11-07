@@ -102,6 +102,8 @@ endfunction
 ;action, 2 oral, 3 penetration, 4 ending, 5 the stage's SFX tag (position ignored).
 String[] Function ClassifyStage(String[] asTags, String[] asMoreTags, Int aiStage, Int aiPositions, Int aiKind, Bool abASLFallback) native global
 String Function ClassifyOne(String[] asTags, String[] asMoreTags, Int aiStage, Int aiPosition, Int aiKind, Bool abASLFallback) native global
+;kinds 0-4 of one position, in that order
+String[] Function ClassifyPosition(String[] asTags, String[] asMoreTags, Int aiStage, Int aiPosition, Bool abASLFallback) native global
 
 ;the SLATE-applied codes are ordinary animation tags (see HasASLTag)
 String[] Function AnimTags(sslBaseAnimation anim) Global
@@ -112,9 +114,16 @@ String[] Function AnimTags(sslBaseAnimation anim) Global
 	return tags
 EndFunction
 
+;Without SLOVE.dll (the Director says so at load) every native answers None: the
+;helpers then answer lead-in, as an animation without SLATE tags does, so no
+;`!= "LDI"` check anywhere takes its branch on nothing.
 String Function LabelOf(sslBaseAnimation anim, int stage, int pos, int kind) Global
 	string[] noTags
-	return ClassifyOne(AnimTags(anim), noTags, stage, pos, kind, true)
+	string label = ClassifyOne(AnimTags(anim), noTags, stage, pos, kind, true)
+	if label == "" && kind < 5
+		return "LDI"
+	endif
+	return label
 EndFunction
 
 ;One kind for every position of actorlist. None for an empty list, as before.
@@ -124,7 +133,23 @@ String[] Function LabelsOf(sslBaseAnimation anim, int stage, actor[] actorlist, 
 		n = actorlist.length
 	endif
 	string[] noTags
-	return ClassifyStage(AnimTags(anim), noTags, stage, n, kind, true)
+	string[] labels = ClassifyStage(AnimTags(anim), noTags, stage, n, kind, true)
+	if !labels && n > 0
+		return PapyrusUtil.StringArray(n, "LDI")
+	endif
+	return labels
+EndFunction
+
+;One position's five labels, [0] stimulation [1] penis action [2] oral
+;[3] penetration [4] ending, from one tag read: what the per-actor effects ask
+;for on every update. Always 5 entries.
+String[] Function GetPositionLabels(sslBaseAnimation anim, int stage, int pos) Global
+	string[] noTags
+	string[] labels = ClassifyPosition(AnimTags(anim), noTags, stage, pos, true)
+	if !labels || labels.length != 5
+		return PapyrusUtil.StringArray(5, "LDI")
+	endif
+	return labels
 EndFunction
 
 ;GetLabel (above, uncalled) still asks HasTag one code at a time

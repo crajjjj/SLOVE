@@ -17,6 +17,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_set>
@@ -809,6 +810,37 @@ namespace
 		detector.Reset();
 		Check(detector.Step(9.0f, 2.0, turn).beat == Beat::None, "after a reset the first sample primes again");
 		Check(detector.Step(7.9f, 2.1, turn).beat == Beat::None, "and a primed peak has no stroke behind it");
+
+		// the watch: which depth it reads, and how often it may beat
+		const std::optional<float> absent;
+		ThrustWatch deepest{ turn };
+		deepest.Feed(absent, 2.0f, 0.0);
+		deepest.Feed(absent, 8.0f, 0.3);
+		Check(deepest.Feed(absent, 6.5f, 0.5).beat == Beat::Impact, "a giver PPA never lists reads the receiver's deepest");
+
+		ThrustWatch own{ turn };
+		own.Feed(absent, 2.0f, 0.0);
+		own.Feed(absent, 8.0f, 0.3);
+		// PPA lists the giver from here on, at a depth far from the deepest's: the
+		// switch must not read as a stroke
+		Check(own.Feed(5.0f, 8.0f, 0.4).beat == Beat::None, "latching onto the giver's own depth is no beat");
+		own.Feed(7.0f, 8.0f, 0.6);
+		// a frame without the giver: another partner's 1.0 must not count as a pull-out
+		Check(own.Feed(absent, 1.0f, 0.7).beat == Beat::None, "a frame without the giver is held, not read as the deepest");
+		Check(std::abs(own.LastDepth() - 7.0f) < 1e-4f, "a held frame leaves the last depth as it was");
+		Check(own.Feed(5.9f, 9.0f, 0.8).beat == Beat::Impact, "the giver's own turn is the impact");
+
+		ThrustWatch gap{ turn };
+		gap.Feed(absent, 2.0f, 0.0);
+		gap.Feed(absent, 8.0f, 0.3);
+		Check(gap.Feed(absent, 6.9f, 0.35).beat == Beat::Impact, "the first beat goes out");
+		gap.Feed(absent, 3.0f, 0.38);
+		Check(gap.Feed(absent, 4.5f, 0.40).beat == Beat::None, "a beat within the minimum gap is dropped");
+		gap.Feed(absent, 9.0f, 0.6);
+		Check(gap.Feed(absent, 7.5f, 0.7).beat == Beat::Impact, "the next beat past the gap goes out");
+
+		own.Reset();
+		Check(own.Feed(absent, 4.0f, 1.0).beat == Beat::None, "after the receiver ends the watch starts over");
 	}
 }
 

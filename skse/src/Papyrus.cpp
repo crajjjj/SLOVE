@@ -128,6 +128,20 @@ namespace Papyrus
 			return out;
 		}
 
+		// The five label kinds of one position, [0] stimulation .. [4] ending:
+		// what the per-actor effects ask for on every update, from one tag read.
+		std::vector<RE::BSFixedString> ClassifyPosition(RE::StaticFunctionTag*,
+			std::vector<RE::BSFixedString> a_tags, std::vector<RE::BSFixedString> a_moreTags,
+			std::int32_t a_stage, std::int32_t a_position, bool a_aslFallback)
+		{
+			const auto set = ToSet(a_tags, a_moreTags);
+			std::vector<RE::BSFixedString> out;
+			for (int kind = 0; kind <= static_cast<int>(Core::Labels::Kind::Ending); ++kind) {
+				out.emplace_back(Core::Labels::Label(set, static_cast<Core::Labels::Kind>(kind), a_stage, a_position, a_aslFallback).c_str());
+			}
+			return out;
+		}
+
 		RE::BSFixedString ClassifyOne(RE::StaticFunctionTag*,
 			std::vector<RE::BSFixedString> a_tags, std::vector<RE::BSFixedString> a_moreTags,
 			std::int32_t a_stage, std::int32_t a_position, std::int32_t a_kind, bool a_aslFallback)
@@ -157,6 +171,7 @@ namespace Papyrus
 
 		a_vm->RegisterFunction("ClassifyStage"sv, kTagsScript, ClassifyStage, true);
 		a_vm->RegisterFunction("ClassifyOne"sv, kTagsScript, ClassifyOne, true);
+		a_vm->RegisterFunction("ClassifyPosition"sv, kTagsScript, ClassifyPosition, true);
 
 		logger::info("Papyrus natives registered ({}, {})", kPPAScript, kTagsScript);
 		return true;

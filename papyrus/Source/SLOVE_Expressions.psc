@@ -2125,26 +2125,13 @@ Function ComputeOwnThreadLabels(actor char)
 	string sceneid = CurrentThread.GetActiveScene()
 	int stagenum = GetLegacyStageNum(sceneid, CurrentThread.GetActiveStage())
 	actor[] al = CurrentThread.GetPositions()
-	string[] stim = SLOVE_Hentairim_Tags.GetStimulationlabelarr(sceneid, stagenum, al)
-	string[] pa = SLOVE_Hentairim_Tags.GetPenisActionLabelarr(sceneid, stagenum, al)
-	string[] orl = SLOVE_Hentairim_Tags.GetOralLabelarr(sceneid, stagenum, al)
-	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(sceneid, stagenum, al)
-	string[] endlbl = SLOVE_Hentairim_Tags.GetEndingLabelarr(sceneid, stagenum, al)
-	if idx < stim.length
-		Stimulationlabel = stim[idx]
-	endif
-	if idx < pa.length
-		PenisActionLabel = pa[idx]
-	endif
-	if idx < orl.length
-		OralLabel = orl[idx]
-	endif
-	if idx < pen.length
-		PenetrationLabel = pen[idx]
-	endif
-	if idx < endlbl.length
-		EndingLabel = endlbl[idx]
-	endif
+	;one tag read and one classify for this position's five labels (since 0.7.10)
+	string[] lbl = SLOVE_Hentairim_Tags.GetPositionLabels(sceneid, stagenum, idx)
+	Stimulationlabel = lbl[0]
+	PenisActionLabel = lbl[1]
+	OralLabel = lbl[2]
+	PenetrationLabel = lbl[3]
+	EndingLabel = lbl[4]
 EndFunction
 ;-----------------------BASE HENTAIRIM Update Functions END-----------------------------
 

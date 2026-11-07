@@ -327,6 +327,7 @@ Function Maintenance()
 	audioUtilTagAPI = 0
 	;the label engine and the PPA readings are SLOVE.dll natives: without the DLL
 	;nothing below works, so say so first (and at the first scene, in the console)
+	NativesConsoleWarned = false ;a saved variable: re-armed per session, unlike the Mfg Fix one
 	if !SLOVE_Utils.HasNatives()
 		SLOVE_Utils.WritetoErrorlogs("Director", "SLOVE.dll is not loaded: no scene labels, no PPA readings. Reinstall SLO VE (the DLL is in its Core files) and check SLOVE.log and skse64.log in the SKSE logs folder")
 	endif
@@ -451,7 +452,7 @@ Event DirectorOnSLSAhegaoStateChange(string eventName, string argString, float a
 EndEvent
 
 bool MfgFixConsoleWarned = false ;one console notice per session (log warns every load)
-bool NativesConsoleWarned = false ;the same for a missing SLOVE.dll
+bool NativesConsoleWarned = false ;the same for a missing SLOVE.dll, re-armed in Maintenance
 bool AudioTomlConsoleWarned = false ;one console notice per session: the AudioUtil.toml in effect is not SLO VE's
 
 ;Mfg Fix NG functional probe: write a phoneme through the exact API every SLO VE

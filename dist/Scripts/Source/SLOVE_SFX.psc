@@ -699,11 +699,11 @@ Function PlayThrustBeat(Actor akOn, int aiType, float afTimeToThrust, bool abImp
 	endif
 EndFunction
 
-;The watch's beats (SLOVE_PPA.WatchThrusts), sender = the giver. Every SFX effect
-;hears every actor's beats, so the first line filters. The full beat lands when the
-;thrust turns at its deepest, and on a non-intense stage a slush when it turns back
-;in: the two events SLO VE read off the velocity sign up to 0.6.25 ("reversal from
-;inside" / "from outside").
+;The watch's beats (SLOVE_PPA.WatchThrusts). Their event names carry this actor's
+;FormID, so only this effect receives them; the sender check is a second guard. The
+;full beat lands when the thrust turns at its deepest, and on a non-intense stage a
+;slush when it turns back in: the two events SLO VE read off the velocity sign up
+;to 0.6.25 ("reversal from inside" / "from outside").
 Event SFXOnPPAImpact(string eventName, string strArg, float numArg, Form sender)
 	if sender as Actor != actorref || PPAThrustReceiver == none
 		return
@@ -804,16 +804,20 @@ Bool Function RunPPAThrustSFX()
 		PPAThrustType = 2
 	endif
 	updateRate = velocitypoll
-	;here and not only at effect start: an effect from a save made mid-scene before
-	;0.7.10 never registered for them. Registering again is harmless
-	RegisterForModEvent("SLOVE_PPAImpact", "SFXOnPPAImpact")
-	RegisterForModEvent("SLOVE_PPAReentry", "SFXOnPPAReentry")
+	;named after this actor, as the DLL names the events. Here and not only at
+	;effect start: an effect from a save made mid-scene before 0.7.10 never
+	;registered for them. Registering again is harmless
+	RegisterForModEvent("SLOVE_PPAImpact_" + actorref.GetFormID(), "SFXOnPPAImpact")
+	RegisterForModEvent("SLOVE_PPAReentry_" + actorref.GetFormID(), "SFXOnPPAReentry")
 	;set before the external call: a beat may arrive as soon as the watch runs
 	PPAThrustReceiver = receiver
-	SLOVE_PPA.WatchThrusts(actorref, receiver, ppathrustturn)
 	float now = Utility.GetCurrentRealTime()
 	float seenAt = now ;when PPA last measured a depth above zero - the grace starts here
 	while !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && DirectorLastPhysicsLabelTime == MasterScript.GetDirectorLastPhysicsLabelTime() && !UpdateNow
+		;asked every tick, not once: a game load drops every watch (this loop can
+		;resume from a save) and a dispelled effect's unwatch can drop this one; the
+		;same pair asked again keeps a running watch, so this is what brings it back
+		SLOVE_PPA.WatchThrusts(actorref, receiver, ppathrustturn)
 		depth = SLOVE_PPA.GetPairDepth(actorref, receiver)
 		now = Utility.GetCurrentRealTime()
 		if depth > 0.0
@@ -1628,26 +1632,13 @@ Function ComputeOwnThreadLabels(actor char)
 	string sceneid = CurrentThread.GetActiveScene()
 	int stagenum = GetLegacyStageNum(sceneid, CurrentThread.GetActiveStage())
 	actor[] al = CurrentThread.GetPositions()
-	string[] stim = SLOVE_Hentairim_Tags.GetStimulationlabelarr(sceneid, stagenum, al)
-	string[] pa = SLOVE_Hentairim_Tags.GetPenisActionLabelarr(sceneid, stagenum, al)
-	string[] orl = SLOVE_Hentairim_Tags.GetOralLabelarr(sceneid, stagenum, al)
-	string[] pen = SLOVE_Hentairim_Tags.GetPenetrationLabelarr(sceneid, stagenum, al)
-	string[] endlbl = SLOVE_Hentairim_Tags.GetEndingLabelarr(sceneid, stagenum, al)
-	if idx < stim.length
-		Stimulationlabel = stim[idx]
-	endif
-	if idx < pa.length
-		PenisActionLabel = pa[idx]
-	endif
-	if idx < orl.length
-		OralLabel = orl[idx]
-	endif
-	if idx < pen.length
-		PenetrationLabel = pen[idx]
-	endif
-	if idx < endlbl.length
-		EndingLabel = endlbl[idx]
-	endif
+	;one tag read and one classify for this position's five labels (since 0.7.10)
+	string[] lbl = SLOVE_Hentairim_Tags.GetPositionLabels(sceneid, stagenum, idx)
+	Stimulationlabel = lbl[0]
+	PenisActionLabel = lbl[1]
+	OralLabel = lbl[2]
+	PenetrationLabel = lbl[3]
+	EndingLabel = lbl[4]
 endfunction
 ;-----------------------BASE HENTAIRIM Update Functions END-----------------------------
 
