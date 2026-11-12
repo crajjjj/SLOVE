@@ -219,6 +219,15 @@ The 69 B folder names below are the exact on-disk folder names (the authoritativ
 | Scene endings | `Ending Broken`, `Ending Orgasmed Inside Ass`, `Ending Orgasmed Inside Mouth`, `Ending Orgasmed Inside Pussy`, `Ending Victim Comments` |
 | After orgasm | `After Orgasm Comments`, `After Orgasm Comments Intense` |
 
+When some of these are asked for (0.7.11):
+
+- **`KneeJerk` / `KneeJerk Intense`** also voice the moment penetration starts on a new stage (`Intense` with a huge partner or a double penetration), not only the reaction to his climax.
+- **`Breathing`, `Panting`, `Penetrated Grunt`** are also her moan behind the partner's dirty talk. With her mouth on him it is `Blowjob Action`.
+- **`Orgasm Soon Comments`** plays once per climax, and never while she sucks him.
+- **`Male Orgasmed Inside ...`** and the **`Male Orgasm Soon ...`** folders play only for a partner with a penis (a male, a male creature, a schlonged futa), and the first group only when it landed in her.
+- **`Insertion Anal Comments`** follows the measured hole when Accurate Penetration reports one, like the `place` fact on the same line.
+- **`Penetrated Comments Victim`** and **`Penetrated Comments Victim Intense`** are also her remark as a victim when penetration starts or turns intense.
+
 The `_TEMPLATE Voicepack` (Variation-B by default) in the *SLOVE Packs* set ships this full folder tree empty, ready to fill.
 
 ## Auditing a pack

@@ -113,7 +113,7 @@ The voice dispatcher. All `chance*` keys are **percent rolls (0–100)** evaluat
 | `chancetocommentonintensestage` | `25` | …during an intense stage. |
 | `chancetocommentononattackingstage` | `22` | …during an "on the attack" stage. |
 | `chancetocommentonblowjobstage` | `15` | …during oral. |
-| `chancetocommentwhenclosetoorgasm` | `45` | …when she is close to orgasm. |
+| `chancetocommentwhenclosetoorgasm` | `45` | …when she is close to orgasm. On a Variation B or D pack the line itself is said once per climax; later rolls play a moan. |
 | `chancetocommentwhenmaleclosetoorgasm` | `40` | …when he is close to orgasm. |
 | `chancetocommentunamused` | `15` | Chance of an unamused/bored line where one applies. |
 
@@ -123,7 +123,7 @@ Raise these for a chattier scene, lower them for mostly-moaning. `moanonly = 1` 
 
 | Key | Default | Meaning |
 |---|---|---|
-| `moanonly` | `0` | `1` = moans only, no spoken lines. Males then moan via `malemoaning` (SexLab stock male moans through the `M0`–`M0D` fallback) instead of dirty-talk. |
+| `moanonly` | `0` | `1` = moans only, no spoken lines. Males then moan via `malemoaning` (SexLab stock male moans through the `M0` to `M0D` fallback) instead of dirty-talk. On a Variation B or D pack her climax plays the pack's `Orgasm`, and the reactions to his climax stay wordless (a yelp or the blowjob folder). |
 | `enablehugeppscenario` | `1` | Special line set when the partner is huge (needs SOS/TNG, threshold `director.soshugeppsize`). |
 | `enablevictimscenario` | `1` | Special line set when she is the submissive/victim of the scene. |
 | `femaleorgasmhypeenjoyment` | `75` | Enjoyment threshold above which orgasm-hype / near-orgasm lines (`NearOrgasm*`, B `Orgasm Soon Comments`) start. As a fallback for setups where SLSO never feeds the enjoyment meter (it reads `0`), these lines **also** start from an authored HentaiRim intense tag on the climax (final) stage — so the near-orgasm pool is reachable even at enjoyment `0`. Run `slovetest anim` mid-scene to see the live `enjoy=` value per actor. |

@@ -1473,7 +1473,8 @@ String Function PPAPlace(String labelPlace, String dir, Bool a_peek = false)
 	;before it wins - the same two-sample rule the Director's physics overlay applies.
 	;The site is per-frame data that can flicker between the anus and the vagina, and
 	;one flicker used to flip a line's place fact on an anal-tagged stage. The redirect
-	;menu this override exists for is a lasting change, so it lands on the next read.
+	;menu this override exists for is a lasting change, so it lands on the next line
+	;(a "read" here is a line's fact read - see a_peek above).
 	;A site that agrees with the label, or a label with no hole, wins at once.
 	bool contradicts = (labelPlace == "anal" || labelPlace == "vaginal") && (ppaPlace == "anal" || ppaPlace == "vaginal") && ppaPlace != labelPlace
 	if dir == "giv"
@@ -3244,9 +3245,10 @@ Function ASLPlayFemaleOrgasmHypeVarB()
 	endif
 	;said once per climax (the latch clears when she comes), and not within 8 s of
 	;the last one. This runs on 45% of her sounds for as long as she stays close,
-	;and without the latch the line replayed every time.
+	;and without the latch the line replayed every time. The 8 s window only
+	;waits: setting the latch there (the A twin does) would spend the line unsaid,
+	;for good on a final stage, where she counts as close right after a climax.
 	if CommentedClosetoOrgasm || MasterScript.GetTimeTotal() - timeOfLastRecordedFemaleOrgasm <= 8
-		CommentedClosetoOrgasm = true
 		PlayMoanonlyVarB()
 		return
 	endif
@@ -3544,7 +3546,12 @@ Function ASLPlayStageTransition()
 				PlaySound("Amused", mainFemaleActor, soundPriority = 1 , debugtext="Amused")
 			elseif ASLCurrentlyintense || ishugePP
 
-				PlaySound("TeaseAggressivePartner", mainFemaleActor, debugtext="Penetrated Comments Intense")
+				if VoiceVariation == "B" && femaleisvictim()
+					;a victim reaches this arm too (her own test is the next elseif)
+					PlaySound("TeaseAggressivePartner", mainFemaleActor, debugtext="Penetrated Comments Victim Intense")
+				else
+					PlaySound("TeaseAggressivePartner", mainFemaleActor, debugtext="Penetrated Comments Intense")
+				endif
 
 			elseif femaleisvictim() && Utility.RandomFloat(0.0, 1.0) < 0.5
 
