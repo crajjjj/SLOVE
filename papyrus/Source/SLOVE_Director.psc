@@ -567,10 +567,13 @@ Function InitializeDirectorConfigs()
 	endif
 	;the UBE option's leak shader (MilkLeakForUBE). Looked up on every refresh: the
 	;option can come or go between loads.
-	UbeMilkLeak = none
+	;Through a local: a squirt can run while this refresh does, and must not find
+	;the field cleared halfway.
+	EffectShader ubeleak = none
 	if milkenable == 1 && SLOVE_Utils.isDependencyReady("SLOVE_UBE_Support.esp")
-		UbeMilkLeak = Game.GetFormFromFile(0x80A, "SLOVE_UBE_Support.esp") as EffectShader
+		ubeleak = Game.GetFormFromFile(0x80A, "SLOVE_UBE_Support.esp") as EffectShader
 	endif
+	UbeMilkLeak = ubeleak
 	if milkenable == 1
 		milkchanceonorgasm = SLOVE_Config.GetInt("milk.chanceonorgasm", 50)
 		milkchanceintense = SLOVE_Config.GetInt("milk.chanceintense", 20)
@@ -1125,9 +1128,14 @@ Function MilkLeakForUBE(OninusLactis squirtScript, int lactatetime)
 	if StringUtil.Find(MiscUtil.GetActorRaceEditorID(playerref), "UBE_") < 0
 		return
 	endif
+	;Lactis caps a squirt at 18 s, and so does its own leak
+	float leaktime = lactatetime as float
+	if leaktime > 18.0
+		leaktime = 18.0
+	endif
 	squirtScript.StopNippleLeak(playerref)
-	UbeMilkLeak.Play(playerref, lactatetime)
-	printdebug("Milk: UBE leak texture for " + lactatetime + "s")
+	UbeMilkLeak.Play(playerref, leaktime)
+	printdebug("Milk: UBE leak texture for " + leaktime + "s")
 EndFunction
 
 ;Drain the MME reserve proportionally to the squirt: a random 20-50% of current

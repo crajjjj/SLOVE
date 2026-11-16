@@ -44,6 +44,14 @@ squirt SLO VE starts: when the player's race is a UBE one and the leak is on in
 the Lactis MCM, it stops the stock shader and plays this one for the squirt's
 length. The script finds the shader by FormID `0x80A`: do not renumber it.
 
+An effect shader draws its texture through the UVs of every mesh the actor
+wears, the head included, so a texture has to be checked beyond the body.
+`tools/ubemilk/where_it_lands.py` (nifs) and `where_on_head.py` (a FaceGen
+tri) list where the painted texels fall. The UBE texture covers the same box
+of the UBE body as the stock one does on 3BA, and nothing on hands or feet.
+On the head the stock texture's texels fall under the lower lip and the UBE
+texture's on the left jaw; rerun both after regenerating the texture.
+
 ## Rules that keep it working
 
 - **The armor overrides must repeat every addon `SLOVE.esp` lists.** An override
