@@ -139,6 +139,12 @@ This option gives UBE actors their own tongues. It installs:
 The game picks the addon by the wearer's race: a UBE actor wears the
 UBE-fitted tongue, everyone else keeps the standard one. No setting to flip.
 
+It also fixes the milk leak on a UBE player (Oninus Lactis NG, the [milk]
+system): the drips on the skin are painted for the CBBE texture layout and
+land under the breasts on a UBE body. The option carries the same drips
+repainted for the UBE layout, and SLO VE uses them when the player is a UBE
+race.
+
 REQUIRES UBE_AllRace.esp (from UBE 2.0). Load SLOVE_UBE_Support.esp AFTER
 both SLOVE.esp and UBE_AllRace.esp. Leave unchecked if you do not run UBE -
 it does nothing without the UBE race plugin and its master will be missing.

@@ -89,6 +89,7 @@ int milklevelnonintense
 int milkrequirebarechest
 int milkmmeminfullness
 Quest LactisQuest ;OninusLactis.esp 0xD61; cast to OninusLactis at call time
+EffectShader UbeMilkLeak ;SLOVE_UBE_Support.esp 0x80A: the Lactis leak with a UBE-layout texture; none without the UBE option
 bool HasInteractions ;SexLab P+ 2.19+ interaction API is there (SLOVE_Utils.HasInteractionAPI); probed again every scene and every game load
 float NextMilkRollTime ;scene time of the next periodic penetration roll
 
@@ -563,6 +564,12 @@ Function InitializeDirectorConfigs()
 		endif
 	else
 		milkenable = 0
+	endif
+	;the UBE option's leak shader (MilkLeakForUBE). Looked up on every refresh: the
+	;option can come or go between loads.
+	UbeMilkLeak = none
+	if milkenable == 1 && SLOVE_Utils.isDependencyReady("SLOVE_UBE_Support.esp")
+		UbeMilkLeak = Game.GetFormFromFile(0x80A, "SLOVE_UBE_Support.esp") as EffectShader
 	endif
 	if milkenable == 1
 		milkchanceonorgasm = SLOVE_Config.GetInt("milk.chanceonorgasm", 50)
@@ -1098,10 +1105,29 @@ Function Lactate(Bool IsIntense)
 	endif
 	printdebug("Milk: nipple squirt time=" + lactatetime + "s level=" + lactatelevel + " intense=" + IsIntense)
 	squirtScript.PlayNippleSquirt(playerref, lactatetime, lactatelevel)
+	MilkLeakForUBE(squirtScript, lactatetime)
 
 	if isMME
 		DrainMMEMilkForSquirt(lactatetime, lactatelevel)
 	endif
+EndFunction
+
+;Oninus Lactis draws its nipple leak (the drips on the skin, a switch in its MCM)
+;with one texture painted for the CBBE UV layout. The UBE body has another layout,
+;so on a UBE actor that paint lands under the breasts. With SLO VE's UBE option
+;installed, a UBE player gets the same shader with a texture in the UBE layout.
+;Called right after PlayNippleSquirt, which has just started the stock leak.
+Function MilkLeakForUBE(OninusLactis squirtScript, int lactatetime)
+	if UbeMilkLeak == none || !squirtScript.NippleLeakEnabled || !playerref.Is3DLoaded()
+		return
+	endif
+	;every UBE race is named 00UBE_<race> (UBE_AllRace.esp)
+	if StringUtil.Find(MiscUtil.GetActorRaceEditorID(playerref), "UBE_") < 0
+		return
+	endif
+	squirtScript.StopNippleLeak(playerref)
+	UbeMilkLeak.Play(playerref, lactatetime)
+	printdebug("Milk: UBE leak texture for " + lactatetime + "s")
 EndFunction
 
 ;Drain the MME reserve proportionally to the squirt: a random 20-50% of current
