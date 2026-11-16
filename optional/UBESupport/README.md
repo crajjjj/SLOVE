@@ -28,6 +28,22 @@ and `SLOVE_Expressions` equips the same ten armors as before.
 
 Masters: `Skyrim.esm`, `UBE_AllRace.esp`, `SLOVE.esp`.
 
+## Milk leak texture (since 0.7.12)
+
+Oninus Lactis NG draws its nipple leak with an effect shader whose texture
+(`textures/lactis/Milk_Leaking_CBBE.dds`) is painted for the CBBE UV layout. On
+the UBE body, which has its own layout, that paint lands under the breasts.
+
+| Piece | Content |
+|---|---|
+| `textures/SLOVE/milk_leaking_ube.dds` | The same drips repainted for the UBE layout by `tools/ubemilk/make_leak_texture.py` (UBE texel -> point on the UBE body -> closest point on the CBBE 3BA body -> CBBE texel, nipple aligned on nipple). |
+| `SLOVE_MilkLeakUBE` (EFSH `00080A`) | A copy of Lactis's `LactisNippleLeakCBBE` settings with that texture, added by `tools/ubemilk/add_leak_shader.py`. It holds no form reference, so the esp has no Lactis master. |
+
+`SLOVE_Director.MilkLeakForUBE` (both script variants) does the swap after each
+squirt SLO VE starts: when the player's race is a UBE one and the leak is on in
+the Lactis MCM, it stops the stock shader and plays this one for the squirt's
+length. The script finds the shader by FormID `0x80A`: do not renumber it.
+
 ## Rules that keep it working
 
 - **The armor overrides must repeat every addon `SLOVE.esp` lists.** An override
@@ -74,6 +90,8 @@ The shipped file was written with houseCARL (Mutagen); xEdit works as well:
 4. Save it here as `SLOVE_UBE_Support.esp` and run `scripts\build.ps1`, which
    fails if the esp names a mesh that is not under `meshes\`.
 
-Sanity check without the game: the file holds 20 records (10 `ARMO` overrides,
-10 new `ARMA`), no override of `SLOVE_TongueAA*`, and each `ARMO` override lists
+Then run `tools/ubemilk/add_leak_shader.py`, which adds the leak shader as `00080A`.
+
+Sanity check without the game: the file holds 21 records (10 `ARMO` overrides,
+10 new `ARMA`, 1 `EFSH`), no override of `SLOVE_TongueAA*`, and each `ARMO` override lists
 the same addons as its record in `SLOVE.esp` plus one `_UBE` addon.
