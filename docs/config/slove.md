@@ -304,7 +304,7 @@ Optional nipple squirts during scenes via **Oninus Lactis NG** (player only, dri
 | `mmeminfullness` | `20` | **Milk Mod Economy only:** skip at or below this % fullness. With MME installed, squirts require milk in the reserve and drain it (20–50 % of current, scaled by level and duration). |
 
 !!! note "UBE bodies"
-    Oninus Lactis draws its *nipple leak* (the drips on the skin, a switch in its MCM) with one texture painted for the CBBE texture layout. The UBE body has its own layout, so on a UBE character the drips land under the breasts. Since 0.7.12 the FOMOD's *UBE Body* option carries the same drips repainted for the UBE layout (`textures\SLOVE\milk_leaking_ube.dds`, a shader in `SLOVE_UBE_Support.esp`), and SLO VE swaps them in when the player is a UBE race. It covers the squirts SLO VE starts; a squirt started from the Oninus Lactis hotkey still uses the stock texture.
+    Oninus Lactis's *nipple leak* (the drips on the skin, a switch in its MCM) is a texture painted for one body's texture layout. Oninus Lactis NG 2.2.1 and newer carry one for UBE as well and pick it by race, for every squirt, so a UBE character needs nothing from SLO VE. With an older Oninus Lactis the drips land under the breasts on a UBE body; its fluid milk leak (2.2 and newer) works on any body. SLO VE 0.7.12 shipped its own UBE copy of the texture; 0.7.13 dropped it.
 
 !!! tip "Test squirts without waiting for a scene"
     `slovetest milk` (or `SLOVE_Test Milk`) forces one squirt on the player so you can

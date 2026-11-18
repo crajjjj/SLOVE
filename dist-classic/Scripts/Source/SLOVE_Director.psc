@@ -92,7 +92,7 @@ int milklevelnonintense
 int milkrequirebarechest
 int milkmmeminfullness
 Quest LactisQuest ;OninusLactis.esp 0xD61; cast to OninusLactis at call time
-EffectShader UbeMilkLeak ;SLOVE_UBE_Support.esp 0x80A: the Lactis leak with a UBE-layout texture; none without the UBE option
+EffectShader UbeMilkLeak ;retired in 0.7.13 (see MilkLeakForUBE): always none, kept for save compatibility
 float NextMilkRollTime ;scene time of the next periodic penetration roll
 
 ;Called first time ever the mod is loaded
@@ -552,15 +552,7 @@ Function InitializeDirectorConfigs()
 	else
 		milkenable = 0
 	endif
-	;the UBE option's leak shader (MilkLeakForUBE). Looked up on every refresh: the
-	;option can come or go between loads.
-	;Through a local: a squirt can run while this refresh does, and must not find
-	;the field cleared halfway.
-	EffectShader ubeleak = none
-	if milkenable == 1 && SLOVE_Utils.isDependencyReady("SLOVE_UBE_Support.esp")
-		ubeleak = Game.GetFormFromFile(0x80A, "SLOVE_UBE_Support.esp") as EffectShader
-	endif
-	UbeMilkLeak = ubeleak
+	UbeMilkLeak = none ;retired (MilkLeakForUBE); a 0.7.12 save still holds the shader
 	if milkenable == 1
 		milkchanceonorgasm = SLOVE_Config.GetInt("milk.chanceonorgasm", 50)
 		milkchanceintense = SLOVE_Config.GetInt("milk.chanceintense", 20)
@@ -1101,34 +1093,17 @@ Function Lactate(Bool IsIntense)
 	endif
 	printdebug("Milk: nipple squirt time=" + lactatetime + "s level=" + lactatelevel + " intense=" + IsIntense)
 	squirtScript.PlayNippleSquirt(playerref, lactatetime, lactatelevel)
-	MilkLeakForUBE(squirtScript, lactatetime)
 
 	if isMME
 		DrainMMEMilkForSquirt(lactatetime, lactatelevel)
 	endif
 EndFunction
 
-;Oninus Lactis draws its nipple leak (the drips on the skin, a switch in its MCM)
-;with one texture painted for the CBBE UV layout. The UBE body has another layout,
-;so on a UBE actor that paint lands under the breasts. With SLO VE's UBE option
-;installed, a UBE player gets the same shader with a texture in the UBE layout.
-;Called right after PlayNippleSquirt, which has just started the stock leak.
+;Retired in 0.7.13, body-only, kept for save compatibility (a 0.7.12 save can hold a
+;stack in it). 0.7.12 swapped Oninus Lactis's CBBE-layout nipple leak for a UBE-layout
+;copy on a UBE player; Oninus Lactis NG 2.2.1 picks the UBE texture itself, for every
+;actor and every squirt, so SLO VE no longer touches the leak.
 Function MilkLeakForUBE(OninusLactis squirtScript, int lactatetime)
-	if UbeMilkLeak == none || !squirtScript.NippleLeakEnabled || !playerref.Is3DLoaded()
-		return
-	endif
-	;every UBE race is named 00UBE_<race> (UBE_AllRace.esp)
-	if StringUtil.Find(MiscUtil.GetActorRaceEditorID(playerref), "UBE_") < 0
-		return
-	endif
-	;Lactis caps a squirt at 18 s, and so does its own leak
-	float leaktime = lactatetime as float
-	if leaktime > 18.0
-		leaktime = 18.0
-	endif
-	squirtScript.StopNippleLeak(playerref)
-	UbeMilkLeak.Play(playerref, leaktime)
-	printdebug("Milk: UBE leak texture for " + leaktime + "s")
 EndFunction
 
 ;Drain the MME reserve proportionally to the squirt: a random 20-50% of current
