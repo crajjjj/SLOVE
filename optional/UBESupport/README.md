@@ -28,29 +28,17 @@ and `SLOVE_Expressions` equips the same ten armors as before.
 
 Masters: `Skyrim.esm`, `UBE_AllRace.esp`, `SLOVE.esp`.
 
-## Milk leak texture (since 0.7.12)
+## Milk leak (0.7.12 only, retired in 0.7.13)
 
-Oninus Lactis NG draws its nipple leak with an effect shader whose texture
-(`textures/lactis/Milk_Leaking_CBBE.dds`) is painted for the CBBE UV layout. On
-the UBE body, which has its own layout, that paint lands under the breasts.
+0.7.12 shipped a UBE-layout copy of Oninus Lactis NG's nipple leak texture and
+swapped it in after SLO VE's squirts on a UBE player. Oninus Lactis NG 2.2.1 does
+this itself, for every actor and every squirt, so 0.7.13 dropped the texture and
+the swap. What stays, for saves made with 0.7.12:
 
-| Piece | Content |
-|---|---|
-| `textures/SLOVE/milk_leaking_ube.dds` | The same drips repainted for the UBE layout by `tools/ubemilk/make_leak_texture.py` (UBE texel -> point on the UBE body -> closest point on the CBBE 3BA body -> CBBE texel, nipple aligned on nipple). |
-| `SLOVE_MilkLeakUBE` (EFSH `00080A`) | A copy of Lactis's `LactisNippleLeakCBBE` settings with that texture, added by `tools/ubemilk/add_leak_shader.py`. It holds no form reference, so the esp has no Lactis master. |
-
-`SLOVE_Director.MilkLeakForUBE` (both script variants) does the swap after each
-squirt SLO VE starts: when the player's race is a UBE one and the leak is on in
-the Lactis MCM, it stops the stock shader and plays this one for the squirt's
-length. The script finds the shader by FormID `0x80A`: do not renumber it.
-
-An effect shader draws its texture through the UVs of every mesh the actor
-wears, the head included, so a texture has to be checked beyond the body.
-`tools/ubemilk/where_it_lands.py` (nifs) and `where_on_head.py` (a FaceGen
-tri) list where the painted texels fall. The UBE texture covers the same box
-of the UBE body as the stock one does on 3BA, and nothing on hands or feet.
-On the head the stock texture's texels fall under the lower lip and the UBE
-texture's on the left jaw; rerun both after regenerating the texture.
+- `SLOVE_MilkLeakUBE` (EFSH `00080A`) in the esp. Nothing plays it any more; a
+  save taken during a 0.7.12 squirt can still hold it. Never reuse `00080A`.
+- `SLOVE_Director.MilkLeakForUBE` and the `UbeMilkLeak` variable, emptied, in both
+  script variants.
 
 ## Rules that keep it working
 
@@ -98,7 +86,9 @@ The shipped file was written with houseCARL (Mutagen); xEdit works as well:
 4. Save it here as `SLOVE_UBE_Support.esp` and run `scripts\build.ps1`, which
    fails if the esp names a mesh that is not under `meshes\`.
 
-Then run `tools/ubemilk/add_leak_shader.py`, which adds the leak shader as `00080A`.
+Keep the retired `EFSH` `00080A` when rebuilding (see the milk leak section). The
+tool that added it was `tools/ubemilk/add_leak_shader.py`, in git history before
+0.7.13.
 
 Sanity check without the game: the file holds 21 records (10 `ARMO` overrides,
 10 new `ARMA`, 1 `EFSH`), no override of `SLOVE_TongueAA*`, and each `ARMO` override lists

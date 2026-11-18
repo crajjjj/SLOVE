@@ -392,11 +392,6 @@ function Build-Fomod {
         # the BodySlide project for the UBE-fitted tongues (tools\tonguefit\make_bodyslide.py)
         $ubeBodySlide = Join-Path $ubeSrc 'CalienteTools'
         if (Test-Path $ubeBodySlide) { Copy-Item $ubeBodySlide $ubeStage -Recurse -Force }
-        # the milk leak texture in the UBE UV layout, named by the esp's SLOVE_MilkLeakUBE shader
-        # (tools\ubemilk); without the file the shader draws nothing
-        $ubeLeak = Join-Path $ubeSrc 'textures\SLOVE\milk_leaking_ube.dds'
-        if (-not (Test-Path $ubeLeak)) { throw 'UBESupport: optional\UBESupport\textures\SLOVE\milk_leaking_ube.dds is missing - run tools\ubemilk\make_leak_texture.py.' }
-        Copy-Item (Join-Path $ubeSrc 'textures') $ubeStage -Recurse -Force
         $espText = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes($ubeEsp))
         $named = @([regex]::Matches($espText, '!UBE\\[\x20-\x7e]+?\.nif') | ForEach-Object { $_.Value } | Sort-Object -Unique)
         $missing = @($named | Where-Object { -not (Test-Path -LiteralPath (Join-Path $ubeStage "meshes\$_")) })
