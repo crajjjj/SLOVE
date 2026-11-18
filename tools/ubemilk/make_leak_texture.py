@@ -33,23 +33,30 @@ import nifkit  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SRC = r"E:\nefaram\mods\[NoDelete][3020] Oninus Lactis NG\textures\lactis\Milk_Leaking_CBBE.dds"
 OUT = os.path.join(ROOT, r"optional\UBESupport\textures\SLOVE\milk_leaking_ube.dds")
-BONE = "L Breast03"
 
 
 def nipple_tip(rel, name):
-    """The left nipple tip: the vertex of the breast-tip bone that sits furthest out along Y."""
+    """The left nipple tip, by Oninus Lactis NG 2.2's rule (tools/nipple_check.py there): the
+    weight peak of the breast's tip bone, furthest out along its normal. Before 2026-11-18 this
+    took the Breast03 vertex furthest forward along Y, which lands about 2.7 units inside the
+    cleavage on a zero-slider body, and the texture sat about 0.6 units off."""
+    sys.path.insert(0, r"C:\Playground\Skyrim\mods\Oninus Lactis NG\tools")
+    import nipple_check as N  # noqa: E402
     n = nifkit.Nif(open(os.path.join(C.MODS, rel), "rb").read())
     for b in n.shapes():
         if n.shape(b)["name"] != name:
             continue
         s = nifkit.SkinnedShape(n, b)
-        bi = s.bone_names.index(BONE)
-        w = np.zeros(s.n)
-        for slot in range(4):
-            w += np.where(s.vbones[:, slot] == bi, s.v["weights"][:, slot], 0)
-        idx = np.nonzero(w > 0.3)[0]
-        tip = idx[np.argmax(s.v["pos"][idx, 1])]
-        return s.v["pos"][tip].astype(np.float64), s.v["uv"][tip].astype(np.float64)
+        pos = s.v["pos"].astype(np.float64)
+        nor = N.normals(pos, s.tris.astype(np.int64))
+        facing = np.linalg.norm(nor, axis=1) > 1e-6
+        if ((nor[facing] * (pos[facing] - pos.mean(0))).sum(1) > 0).sum() * 2 < facing.sum():
+            nor = -nor
+        tip = N.find_tip(s, pos, nor, "L")
+        if not tip:
+            raise SystemExit("no nipple found on %s" % rel)
+        near = np.argmin(np.linalg.norm(pos - tip["tip"], axis=1))
+        return tip["tip"], s.v["uv"][near].astype(np.float64)
     raise KeyError(name)
 
 
