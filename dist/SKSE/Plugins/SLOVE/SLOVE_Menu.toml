@@ -316,6 +316,13 @@ control = "flag"
 tip = "No spoken lines at all, only moans. Males then moan through the ambient male moaning below."
 
 [[setting]]
+key = "voice.mouthbusymoanonly"
+group = "Scenarios and content"
+label = "No talking with her mouth busy"
+control = "flag"
+tip = "The player says nothing while her mouth is on someone (blowjob, licking, rimjob): only the oral sounds play. Her partners keep talking."
+
+[[setting]]
 key = "voice.enablehugeppscenario"
 group = "Scenarios and content"
 label = "Huge-partner lines"
