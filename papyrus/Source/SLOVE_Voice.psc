@@ -135,6 +135,7 @@ String VoiceVariation            ;resolved per scene from the PC's voice slot (A
 Bool ShouldInitialize = false
 Faction SchlongFaction
 int MoanOnly
+int MouthBusyMoanOnly ;voice.mouthbusymoanonly: moan-only for the PC alone, and only while her mouth is on someone (QuietNow)
 
 Float nextUpdateInterval = 1.0
 
@@ -197,6 +198,7 @@ Function InitializeConfigValues()
 	pcmoanintensemaxinterval = SLOVE_Config.GetFloat("voice.pcmoanintensemaxinterval", 1.3)
 
 	MoanOnly  = SLOVE_Config.GetInt("voice.moanonly",0)
+	MouthBusyMoanOnly = SLOVE_Config.GetInt("voice.mouthbusymoanonly", 0)
 	hypebeforeorgasm = SLOVE_Config.GetInt("voice.hypebeforeorgasm",0)
 	useblowjobsoundforkissing = SLOVE_Config.GetInt("voice.useblowjobsoundforkissing",1)
 	pcvolume = SLOVE_Config.GetInt("voice.pcvolume",60) as float /100
@@ -714,7 +716,7 @@ Event OnActorOrgasm(Form actorRef, Int thread)
 			if CurrentPenetrationLvl() > 1
 				;HasCock: the size remark and the cum leak are about someone who spilled
 				if ishugepp && (actorHavingOrgasm == mainMaleActor || Sexlab.GetGender(actorHavingOrgasm) > 1) && HasCock(actorHavingOrgasm)
-					if voicevariation == "B" && moanonly == 1
+					if voicevariation == "B" && QuietNow()
 						;the B folder is a spoken line: moan-only gets the yelp instead
 						PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk Intense", extraFacts = "theirs")
 					elseif voicevariation == "B"
@@ -747,7 +749,7 @@ Event OnActorOrgasm(Form actorRef, Int thread)
 			ElseIf IsSuckingoffOther() && HasCock(actorHavingOrgasm) ;a bystander woman's climax fills no mouth
 				Utility.Wait(Utility.RandomFloat(0.5, 1.5))
 				printdebug("Playing MaleOrgasmOral sound.")
-				if voicevariation == "B" && moanonly == 1
+				if voicevariation == "B" && QuietNow()
 					;the B folder is a spoken line: moan-only keeps her mouth on him
 					PlayMoanonlyVarB()
 				elseif voicevariation == "B"
@@ -758,7 +760,7 @@ Event OnActorOrgasm(Form actorRef, Int thread)
 				endif
 			elseif ishugepp && HasCock(actorHavingOrgasm)
 				printdebug("Playing SurprisedByMaleOrgasm sound.")
-				if voicevariation == "B" && moanonly == 1
+				if voicevariation == "B" && QuietNow()
 					;spoken B folder: moan-only gets the yelp instead
 					PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk Intense", extraFacts = "theirs")
 				elseif voicevariation == "B"
@@ -792,9 +794,16 @@ Event OnActorOrgasm(Form actorRef, Int thread)
 		printdebug("Added orgasm squirt effect.")
 
 		if !IsUnconcious()
+			if MoanOnly != 1 && MouthBusyMoanOnly == 1 && MouthBusy()
+				;voice.mouthbusymoanonly: she comes with her mouth on someone. The Orgasm cry is
+				;wordless but open-mouthed, so her climax is the muffled oral pool instead
+				;(blowjob / licking / rimjob sounds). Played with its wait, so the Orgasming
+				;flag the climax face reads stays up for a moment as it does behind the cry
+				printdebug("Female orgasm with her mouth busy: oral pool, no cry")
+				PlayMoanonly()
 			;moan-only on a B pack skips this arm: its B folder is a spoken line, and
 			;the plain Orgasm cry below is the wordless one
-			if CurrentPenetrationLvl() == 1 && !(moanonly == 1 && VoiceVariation == "B")
+			elseif CurrentPenetrationLvl() == 1 && !(QuietNow() && VoiceVariation == "B")
 				printdebug("Playing MaleOrgasmOral sound")
 				;HER climax, voiced over an oral act - "mine". (The identical calls in the
 				;partner-orgasm branch above are his, and stay "theirs".) The direction is
@@ -932,7 +941,26 @@ Event OnUpdate()
 		elseif IsKissing() && !IsRimming() ;kissing (in a rim-tagged scene KIS is usually the
 			;converted DB's stand-in for the rim lick - fall through to the Rimjob branch below)
 			PlayKissing()
-		elseif MoanOnly == 1
+		elseif QuietNow()
+			;moan-only, or voice.mouthbusymoanonly with her mouth on someone. This one
+			;branch keeps every spoken beat below it away: the two orgasm-hype lines, the
+			;two orgasm reactions, the oral comment rolls and the penetration comments
+			if MoanOnly != 1
+				;mouth busy: a reaction queued for this beat is skipped for good. Said on a
+				;later stage it would be picked by THAT stage's act (a climax in her mouth
+				;answered with a came-inside line once she is penetrated)
+				;The once-per-scene guard is handed back with it, so a later climax with
+				;her mouth free can still draw its reaction - only where one was queued:
+				;a reaction already SAID keeps its guard
+				if ReacttoFemaleOrgasmNext
+					ReacttoFemaleOrgasmNext = false
+					ReactedtoFemaleOrgasmThisSession = false
+				endif
+				if ReacttoPartnerOrgasmNext
+					ReacttoPartnerOrgasmNext = false
+					ReactedtoPartnerOrgasmThisSession = false
+				endif
+			endif
 			PlayMoanonly()
 		elseif femaleCloseToOrgasm() && mainFemaleEnjoyment > mainMaleEnjoyment && Utility.RandomFloat(0.0, 1.0) < chancetocommentwhenclosetoorgasm && (!IsFemdom() || (teasedClosetoorgasm && IsFemdom()))
 			ASLPlayFemaleOrgasmHype()
@@ -2171,12 +2199,25 @@ endfunction
 
 ;Her wordless moan behind one of his lines. With her mouth on him and nothing
 ;inside her it is the blowjob pool: the penetration grunts are open-mouthed.
+;A licking or rimming mouth plays its own pool, and the grunts are kept for when
+;she is in fact penetrated.
 Function PlayMoanUnderHisLine(Bool a_intense)
 	if IsSuckingoffOther() && !IsgettingPenetrated()
 		if a_intense
 			PlaySound("BlowjobActionIntense", mainFemaleActor, soundPriority = 1 , debugtext = "Blowjob Action Intense")
 		else
 			PlaySound("BlowjobActionSoft", mainFemaleActor, soundPriority = 1 , debugtext = "Blowjob Action")
+		endif
+	elseif PlayLickingMoan()
+		;her mouth is licking or rimming: that pool has played (it keeps its own
+		;intense + penetrated fall-through to the grunts below)
+	elseif !IsgettingPenetrated()
+		;nothing is inside her (a handjob, foreplay, her penetrating him): she breathes.
+		;This used to be the penetration grunt for every act but a blowjob
+		if a_intense
+			PlaySound("BreathyIntense", mainFemaleActor, soundPriority = 1 , debugtext = "Breathing Intense")
+		else
+			PlaySound("BreathySoft", mainFemaleActor, soundPriority = 1 , debugtext = "Breathing")
 		endif
 	elseif a_intense
 		;debugtext carries the on-disk B-folder name so a Variation-B pack voices
@@ -2724,6 +2765,9 @@ Function PlayMoanonly()
 	endif
 	printdebug("Play Moan only")
 
+	if PlayLickingMoan()
+		return
+	endif
 
 	if ASLCurrentlyintense
 		if IsSuckingoffOther()
@@ -2752,6 +2796,10 @@ endfunction
 
 Function PlayMoanonlyVarB()
 	printdebug("Play Moan only")
+
+	if PlayLickingMoan()
+		return
+	endif
 
 	if ASLCurrentlyintense
 		if IsSuckingoffOther()
@@ -2826,6 +2874,36 @@ Function PlayMoanonlyVarB()
 
 	endif
 endfunction
+
+;The wordless beat for a mouth that is licking or rimming, for both moan-only
+;functions: without it they answered a licking mouth with open-mouthed breathing
+;(they knew the blowjob pools only). True when it played. Same act facts and the
+;same intense + penetrated fall-through as PlayCunnilingus / PlayRimjob in the
+;dispatch chain, so that stage keeps its penetration grunt - but only where she
+;may speak: under QuietNow() the licking pool wins over the penetration, as the
+;blowjob pool always has (an open-mouthed grunt from a mouth that is on someone).
+;Rim first, as in the chain.
+Bool Function PlayLickingMoan()
+	if ASLcurrentlyIntense && IsgettingPenetrated() && !QuietNow()
+		return false
+	endif
+	if IsRimming()
+		if ASLcurrentlyIntense
+			PlaySound("RimjobIntense", mainFemaleActor, debugtext = "Rimjob Intense", actDir = "giv", actPlace = "oral", actImp = "none")
+		else
+			PlaySound("Rimjob", mainFemaleActor, debugtext = "Rimjob", actDir = "giv", actPlace = "oral", actImp = "none")
+		endif
+		return true
+	elseif IsCunnilingus()
+		if ASLcurrentlyIntense
+			PlaySound("LickingIntense", mainFemaleActor, debugtext = "Licking Intense", actDir = "giv", actPlace = "oral", actImp = "none")
+		else
+			PlaySound("Licking", mainFemaleActor, debugtext = "Licking", actDir = "giv", actPlace = "oral", actImp = "none")
+		endif
+		return true
+	endif
+	return false
+EndFunction
 
 Function PlayGettingFucked()
 	if VoiceVariation == "B"
@@ -3494,7 +3572,7 @@ Function ASLPlayStageTransition()
 
 	Utility.Wait(Utility.RandomFloat(0.5, 1.0)) ; wait up to 1 second for transition to complete before playing voice
 
-	if moanonly == 1
+	if QuietNow()
 		if !PreviousStageHasPenetration() && IsgettingPenetrated()
 			PlaySound("PullOutGape", mainFemaleActor, soundPriority = 2, waitForCompletion = false , debugtext="PullOutGape")
 			if ishugepp
@@ -4004,6 +4082,25 @@ Bool Function IsRimming()
 	endif
 	return (OralLabel == "CUN" || OralLabel == "KIS") && IsRimSceneTagged()
 endfunction
+
+;True while the PC's own mouth is on someone: a blowjob, cunnilingus or rimjob. Her
+;labels answer first (free). They are refreshed on a stage change only, so contact
+;that starts mid-stage is asked of the Director, whose IsOralGiver reads the live
+;oral label and, on P+ 2.19+, the contact flags (both variants have it; classic's
+;is the label alone). Kissing is not in it, nor is her being licked or sucked.
+Bool Function MouthBusy()
+	if IsSuckingoffOther() || IsCunnilingus() || IsRimming()
+		return true
+	endif
+	return MasterScript.IsOralGiver(mainFemaleActor)
+EndFunction
+
+;Is the PC wordless right now? voice.moanonly, or voice.mouthbusymoanonly while her
+;mouth is busy. Her lines only: AllowMaleVoice still asks moanonly alone, so with
+;the mouth-busy option her partners go on talking.
+Bool Function QuietNow()
+	return MoanOnly == 1 || (MouthBusyMoanOnly == 1 && MouthBusy())
+EndFunction
 
 Bool Function IsRimSceneTagged()
 	return MasterScript.HasSceneTag("Rimjob") || MasterScript.HasSceneTag("Rimming") || MasterScript.HasSceneTag("Anilingus")

@@ -40,6 +40,12 @@ Labels: `GetStimulationlabel(a)`, `GetPenisActionLabel(a)`, `GetOralLabel(a)`,
 `GetEndingLabel(a)`, `GetPenetrationLabel(a)`; latches
 `GetDirectorLastLabelTime()`, `GetDirectorLastPhysicsLabelTime()`.
 
+Mouth: `IsOralGiver(a)` is true while the actor's own mouth performs oral (the
+`CUN` / `RIM` / `SBJ` / `FBJ` oral label; on P+ 2.19+ also the live contact flags).
+The director asks it per line for the lipsync block, and `SLOVE_Voice.MouthBusy`
+asks it for `voice.mouthbusymoanonly`, because the voice engine's own labels are
+refreshed on a stage change only.
+
 Lifecycle/services: `AnimationisEnding()`, `isUpdating()`, `SceneisIntense()`,
 `IsHugePP(a)`, `IsSmallPP(a)`, `PlaySound(category, actor, wait, group)`,
 `SaveSchlongAdjustment(pos, val)` (SFX adaptive-velocity SOSBend memory; the
