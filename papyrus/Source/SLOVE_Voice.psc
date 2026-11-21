@@ -2199,12 +2199,25 @@ endfunction
 
 ;Her wordless moan behind one of his lines. With her mouth on him and nothing
 ;inside her it is the blowjob pool: the penetration grunts are open-mouthed.
+;A licking or rimming mouth plays its own pool, and the grunts are kept for when
+;she is in fact penetrated.
 Function PlayMoanUnderHisLine(Bool a_intense)
 	if IsSuckingoffOther() && !IsgettingPenetrated()
 		if a_intense
 			PlaySound("BlowjobActionIntense", mainFemaleActor, soundPriority = 1 , debugtext = "Blowjob Action Intense")
 		else
 			PlaySound("BlowjobActionSoft", mainFemaleActor, soundPriority = 1 , debugtext = "Blowjob Action")
+		endif
+	elseif PlayLickingMoan()
+		;her mouth is licking or rimming: that pool has played (it keeps its own
+		;intense + penetrated fall-through to the grunts below)
+	elseif !IsgettingPenetrated()
+		;nothing is inside her (a handjob, foreplay, her penetrating him): she breathes.
+		;This used to be the penetration grunt for every act but a blowjob
+		if a_intense
+			PlaySound("BreathyIntense", mainFemaleActor, soundPriority = 1 , debugtext = "Breathing Intense")
+		else
+			PlaySound("BreathySoft", mainFemaleActor, soundPriority = 1 , debugtext = "Breathing")
 		endif
 	elseif a_intense
 		;debugtext carries the on-disk B-folder name so a Variation-B pack voices
