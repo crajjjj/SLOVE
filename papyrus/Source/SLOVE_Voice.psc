@@ -794,13 +794,12 @@ Event OnActorOrgasm(Form actorRef, Int thread)
 		printdebug("Added orgasm squirt effect.")
 
 		if !IsUnconcious()
-			if MoanOnly != 1 && MouthBusyMoanOnly == 1 && MouthBusy()
+			if MouthBusyMoanOnly == 1 && MouthBusy()
 				;voice.mouthbusymoanonly: she comes with her mouth on someone. The Orgasm cry is
 				;wordless but open-mouthed, so her climax is the muffled oral pool instead
-				;(blowjob / licking / rimjob sounds). Played with its wait, so the Orgasming
-				;flag the climax face reads stays up for a moment as it does behind the cry
+				;(blowjob / licking / rimjob sounds), played at the orgasm cry's own priority
 				printdebug("Female orgasm with her mouth busy: oral pool, no cry")
-				PlayMoanonly()
+				PlayMouthBusyClimax()
 			;moan-only on a B pack skips this arm: its B folder is a spoken line, and
 			;the plain Orgasm cry below is the wordless one
 			elseif CurrentPenetrationLvl() == 1 && !(QuietNow() && VoiceVariation == "B")
@@ -2208,12 +2207,11 @@ Function PlayMoanUnderHisLine(Bool a_intense)
 		else
 			PlaySound("BlowjobActionSoft", mainFemaleActor, soundPriority = 1 , debugtext = "Blowjob Action")
 		endif
-	elseif PlayLickingMoan()
+	elseif PlayLickingMoan(a_intense)
 		;her mouth is licking or rimming: that pool has played (it keeps its own
 		;intense + penetrated fall-through to the grunts below)
-	elseif !IsgettingPenetrated()
-		;nothing is inside her (a handjob, foreplay, her penetrating him): she breathes.
-		;This used to be the penetration grunt for every act but a blowjob
+	elseif !IsgettingPenetrated() && !IsGivingAnalPenetration() && !IsGivingVaginalPenetration()
+		;no penetration either way: just breathe...
 		if a_intense
 			PlaySound("BreathyIntense", mainFemaleActor, soundPriority = 1 , debugtext = "Breathing Intense")
 		else
@@ -2765,7 +2763,7 @@ Function PlayMoanonly()
 	endif
 	printdebug("Play Moan only")
 
-	if PlayLickingMoan()
+	if PlayLickingMoan(ASLcurrentlyIntense)
 		return
 	endif
 
@@ -2797,7 +2795,7 @@ endfunction
 Function PlayMoanonlyVarB()
 	printdebug("Play Moan only")
 
-	if PlayLickingMoan()
+	if PlayLickingMoan(ASLcurrentlyIntense)
 		return
 	endif
 
@@ -2883,19 +2881,32 @@ endfunction
 ;may speak: under QuietNow() the licking pool wins over the penetration, as the
 ;blowjob pool always has (an open-mouthed grunt from a mouth that is on someone).
 ;Rim first, as in the chain.
-Bool Function PlayLickingMoan()
-	if ASLcurrentlyIntense && IsgettingPenetrated() && !QuietNow()
+
+; Climax with her mouth busy: priority 3, so it isn't dropped behind her current line.
+; "mine" picks a pack's climax-only oral files when it has them.
+Function PlayMouthBusyClimax()
+	if IsRimming()
+		PlaySound("RimjobIntense", mainFemaleActor, soundPriority = 3, debugtext = "Rimjob Intense", extraFacts = "mine", actDir = "giv", actPlace = "oral", actImp = "none")
+	elseif IsCunnilingus()
+		PlaySound("LickingIntense", mainFemaleActor, soundPriority = 3, debugtext = "Licking Intense", extraFacts = "mine", actDir = "giv", actPlace = "oral", actImp = "none")
+	else
+		PlaySound("BlowjobActionIntense", mainFemaleActor, soundPriority = 3, debugtext = "Blowjob Action Intense", extraFacts = "mine", actDir = "giv", actPlace = "oral")
+	endif
+EndFunction
+
+Bool Function PlayLickingMoan(Bool a_intense)
+	if a_intense && IsgettingPenetrated() && !QuietNow()
 		return false
 	endif
 	if IsRimming()
-		if ASLcurrentlyIntense
+		if a_intense
 			PlaySound("RimjobIntense", mainFemaleActor, debugtext = "Rimjob Intense", actDir = "giv", actPlace = "oral", actImp = "none")
 		else
 			PlaySound("Rimjob", mainFemaleActor, debugtext = "Rimjob", actDir = "giv", actPlace = "oral", actImp = "none")
 		endif
 		return true
 	elseif IsCunnilingus()
-		if ASLcurrentlyIntense
+		if a_intense
 			PlaySound("LickingIntense", mainFemaleActor, debugtext = "Licking Intense", actDir = "giv", actPlace = "oral", actImp = "none")
 		else
 			PlaySound("Licking", mainFemaleActor, debugtext = "Licking", actDir = "giv", actPlace = "oral", actImp = "none")
