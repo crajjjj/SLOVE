@@ -4108,16 +4108,11 @@ Bool Function IsRimming()
 	return (OralLabel == "CUN" || OralLabel == "KIS") && IsRimSceneTagged()
 endfunction
 
-;True while the PC's own mouth is on someone: a blowjob, cunnilingus or rimjob. Her
-;labels answer first (free). They are refreshed on a stage change only, so contact
-;that starts mid-stage is asked of the Director, whose IsOralGiver reads the live
-;oral label and, on P+ 2.19+, the contact flags (both variants have it; classic's
-;is the label alone). Kissing is not in it, nor is her being licked or sucked.
+;Her own mouth is on someone (blowjob, cunnilingus, rimjob), by her oral label alone: the
+;label the Director set at the stage change, live contact included. The same label
+;picks her wordless pool. Not kissing, not being licked or sucked.
 Bool Function MouthBusy()
-	if IsSuckingoffOther() || IsCunnilingus() || IsRimming()
-		return true
-	endif
-	return MasterScript.IsOralGiver(mainFemaleActor)
+	return IsSuckingoffOther() || IsCunnilingus() || IsRimming()
 EndFunction
 
 ;Is the PC wordless right now? voice.moanonly, or voice.mouthbusymoanonly while her
