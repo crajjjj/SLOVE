@@ -3583,7 +3583,13 @@ Function ASLPlayStageTransition()
 
 	Utility.Wait(Utility.RandomFloat(0.5, 1.0)) ; wait up to 1 second for transition to complete before playing voice
 
-	if QuietNow()
+	;voice.mouthbusymoanonly quiets HER only: her spoken comments in the ladder below are
+	;skipped (herquiet), while the partners' transition lines, the insertion sound and
+	;the cum-leak cleanup still run. voice.moanonly keeps its own short branch: males are
+	;silent under it anyway. Her gasps and her panting are open-mouthed, so with her
+	;mouth busy they are skipped too: her moan-only beat comes later in the same update
+	bool herquiet = MoanOnly != 1 && QuietNow()
+	if MoanOnly == 1
 		if !PreviousStageHasPenetration() && IsgettingPenetrated()
 			PlaySound("PullOutGape", mainFemaleActor, soundPriority = 2, waitForCompletion = false , debugtext="PullOutGape")
 			if ishugepp
@@ -3602,10 +3608,12 @@ Function ASLPlayStageTransition()
 		;male fucking somemore  from ending
 	elseif	!IsEnding() && PrevEndingLabel == "ENO" && MainMaleCanControl() && timesGaped > 0
 
-		PlaySound("Oh", mainFemaleActor, soundPriority = 2 , SkipWait = true , debugtext="KneeJerk")
-		Utility.Wait(Utility.RandomFloat(0.5, 1.5))
-		if voicevariation != "B"
-			PlaySound("NoticeMaleWantsMore", mainFemaleActor, soundPriority = 1 , debugtext="NoticeMaleWantsMore")
+		if !herquiet
+			PlaySound("Oh", mainFemaleActor, soundPriority = 2 , SkipWait = true , debugtext="KneeJerk")
+			Utility.Wait(Utility.RandomFloat(0.5, 1.5))
+			if voicevariation != "B"
+				PlaySound("NoticeMaleWantsMore", mainFemaleActor, soundPriority = 1 , debugtext="NoticeMaleWantsMore")
+			endif
 		endif
 		if !MainFemaleisBurstingAtSeams()
 			ASLRemoveThickCumleak()
@@ -3616,11 +3624,13 @@ Function ASLPlayStageTransition()
 		printdebug("Stage Transition - No Penetration to Penetration")
 		PlaySound("PullOutGape", mainFemaleActor, soundPriority = 2, waitForCompletion = false , debugtext="PullOutGape")
 
-		if ishugepp
+		if !herquiet
+			if ishugepp
 
-			PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk Intense")
-		else
-			PlaySound("Oh", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk")
+				PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk Intense")
+			else
+				PlaySound("Oh", mainFemaleActor, soundPriority = 2 , debugtext = "KneeJerk")
+			endif
 		endif
 		Utility.Wait(Utility.RandomFloat(0.5, 1.0))
 
@@ -3629,7 +3639,7 @@ Function ASLPlayStageTransition()
 			PlaySound("StrugglingEarly", mainFemaleActor, soundPriority = 2, debugtext="StrugglingEarly" , voiceActor = PickSpeakingMale())
 		endif
 
-		IF !IsSuckingoffOther() && Utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
+		IF !herquiet && !IsSuckingoffOther() && Utility.RandomFloat(0.0, 1.0) < chancetocommentonnonintensestage
 			if IsFemdom() && !ishugepp
 
 				PlaySound("Amused", mainFemaleActor, soundPriority = 1 , debugtext="Amused")
@@ -3669,7 +3679,7 @@ Function ASLPlayStageTransition()
 			PlaySound("Aggressive", mainFemaleActor, soundPriority = 2, debugtext="Aggressive"  , voiceActor = PickSpeakingMale())
 		endif
 
-		if  !Femaleisvictim() && !IsSuckingoffOther() && IsgettingPenetrated() && Utility.randomfloat(0.0,1.0) < chancetocommentonintensestage
+		if !herquiet && !Femaleisvictim() && !IsSuckingoffOther() && IsgettingPenetrated() && Utility.randomfloat(0.0,1.0) < chancetocommentonintensestage
 			if VoiceVariation == "B"
 				;no B folder for the A beat; gated so an A pack keeps its "inawe" face
 				PlaySound("InAwe", mainFemaleActor, soundPriority = 1 , debugtext="Penetrated Comments Intense" )
@@ -3688,11 +3698,13 @@ Function ASLPlayStageTransition()
 
 		if ishugepp || IsGettingDoublePenetrated()
 
-			PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext="KneeJerk Intense")
+			if !herquiet
+				PlaySound("AfterGape", mainFemaleActor, soundPriority = 2 , debugtext="KneeJerk Intense")
+			endif
 
 		elseif !FemaleIsVictim()
 
-			if Utility.randomfloat(0.0,1.0) < chancetocommentonintensestage
+			if !herquiet && Utility.randomfloat(0.0,1.0) < chancetocommentonintensestage
 				;B-name wired: the slow->fast transition comment (ladder rung
 				;Intense Transition Comments -> Penetrated Comments Intense existed)
 				PlaySound("MaleHalfwayIntense", mainFemaleActor, soundPriority = 1 , debugtext="Intense Transition Comments")
@@ -3703,7 +3715,7 @@ Function ASLPlayStageTransition()
 				PlaySound("Aggressive", mainFemaleActor, soundPriority = 2 , debugtext = "Aggressive" , voiceActor = PickSpeakingMale())
 			endif
 
-			IF Utility.randomfloat(0.0,1.0) < chancetocommentonintensestage
+			IF !herquiet && Utility.randomfloat(0.0,1.0) < chancetocommentonintensestage
 				Utility.Wait(Utility.RandomFloat(0.5, 1.5))
 				if VoiceVariation == "B"
 					;victim arm: the B victim pool (gated, its face differs from the A one)
@@ -3718,7 +3730,9 @@ Function ASLPlayStageTransition()
 		;----------------------------if non intense after intense penetrative action--------------
 	elseif	ASLpreviouslyintense && !ASLcurrentlyIntense
 		printdebug(" Stage Transition - Non Intense to Intense")
-		PlaySound("AfterOrgasmExclamations", mainFemaleActor, soundPriority = 1 , debugtext = "Panting")
+		if !herquiet
+			PlaySound("AfterOrgasmExclamations", mainFemaleActor, soundPriority = 1 , debugtext = "Panting")
+		endif
 
 	endif
 
