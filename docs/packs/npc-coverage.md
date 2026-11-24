@@ -77,7 +77,7 @@ All 61, grouped by why:
 |---|---|---|
 | **Male NPC** | 11 of 15 male categories | Dirty talk, struggling, climax, post-nut, plus the two moan pools. `StrugglingOvert`, `JokeAroused`, `TeaseFemaleOrgasm` and `AfterFemaleOrgasm` are wired **nowhere** - dead vocabulary, not an NPC gap. |
 | **Creature** | `Breathing`, `Orgasm` | Panting on its own cadence plus a climax roar. No human beats. |
-| **NPC-only scenes** (couples near you, not involving the PC) | grunts, `Blowjob Action` (+intense), breathing, `Orgasm` | The lightest engine: it has no victim or femdom model and no label data at all, so it uses PPA's site and depth only. Deliberately light - these are ambience for scenes you are not in. |
+| **NPC-only scenes** (couples near you, not involving the PC) | grunts, `Penetrated Grunt Victim` (+intense), `Blowjob Action` (+intense), breathing, `Orgasm` | The lightest engine: no femdom model and no label data at all, so it uses PPA's site and depth. A penetrated woman who is the scene's victim (SexLab's submissive flag, or PPA Aggressive) grunts from the Victim pools, the same test as in your own scenes. Deliberately light - these are ambience for scenes you are not in. |
 
 ## What this means for a pack
 

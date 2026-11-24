@@ -36,6 +36,7 @@ float npcfemalemoanmaxinterval = 14.0 ;(the literals are the values hardcoded up
 int intenseenjoyment
 float npcvolume
 float npcdepthintense ;voice.npcdepthintense: HER measured PPA depth for the intense pools (0 = off)
+int victimscenario ;voice.enablevictimscenario: a coerced woman grunts from the Victim pools
 int enableprintdebug
 
 float lastMaleMoanTime
@@ -110,6 +111,7 @@ Function InitializeConfig()
 	npcfemalemoanmaxinterval = SLOVE_Config.GetInt("voice.npcfemalemoanmaxinterval", 14) as float
 	intenseenjoyment        = SLOVE_Config.GetInt("voice.femaleorgasmhypeenjoyment", 75)
 	npcdepthintense         = SLOVE_Config.GetFloat("voice.npcdepthintense", 6.0)
+	victimscenario          = SLOVE_Config.GetInt("voice.enablevictimscenario", 1)
 	; dedicated NPC-scene voice volume (own audio bus), default = partnervolume so it
 	; matches the old behavior until set. 0-100 -> 0-1 for SetGroupVolume.
 	npcvolume               = SLOVE_Config.GetInt("voice.npcscenevolume", SLOVE_Config.GetInt("voice.partnervolume", 60)) as float / 100
@@ -213,10 +215,10 @@ Event OnUpdate()
 EndEvent
 
 ;Variation-D facts for an NPC-scene line. Only what an NPC scene actually knows:
-;the ambient intensity beat, plus "mine" on a climax cry. Deliberately no mood -
-;this engine has no victim/femdom model - and no LABEL-derived act facts either;
-;the one act source it trusts is PPA's per-receiver site, which PlayAmbient
-;appends itself when measured ("giv oral" / "rcv anal" / ...). A fact this
+;the ambient intensity beat, plus "mine" on a climax cry. No femdom model and no
+;LABEL-derived act facts; the one act source it trusts is PPA's per-receiver
+;site and the one mood it trusts is a penetrated woman's victim test, both
+;appended by PlayAmbient itself ("giv oral" / "rcv anal" / "victim"). A fact this
 ;engine cannot stand behind would route the line into a pool that means
 ;something else; facts it omits simply leave those pools unqualified, so a
 ;tagged pack falls back to its untagged floor exactly as before.
@@ -357,6 +359,15 @@ Function PlayAmbient(Actor a, bool intense, bool female = false)
 			endif
 		endif
 		;site 0 with a penetrator present: the plausible grunt stands unchanged
+		;the coerced party grunts from the Victim pools: the same pair the PC
+		;engine's NPC beats play (SLOVE_NpcVoice.DecideGrunt), by its B-folder name
+		;when her slot is a B/D pack that resolves it, with the mood in the facts
+		;so a tagged pack can draw its victim pool
+		if cat == "PenetrativeGrunts" && IsVictim(a, SLOVE_PPA.CtxOf(snap))
+			String[] pick = SLOVE_NpcVoice.DecideGrunt(intense, 0, "", true, 0.0)
+			cat = SLOVE_Utils.VarBCategory(a, pick[0], pick[1])
+			actFacts += " victim"
+		endif
 	endif
 	if cat == "PenetrativeGrunts" && intense
 		cat = "NearOrgasmNoises"
@@ -366,6 +377,21 @@ EndFunction
 
 ;PPA readings live in SLOVE_PPA (shared with the PC voice engine - this used to
 ;be a second copy of the same reader). Read once per line, never in a loop.
+
+;Is this woman the scene's coerced party? Per actor, like the PC engine's
+;FemaleNpcIsVictim: PPA classifying HER interaction Aggressive (ctx bit 8, asked
+;first since it is free), else SexLab's submissive flag on THIS scene's thread.
+;Never MasterScript.IsSubmissive: the Director's thread is the player's scene.
+;voice.enablevictimscenario turns it off with the player's victim lines.
+bool Function IsVictim(Actor a, int ctx)
+	if victimscenario != 1
+		return false
+	endif
+	if Math.LogicalAnd(ctx, 8) == 8
+		return true
+	endif
+	return CurrentThread.GetSubmissive(a)
+EndFunction
 
 Function RemoveSelf()
 	Spell s = Game.GetFormFromFile(0x81E, "SLOVE.esp") as Spell

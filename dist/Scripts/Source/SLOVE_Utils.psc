@@ -34,6 +34,24 @@ String Function DispatchVariation(String a_variation) Global
 	return a_variation
 EndFunction
 
+;The per-actor Variation-B remap: the B folder when the speaker's own slot is a
+;B (or D) pack AND that pack resolves the folder, else the A-name, which then
+;resolves or falls back as usual. One rule for SLOVE_Voice.PlaySound and for
+;the NPC-scene driver, which plays through the Director's plain PlaySound and
+;has no remap of its own. CategoryExists walks the alias/fallback ladder, so a
+;pack without the folder itself still takes the B name when its ladder lands
+;in-pack.
+String Function VarBCategory(Actor a, String aName, String bFolder) Global
+	if bFolder == "" || bFolder == aName
+		return aName
+	endif
+	String slot = AudioUtil.GetSlotForActor(a)
+	if slot != "" && DispatchVariation(AudioUtil.GetSlotVariation(slot)) == "B" && AudioUtil.CategoryExists(slot, bFolder)
+		return bFolder
+	endif
+	return aName
+EndFunction
+
 ;True while a menu has the scene frozen. SKSE Menu Framework and other ImGui
 ;overlays freeze the game WITHOUT entering menu mode, so the Papyrus VM keeps
 ;ticking and Utility.IsInMenuMode() sees a running game; AudioUtil reads the

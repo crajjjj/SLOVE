@@ -1791,12 +1791,10 @@ Function PlaySound(String theSound, Actor actorMakingSound, Int soundPriority = 
 	;PC's (VoiceVariation tracks the PC). For a PC line audioActor == playerCharacter,
 	;so this reduces to the old VoiceVariation == "B" fast-path (unchanged). A
 	;secondary NPC line (voiceActor / forceFemaleVoice) now also gets her own
-	;B-folder audio when HER slot is Variation B - the inner check validates the slot.
-	if (VoiceVariation == "B" || audioActor != playerCharacter) && debugtext != "None" && debugtext != soundToPlay
-		String vbSlot = AudioUtil.GetSlotForActor(audioActor)
-		if vbSlot != "" && SLOVE_Utils.DispatchVariation(AudioUtil.GetSlotVariation(vbSlot)) == "B" && AudioUtil.CategoryExists(vbSlot, debugtext)
-			soundToPlay = debugtext
-		endif
+	;B-folder audio when HER slot is Variation B - SLOVE_Utils.VarBCategory validates
+	;the slot (the NPC-scene driver asks the same helper).
+	if (VoiceVariation == "B" || audioActor != playerCharacter) && debugtext != "None"
+		soundToPlay = SLOVE_Utils.VarBCategory(audioActor, soundToPlay, debugtext)
 	endif
 
 	;per-speaker exclusivity channel: AudioUtil natively stops the channel's
