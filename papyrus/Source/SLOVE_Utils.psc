@@ -35,12 +35,12 @@ String Function DispatchVariation(String a_variation) Global
 EndFunction
 
 ;The per-actor Variation-B remap: the B folder when the speaker's own slot is a
-;B (or D) pack AND that pack resolves the folder, else the A-name, which then
+;B (or D) pack AND that slot resolves the folder, else the A-name, which then
 ;resolves or falls back as usual. One rule for SLOVE_Voice.PlaySound and for
 ;the NPC-scene driver, which plays through the Director's plain PlaySound and
-;has no remap of its own. CategoryExists walks the alias/fallback ladder, so a
-;pack without the folder itself still takes the B name when its ladder lands
-;in-pack.
+;has no remap of its own. "Resolves" is CategoryExists: the whole alias and
+;fallback ladder plus the slot's fallback chain, so a B name can also land in a
+;stock fallback slot.
 String Function VarBCategory(Actor a, String aName, String bFolder) Global
 	if bFolder == "" || bFolder == aName
 		return aName

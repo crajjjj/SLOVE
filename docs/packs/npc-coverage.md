@@ -20,7 +20,7 @@ Two things measure NPCs. **SexLab's submissive flag** answers "is she the coerce
 |---|---|---|---|
 | Penetration grunt | `PenetrativeGrunts` | `Penetrated Grunt` | measured, inferred, or plausible |
 | Penetration grunt, intense | `NearOrgasmNoises` | `Penetrated Grunt Intense` | as above + intensity |
-| Coerced grunt | `Unamused` | `Penetrated Grunt Victim` | SexLab submissive flag, or PPA Aggressive |
+| Coerced grunt | `Unamused` | `Penetrated Grunt Victim` | SexLab submissive flag, or PPA Aggressive (not FemDom) when nobody is flagged |
 | Coerced grunt, intense | `CumTogetherTease` | `Penetrated Grunt Victim Intense` | as above |
 | Mouth full | `BlowjobActionSoft` | `Blowjob Action` | her mouth on the lead |
 | Mouth full, intense | `BlowjobActionIntense` | `Blowjob Action Intense` | as above |
@@ -77,7 +77,7 @@ All 61, grouped by why:
 |---|---|---|
 | **Male NPC** | 11 of 15 male categories | Dirty talk, struggling, climax, post-nut, plus the two moan pools. `StrugglingOvert`, `JokeAroused`, `TeaseFemaleOrgasm` and `AfterFemaleOrgasm` are wired **nowhere** - dead vocabulary, not an NPC gap. |
 | **Creature** | `Breathing`, `Orgasm` | Panting on its own cadence plus a climax roar. No human beats. |
-| **NPC-only scenes** (couples near you, not involving the PC) | grunts, `Penetrated Grunt Victim` (+intense), `Blowjob Action` (+intense), breathing, `Orgasm` | The lightest engine: no femdom model and no label data at all, so it uses PPA's site and depth. A penetrated woman who is the scene's victim (SexLab's submissive flag, or PPA Aggressive) grunts from the Victim pools, the same test as in your own scenes. Deliberately light - these are ambience for scenes you are not in. |
+| **NPC-only scenes** (couples near you, not involving the PC) | grunts, `Penetrated Grunt Victim` (+intense), `Blowjob Action` (+intense), breathing, `Orgasm` | The lightest engine: no femdom model and no label data at all, so it uses PPA's site, depth and context. A woman who would grunt (PPA measures her penetrated, or, unmeasured, the scene has a male or creature) and is the scene's victim grunts from the Victim folders on a B or D pack; A and stock packs keep the plain grunt. Victim = SexLab's submissive flag, or, when the scene flags nobody, PPA Aggressive without FemDom: the same test as in your own scenes. Deliberately light - these are ambience for scenes you are not in. |
 
 ## What this means for a pack
 

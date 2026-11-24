@@ -104,6 +104,21 @@ String[] Function TryForeplay(String[] act, Int ctx, Float commentChance) Global
 	return Pick("", "")
 EndFunction
 
+;Is she the scene's coerced party? One rule for every engine; the caller passes
+;SexLab's answers from its own thread. The flag names the victim outright, and
+;when it names someone else she is not it. Only a scene that flags nobody falls
+;back to PPA classifying HER interaction Aggressive (ctx bit 8), and not when it
+;is also FemDom (bit 16): there the aggressive woman is the one forcing.
+Bool Function IsVictim(Bool flagged, Bool anyFlagged, Int ctx) Global
+	if flagged
+		return true
+	endif
+	if anyFlagged
+		return false
+	endif
+	return Math.LogicalAnd(ctx, 8) == 8 && Math.LogicalAnd(ctx, 16) == 0
+EndFunction
+
 String[] Function Pick(String aName, String bFolder) Global
 	String[] p = new String[2]
 	p[0] = aName

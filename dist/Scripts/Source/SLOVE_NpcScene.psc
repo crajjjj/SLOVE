@@ -217,7 +217,7 @@ EndEvent
 ;Variation-D facts for an NPC-scene line. Only what an NPC scene actually knows:
 ;the ambient intensity beat, plus "mine" on a climax cry. No femdom model and no
 ;LABEL-derived act facts; the one act source it trusts is PPA's per-receiver
-;site and the one mood it trusts is a penetrated woman's victim test, both
+;site and the one mood it trusts is a grunting woman's victim test, both
 ;appended by PlayAmbient itself ("giv oral" / "rcv anal" / "victim"). A fact this
 ;engine cannot stand behind would route the line into a pool that means
 ;something else; facts it omits simply leave those pools unqualified, so a
@@ -359,13 +359,16 @@ Function PlayAmbient(Actor a, bool intense, bool female = false)
 			endif
 		endif
 		;site 0 with a penetrator present: the plausible grunt stands unchanged
-		;the coerced party grunts from the Victim pools: the same pair the PC
-		;engine's NPC beats play (SLOVE_NpcVoice.DecideGrunt), by its B-folder name
-		;when her slot is a B/D pack that resolves it, with the mood in the facts
-		;so a tagged pack can draw its victim pool
+		;the coerced party grunts from the Victim folder of the PC engine's pair
+		;(SLOVE_NpcVoice.DecideGrunt) when her slot is a B/D pack that resolves
+		;it. A and stock slots keep the plain grunt: their A-name for the intense
+		;victim beat, CumTogetherTease, is a spoken tease on a real A pack. The
+		;mood rides in the facts either way, so a tagged pack draws its victim pool
 		if cat == "PenetrativeGrunts" && IsVictim(a, SLOVE_PPA.CtxOf(snap))
 			String[] pick = SLOVE_NpcVoice.DecideGrunt(intense, 0, "", true, 0.0)
-			cat = SLOVE_Utils.VarBCategory(a, pick[0], pick[1])
+			if SLOVE_Utils.VarBCategory(a, pick[0], pick[1]) == pick[1]
+				cat = pick[1]
+			endif
 			actFacts += " victim"
 		endif
 	endif
@@ -378,19 +381,16 @@ EndFunction
 ;PPA readings live in SLOVE_PPA (shared with the PC voice engine - this used to
 ;be a second copy of the same reader). Read once per line, never in a loop.
 
-;Is this woman the scene's coerced party? Per actor, like the PC engine's
-;FemaleNpcIsVictim: PPA classifying HER interaction Aggressive (ctx bit 8, asked
-;first since it is free), else SexLab's submissive flag on THIS scene's thread.
-;Never MasterScript.IsSubmissive: the Director's thread is the player's scene.
+;Is this woman the scene's coerced party? The PC engine's rule
+;(SLOVE_NpcVoice.IsVictim), fed from THIS scene's thread: never
+;MasterScript.IsSubmissive, the Director's thread is the player's scene.
 ;voice.enablevictimscenario turns it off with the player's victim lines.
 bool Function IsVictim(Actor a, int ctx)
 	if victimscenario != 1
 		return false
 	endif
-	if Math.LogicalAnd(ctx, 8) == 8
-		return true
-	endif
-	return CurrentThread.GetSubmissive(a)
+	bool flagged = CurrentThread.GetSubmissive(a)
+	return SLOVE_NpcVoice.IsVictim(flagged, flagged || CurrentThread.GetSubmissives().length > 0, ctx)
 EndFunction
 
 Function RemoveSelf()

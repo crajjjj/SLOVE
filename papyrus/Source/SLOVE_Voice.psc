@@ -533,20 +533,17 @@ Function PlayFemaleNpcBeat(Actor a, String[] act, float[] snap)
 	PlaySound(pick[0], a, soundPriority = 1, waitForCompletion = False, debugtext = pick[1], forceFemaleVoice = true)
 EndFunction
 
-;Is this female NPC the scene's coerced party? Per-actor both ways: SexLab's
-;own submissive flag, or PPA classifying HER interaction Aggressive (ctx bit 8
-;- the same animation-tag tier the labels are, but per-receiver). Same
-;EnableVictimScenario gate as the lead's FemaleIsVictim(), so turning the
-;victim scenario off turns this off too. The ctx test runs first - it is
-;internal and saves the SexLab external when it already answers.
+;Is this female NPC the scene's coerced party? The shared rule
+;(SLOVE_NpcVoice.IsVictim): SexLab's submissive flag, else PPA's Aggressive
+;context when nobody is flagged and it is not FemDom. Same EnableVictimScenario
+;gate as the lead's FemaleIsVictim(), so turning the victim scenario off turns
+;this off too. HasSubmissives is asked only when she is not flagged herself.
 Bool Function FemaleNpcIsVictim(Actor a, Int ctx = 0)
 	if a == None || EnableVictimScenario != 1
 		return false
 	endif
-	if Math.LogicalAnd(ctx, 8) == 8
-		return true
-	endif
-	return MasterScript.IsSubmissive(a)
+	bool flagged = MasterScript.IsSubmissive(a)
+	return SLOVE_NpcVoice.IsVictim(flagged, flagged || MasterScript.HasSubmissives(), ctx)
 EndFunction
 
 ;Voice the lead's FEMALE partner - the woman filling the mainMaleActor role slot
