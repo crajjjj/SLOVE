@@ -21,6 +21,10 @@ int PCposition
 ;labels and interaction times
 float LastLabelUpdateTime
 Float LastPhysicsLabelTime ;mid-stage physics label changes; separate from the stage-change latch above
+;the label stamp's value between player scenes, lowered by one at every scene end and
+;at every load with no player scene: the stamp then always moves at a scene end, even
+;when it held 0 all scene, and never equals a value a loop still holds
+float IdleLabelStamp
 Bool UpdateNow = false
 float updaterate = 0.5
 ;Modules Spells (SLO VE: runtime-resolved from SLOVE.esp, not CK-filled)
@@ -114,6 +118,11 @@ EndEvent
 ;against reality here.
 Function ReconcileSceneOnLoad()
 	if !PlayerInScene
+		;SFX loops from a save older than 0.7.16 can still be spinning in NPC scenes long
+		;over (GitHub issue 5). They run the code they were saved with, which ends only
+		;when this stamp moves; between player scenes nothing else acts on it
+		IdleLabelStamp -= 1.0
+		LastLabelUpdateTime = IdleLabelStamp
 		return ;wasn't tracking a scene when the save was made - nothing was dropped
 	endif
 	;SexLab restores its threads slightly after the load event fires; give it a
@@ -840,7 +849,8 @@ Function DirectorEndScene()
 	;voice was then never silenced, and the voice engine read thread id -1 and
 	;never heard its scene end
 	PCInSex = false
-	LastLabelUpdateTime = 0
+	IdleLabelStamp -= 1.0 ;0 here missed a scene that ended with the stamp still 0
+	LastLabelUpdateTime = IdleLabelStamp
 	LastPhysicsLabelTime = 0
 	int endedThreadID = CurrentThreadID
 	CurrentThread = none

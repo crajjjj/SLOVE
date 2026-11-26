@@ -150,8 +150,11 @@ Event OnUpdate()
 	;Ends if the actor is no longer in scene but the magic stuck. AnimationisEnding is the
 	;PC scene's teardown flag - honor it only for a PC-scene actor, else a concurrent PC
 	;scene ending would wrongly end this NPC-scene SFX. NPC scenes end on their own
-	;controller going away.
-	if !Sexlab.GetActorController(actorref) || (OnPCThread() && Masterscript.AnimationisEnding())
+	;controller going away. The actor's LIVE controller must be OURS: GetActorController
+	;kept answering with the Frozen one for 10 s and then with the actor's next scene,
+	;which left this effect on a dead controller, silent, for that whole scene
+	sslThreadController live = MasterScript.LiveThread(actorref)
+	if !live || live != CurrentThread || (OnPCThread() && Masterscript.AnimationisEnding())
 		PrintDebug("Ending Animation. remove SLO VE SFX")
 		RemoveSFX()
 		;RemoveSFX dispels this spell, so the effect is already unbound - falling
@@ -812,7 +815,7 @@ Bool Function RunPPAThrustSFX()
 		;end this loop and hand the stage to label or contact-speed pacing. Now the
 		;labels are refreshed in place (intensity, clap rule, partner) and the timing
 		;goes on; 1.5 s without depth above is what hands the stage back.
-		if DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime() && OnPCThread()
+		if pc && DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime()
 			float labelTime = DirectorLastLabelTime
 			bool stageEvent = UpdateNow
 			string sceneBefore = CurrentSceneID
@@ -833,6 +836,11 @@ Bool Function RunPPAThrustSFX()
 		ProcessContactEdges()
 		Utility.Wait(updateRate)
 	endwhile
+	if EffectEnded
+		;OnEffectFinish has unwatched already. The watch is keyed by actor, so a second
+		;unwatch could drop the replacement effect's
+		return true
+	endif
 	StopPPAThrust()
 	return true
 EndFunction
@@ -1149,6 +1157,10 @@ endfunction
 Function RemoveSFX()
 
 	spell SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as spell
+	if EffectEnded
+		;dispelled meanwhile: the spell on the actor may be a new scene's effect now
+		return
+	endif
 	actorref.RemoveSpell(SFXSpell)
 
 EndFunction
@@ -1187,7 +1199,7 @@ Function HentairimUpdateStageData()
 		;NPC-only scene: the Director's label-time stamp tracks the player's thread, not
 		;ours. Gate on UpdateNow (our own thread's StageStart) or a direct animation/stage
 		;change. No physics overlay for NPC scenes (coarse ambient SFX).
-		stagechanged = UpdateNow || CurrentSceneID != (CurrentThread.Animation as string) || currentstage != CurrentThread.Stage
+		stagechanged = UpdateNow || OwnStageChanged()
 		physicschanged = false
 	endif
 	if stagechanged || physicschanged
@@ -1259,7 +1271,7 @@ endfunction
 
 ;The spinners' end test: true while the stage a loop started on is still playing.
 ;A PC scene asks the Director, whose stamps follow the player's thread. An NPC-only
-;scene asks its own controller and never the Director: those stamps did not move for
+;scene asks its own controller and never the Director's stamps: they did not move for
 ;it, so its loops never ended, OnUpdate never reached its end-of-scene check, and every
 ;NPC scene left one more thread playing its stage sound in the save; and a player
 ;scene changing stage nearby made them differ, silencing the NPC scene until its
@@ -1268,7 +1280,13 @@ bool Function StageStillRunning(bool abPC)
 	if abPC
 		return !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
 	endif
-	return CurrentThread && MasterScript.ThreadIsLive(CurrentThread) && (CurrentThread.Animation as string) == CurrentSceneID && CurrentThread.Stage == currentstage
+	return CurrentThread && MasterScript.ThreadIsLive(CurrentThread) && !OwnStageChanged()
+endfunction
+
+;An NPC-only scene's stage change, read off its own controller: the one rule for
+;HentairimUpdateStageData and StageStillRunning
+bool Function OwnStageChanged()
+	return CurrentSceneID != (CurrentThread.Animation as string) || currentstage != CurrentThread.Stage
 endfunction
 
 Function UpdateLabels(actor char)

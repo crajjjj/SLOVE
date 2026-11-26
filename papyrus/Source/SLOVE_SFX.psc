@@ -45,6 +45,13 @@ Function PerformInitialization()
 	;scene actors too (NPC-only scenes), where the player isn't present. For a PC-scene
 	;actor this is identical (the actor is in the player's thread).
 	CurrentThread = Sexlab.GetThreadByActor(actorref)
+	if CurrentThread == none
+		;the spell landed as the scene was already over (as on classic): bail, since
+		;everything below reads the thread
+		SLOVE_Utils.WritetoErrorlogs("SFX", "Sexlab Thread Not Found!")
+		RemoveSFX()
+		return
+	endif
 	actorlist = CurrentThread.GetPositions()
 	Gender = sexlab.GetGender(actorref)
 	IsPlayer = actorref == playerref
@@ -57,10 +64,6 @@ Function PerformInitialization()
 
 	if sexlab == none
 		SLOVE_Utils.WritetoErrorlogs("SFX", "Sexlab Not Found!")
-	endif
-
-	if CurrentThread == none
-		SLOVE_Utils.WritetoErrorlogs("SFX", "Sexlab Thread Not Found!")
 	endif
 
 	PrintDebug("actorlist" + actorlist)
@@ -145,8 +148,11 @@ Event OnUpdate()
 	;Ends if the actor is no longer in scene but the magic stuck for some reason.
 	;AnimationisEnding is the PC scene's teardown flag - honor it only for a PC-scene
 	;actor, else a concurrent PC scene ending would wrongly end this NPC-scene SFX. NPC
-	;scenes end on their own thread going away.
-	if !Sexlab.GetThreadByActor(actorref) || (OnPCThread() && Masterscript.AnimationisEnding())
+	;scenes end on their own thread going away. The actor's live thread must be OURS:
+	;one in another scene (its adoption skipped) left this effect on a dead thread,
+	;silent, or playing a later scene's SFX once the slot was reused
+	SexLabThread live = Sexlab.GetThreadByActor(actorref)
+	if !live || live != CurrentThread || (OnPCThread() && Masterscript.AnimationisEnding())
 		PrintDebug("Ending Animation. remove SLO VE SFX")
 		RemoveSFX()
 		;RemoveSFX dispels this spell, so the effect is already unbound - falling
@@ -881,7 +887,7 @@ Bool Function RunPPAThrustSFX()
 		;end this loop and hand the stage to label or contact-speed pacing. Now the
 		;labels are refreshed in place (intensity, clap rule, partner) and the timing
 		;goes on; 1.5 s without depth above is what hands the stage back.
-		if DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime() && OnPCThread()
+		if pc && DirectorLastPhysicsLabelTime != MasterScript.GetDirectorLastPhysicsLabelTime()
 			float labelTime = DirectorLastLabelTime
 			bool stageEvent = UpdateNow
 			string sceneBefore = CurrentSceneID
@@ -902,6 +908,11 @@ Bool Function RunPPAThrustSFX()
 		ProcessContactEdges()
 		Utility.Wait(updateRate)
 	endwhile
+	if EffectEnded
+		;OnEffectFinish has unwatched already. The watch is keyed by actor, so a second
+		;unwatch could drop the replacement effect's
+		return true
+	endif
 	StopPPAThrust()
 	return true
 EndFunction
@@ -949,6 +960,7 @@ Bool Function PenisSearchForVelocity()
 	printdebug("PenisSearchForVelocity: Called for " + ActorRef + " | SceneTag Missionary = " + currentthread.HasSceneTag("Missionary"))
 	int SearchTopLimit
 	Int SearchBottomLimit
+	bool pc = OnPCThread() ;the searches end on the stage like the spinners
 	if currentthread.HasSceneTag("Missionary")
 		SearchTopLimit = 4
 		SearchBottomLimit = -6
@@ -957,7 +969,7 @@ Bool Function PenisSearchForVelocity()
 		PenisPosition = 0
 		printdebug("PenisSearchForVelocity: Beginning negative search from 0 to -7")
 
-		While PenisPosition >= SearchBottomLimit && !StopPenisVelocitySearch && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
+		While PenisPosition >= SearchBottomLimit && !StopPenisVelocitySearch && !EffectEnded && StageStillRunning(pc)
 			printdebug("PenisSearchForVelocity: Sending SOSBend" + PenisPosition + " | StopSearch=" + StopPenisVelocitySearch)
 			Debug.SendAnimationEvent(Actorref, "SOSBend" + PenisPosition as string)
 			Utility.wait(0.3)
@@ -980,7 +992,7 @@ Bool Function PenisSearchForVelocity()
 		PenisPosition = 0
 		printdebug("PenisSearchForVelocity: Beginning positive search from 0 to +7")
 
-		While PenisPosition <= SearchTopLimit && !StopPenisVelocitySearch && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
+		While PenisPosition <= SearchTopLimit && !StopPenisVelocitySearch && !EffectEnded && StageStillRunning(pc)
 			printdebug("PenisSearchForVelocity: Sending SOSBend" + PenisPosition + " | StopSearch=" + StopPenisVelocitySearch)
 			Debug.SendAnimationEvent(Actorref, "SOSBend" + PenisPosition as string)
 			Utility.wait(0.3)
@@ -1014,7 +1026,7 @@ Bool Function PenisSearchForVelocity()
 		printdebug("PenisSearchForVelocity: Starting Non-Missionary mode search (+7 to -7 range)")
 		PenisPosition = 0
 
-		While PenisPosition <= SearchTopLimit && !StopPenisVelocitySearch && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
+		While PenisPosition <= SearchTopLimit && !StopPenisVelocitySearch && !EffectEnded && StageStillRunning(pc)
 			printdebug("PenisSearchForVelocity: Sending SOSBend" + PenisPosition + " | StopSearch=" + StopPenisVelocitySearch)
 			Debug.SendAnimationEvent(Actorref, "SOSBend" + PenisPosition as string)
 			Utility.wait(0.3)
@@ -1037,7 +1049,7 @@ Bool Function PenisSearchForVelocity()
 		PenisPosition = 0
 		printdebug("PenisSearchForVelocity: Starting negative fallback search from 0 to -7")
 
-		While PenisPosition >= SearchBottomLimit && !StopPenisVelocitySearch && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
+		While PenisPosition >= SearchBottomLimit && !StopPenisVelocitySearch && !EffectEnded && StageStillRunning(pc)
 			printdebug("PenisSearchForVelocity: Sending SOSBend" + PenisPosition + " | StopSearch=" + StopPenisVelocitySearch)
 			Debug.SendAnimationEvent(Actorref, "SOSBend" + PenisPosition as string)
 			Utility.wait(0.3)
@@ -1119,7 +1131,7 @@ Function RunAdaptiveVelocitySFX()
 		Return
 	EndIf
 	int z
-	while (FuckingPartner == none || FuckingPartnerInteractionType == 0) && Z < timestosearch
+	while (FuckingPartner == none || FuckingPartnerInteractionType == 0) && Z < timestosearch && !EffectEnded
 		printdebug("---------------------RunAdaptiveVelocitySFX : START SEARCHING---------------" )
 		SearchingFoundVelocity = false
 		PenisSearchForVelocity()
@@ -1572,6 +1584,10 @@ endfunction
 Function RemoveSFX()
 
 	spell SFXSpell = Game.GetFormFromFile(0x805, "SLOVE.esp") as spell
+	if EffectEnded
+		;dispelled meanwhile: the spell on the actor may be a new scene's effect now
+		return
+	endif
 	actorref.RemoveSpell(SFXSpell)
 
 EndFunction
@@ -1610,7 +1626,7 @@ Function HentairimUpdateStageData()
 		;NPC-only scene: the Director's label-time stamp tracks the player's thread, not
 		;ours. Gate on UpdateNow (set by our own thread's StageStart) or a direct
 		;scene/stage change. No physics overlay for NPC scenes (coarse ambient SFX).
-		stagechanged = UpdateNow || CurrentSceneID != CurrentThread.GetActiveScene() || currentStageID != CurrentThread.GetActiveStage()
+		stagechanged = UpdateNow || OwnStageChanged()
 		physicschanged = false
 	endif
 	if stagechanged || physicschanged
@@ -1672,7 +1688,7 @@ endfunction
 
 ;The spinners' end test: true while the stage a loop started on is still playing.
 ;A PC scene asks the Director, whose stamps follow the player's thread. An NPC-only
-;scene asks its own thread and never the Director: those stamps did not move for it,
+;scene asks its own thread and never the Director's stamps: they did not move for it,
 ;so its loops never ended, OnUpdate never reached its end-of-scene check, and every
 ;NPC scene left one more thread playing its stage sound in the save; and a player
 ;scene changing stage nearby made them differ, silencing the NPC scene until its
@@ -1681,7 +1697,13 @@ bool Function StageStillRunning(bool abPC)
 	if abPC
 		return !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
 	endif
-	return CurrentThread && CurrentThread.GetStatus() == 3 && CurrentThread.GetActiveScene() == CurrentSceneID && CurrentThread.GetActiveStage() == currentStageID
+	return CurrentThread && CurrentThread.GetStatus() == 3 && !OwnStageChanged()
+endfunction
+
+;An NPC-only scene's stage change, read off its own thread: the one rule for
+;HentairimUpdateStageData and StageStillRunning
+bool Function OwnStageChanged()
+	return CurrentSceneID != CurrentThread.GetActiveScene() || currentStageID != CurrentThread.GetActiveStage()
 endfunction
 
 Function UpdateLabels(actor char)
