@@ -25,6 +25,9 @@ bool StageShouldplayClap = false
 bool isplayer
 bool isReceiver ; position 0
 Bool UpdateNow
+;set by OnEffectFinish. A spinner running when the effect is dispelled (a re-adoption
+;replaces it) keeps its thread inside the loop, and nothing it otherwise reads says so
+Bool EffectEnded
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
 	actorref = akTarget
@@ -185,6 +188,10 @@ Event OnUpdate()
 		endif
 	else
 		updateRate = 3
+	endif
+	if EffectEnded
+		;dispelled while a spinner ran: the effect is unbound, see RemoveSFX above
+		return
 	endif
 	RegisterForSingleUpdate(updateRate)
 
@@ -674,6 +681,7 @@ Event SFXOnPPAReentry(string eventName, string strArg, float numArg, Form sender
 EndEvent
 
 Event OnEffectFinish(Actor akTarget, Actor akCaster)
+	EffectEnded = true ;before the external call below
 	;a watch left running would keep the DLL sending this actor's beats to nobody
 	SLOVE_PPA.UnwatchThrusts(akTarget)
 EndEvent
@@ -782,7 +790,8 @@ Bool Function RunPPAThrustSFX()
 	float seenAt = now ;when PPA last measured a depth above zero - the grace starts here
 	;a stage change or the scene's end hands the stage back; a change of the contact
 	;(physics) labels alone does not, see below
-	while !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && !UpdateNow
+	bool pc = OnPCThread()
+	while !EffectEnded && !UpdateNow && StageStillRunning(pc)
 		;asked every tick, not once: a game load drops every watch (this loop can
 		;resume from a save) and a dispelled effect's unwatch can drop this one; the
 		;same pair asked again keeps a running watch, so this is what brings it back
@@ -916,7 +925,9 @@ EndFunction
 
 Function PlaySFX()
 	printdebug("Playing Normal Hentairim SFX")
-	while !Masterscript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime() && DirectorLastPhysicsLabelTime == MasterScript.GetDirectorLastPhysicsLabelTime() && SFXtoPlay
+	;the physics stamp is the player's scene's too: an NPC scene has no physics overlay
+	bool pc = OnPCThread()
+	while !EffectEnded && SFXtoPlay && StageStillRunning(pc) && (!pc || DirectorLastPhysicsLabelTime == MasterScript.GetDirectorLastPhysicsLabelTime())
 		if SLOVE_Utils.GamePaused()
 			;the loop's pacing IS PlaySound's blocking wait; while the scene is frozen
 			;that wait returns instantly, so hold here instead of spinning through
@@ -1244,6 +1255,20 @@ float DirectorLastPhysicsLabelTime
 ;labels. False for an NPC-only scene (self-compute base labels off our own thread).
 bool Function OnPCThread()
 	return CurrentThread && CurrentThread.Positions.Find(playerref) >= 0
+endfunction
+
+;The spinners' end test: true while the stage a loop started on is still playing.
+;A PC scene asks the Director, whose stamps follow the player's thread. An NPC-only
+;scene asks its own controller and never the Director: those stamps did not move for
+;it, so its loops never ended, OnUpdate never reached its end-of-scene check, and every
+;NPC scene left one more thread playing its stage sound in the save; and a player
+;scene changing stage nearby made them differ, silencing the NPC scene until its
+;own next stage. Live = not Ending / Frozen / Unlocked (SLOVE_Director.ThreadIsLive, see LiveThread)
+bool Function StageStillRunning(bool abPC)
+	if abPC
+		return !MasterScript.AnimationisEnding() && DirectorLastLabelTime == MasterScript.GetDirectorLastLabelTime()
+	endif
+	return CurrentThread && MasterScript.ThreadIsLive(CurrentThread) && (CurrentThread.Animation as string) == CurrentSceneID && CurrentThread.Stage == currentstage
 endfunction
 
 Function UpdateLabels(actor char)
