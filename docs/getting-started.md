@@ -18,7 +18,6 @@ SLO VE is loose scripts, sounds and TOML config, plus one small ESL-flagged plug
 
 - **SKSE Menu Framework** (version 3) for the [in-game settings menu](config/menu.md)
 - **MFEE** (Mu Facial Expression Extended) — extended ahegao / tongue faces
-- **sr_fillherup** — tongue armors
 - **Devious Devices** — gag detection for the [muffled gagged voice](packs/slots.md#the-gag-slot-f1gag)
 - **SexLab Survival** — SLO VE yields the mouth to its ahegao state
 - **SOS / TNG** — huge-partner detection (the huge-partner voice + face scenario)

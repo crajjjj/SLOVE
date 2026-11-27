@@ -214,15 +214,106 @@ Causes, most common first:
    both together stack and deform (see
    [Doubled voices](#doubled-voices-or-the-mouth-twitching-between-two-expressions)).
    Disable facial expressions in the SexLab MCM.
-3. **A leftover tongue armor.** Check the actor's inventory for a "Tongue" item
-   (console: click them, `showinventory`). NPC-only scenes used to leak the tongue into
-   NPC inventories, where the outfit AI would re-equip it later with a closed mouth —
-   fixed in 0.6.12; on any version `slovetest facefix` removes it.
+3. **A leftover tongue armor.** SLO VE's tongue items have no name, so look in the
+   console: click the actor, `showinventory`, and look for ids ending in `813` to `81C`.
+   NPC-only scenes used to leak the tongue into NPC inventories, where the outfit AI
+   would re-equip it later with a closed mouth. That was fixed in 0.6.12, and on any
+   version `slovetest facefix` removes it. A tongue another mod put on stays: see
+   [Two tongues at once](#two-tongues-at-once).
 4. **Another face/ahegao mod owns the same channels.** SexLab Survival's ahegao is
    *meant* to persist past the scene end (SLS clears it itself, on its own schedule).
    For mods that signal ahegao by a worn item or a StorageUtil key there are yields —
    [`ahegaoitems` / `ahegaostoragekeys`](config/slove.md#expressions) — but two writers
    with no yield between them will fight and deform.
+
+## Two tongues at once
+
+SLO VE's ten tongues all sit on the mouth slot (44), so it can never put two of its
+own on one actor. A second tongue has one of three causes:
+
+1. **Another mod's tongue.** Most tongue mods use Fill Her Up's ten tongues or copies
+   of them, on slot 55, so theirs hangs beside SLO VE's instead of replacing it. SLO VE
+   only recognises its own ten. It steps aside for another mod's tongue only when that
+   mod tells it, through one of the yields below. An MFEE tongue another mod paints
+   (MFEE's tongue-out, or either of its two ahegao expressions, which have a tongue)
+   is different: since 0.7.17 SLO VE sees it, keeps its own tongue off while it is
+   painted, and takes its own off if one appears. `printdebug` says
+   `leaving ours off` / `retracting ours`.
+2. **SLO VE's MFEE ahegao beside another mod's tongue.** With MFEE installed, SLO VE
+   paints MFEE's ahegao expression on a vanilla-race actor who is broken or under a
+   huge partner, and that expression has a tongue of its own. SLO VE leaves it off
+   while its own tongue is worn, but not while another mod's is. Since 0.7.17 it also
+   takes it off while it yields the face, so only a tongue SLO VE is not told about
+   still gets this second one.
+3. **One tongue armor matching the actor's race twice.** Each tongue lists one Armor
+   Addon per race group: standard, Khajiit, Argonian, and with the UBE option, UBE.
+   A race that ends up in two of them shows two meshes. That looks the same every
+   time, and only on that race.
+
+**Which one is it?** While both tongues show, run `slovetest facefix` (for an NPC,
+aim at them before opening the console). It removes SLO VE's tongue armor and resets
+every MFEE expression on the actor, another mod's included, and nothing else. A
+tongue that stays is another mod's armor (cause 1, or cause 2 when an ahegao face
+went with the other). If both go, either SLO VE's tongue was beside an MFEE
+expression (cause 1 or 2), or SLO VE's tongue showed twice (cause 3), which looks the
+same every time and only on that race. In a scene SLO VE may put its tongue back a
+moment later, which is fine. With `[expressions] printdebug = 1`, `SLOVE.0.log` says
+`AddTongue: Equipping` when SLO VE shows its tongue, `leaving ours off` or
+`retracting ours` when another mod's MFEE tongue keeps it off, and
+`pausing expressions` when it yields the face to another mod.
+
+### Mods that put tongues on
+
+| Mod | What it does | What to do |
+|---|---|---|
+| **Hentairim p+** with its expressions on | Equips Fill Her Up's tongues itself, and drives the whole face | Turn its expressions off: [the recipe](hentairim-and-ppa.md#the-recipe-disable-hentairims-engines). |
+| **IVDT Hentai Edition** (the old classic IVDT) | Replaces SexLab's own `sslActorAlias` script and equips Fill Her Up's tongues from inside it | Uninstall it. It is the engine SLO VE replaces. |
+| **Fill Her Up** (`sr_FillHerUp.esp`, Baka Edition too) | MCM option *TongueWhenExpelCum*: when she expels cum, a 40% roll puts one of its tongues on. SLO VE does not see it. | Turn the option off, or list its tongues in `ahegaoitems` (below). |
+| **Ahegao** by Artsick (`AhegaoTongues.esp`) | Through the whole scene it paints its own face on a timer and now and then puts a slot-55 tongue on, setting the `TongueOn` key while the tongue is out | Handled while `ahegaostoragekeys` holds `TongueOn` (the default): SLO VE takes its tongue off and pauses its face. It ships copies of classic SexLab's `sslBaseExpression` and `sslBaseVoice`; on SexLab P+ those two files must not win over P+'s own. |
+| **SexLab Survival** | Its ahegao can put an SLS tongue on the player (per face in its `AhegaoFaces.json`), and so does *Stick out tongue* in the all-in-one key menu | Handled: SLO VE yields to SLS's ahegao, and SLS's tongue counts as a gag, which keeps SLO VE's tongue off. The gag part needs SLO VE's `AudioUtil.toml` to win the file conflict (see [A moan cuts a spoken line short](#a-moan-cuts-a-spoken-line-short)). |
+
+To make SLO VE step aside whenever one of Fill Her Up's tongues is worn (whoever put
+it on, Hentairim's included), list them in [`SLOVE.toml`](config/slove.md#expressions):
+
+```toml
+[expressions]
+ahegaoitems = "sr_FillHerUp.esp|0263B2, sr_FillHerUp.esp|0263B3, sr_FillHerUp.esp|0263B4, sr_FillHerUp.esp|0263B5, sr_FillHerUp.esp|0263B6, sr_FillHerUp.esp|0263B7, sr_FillHerUp.esp|0263B8, sr_FillHerUp.esp|0263B9, sr_FillHerUp.esp|0263BA, sr_FillHerUp.esp|0263BB"
+```
+
+While one is worn, SLO VE leaves that actor's face to the other mod as well, not just
+the mouth.
+
+### SLO VE's MFEE ahegao (cause 2)
+
+SLO VE takes its MFEE ahegao off while it yields the face, so a tongue it is told
+about (the `ahegaoitems` line above, the `TongueOn` key, SLS) needs nothing more. If
+MFEE is installed and a mod above puts on tongues SLO VE is not told about, set
+`[expressions] enableahegao = 0`. That turns off the huge-partner ahegao and the MFEE
+ahegao expression, the one that has its own tongue. A broken actor still gets the
+broken face, just without that expression on top.
+
+On Erin and Elin that setting does not reach the MFEE ahegao: it is switched by
+`enablemfeeahegao` in `SKSE\Plugins\StorageUtilData\SLOVE\ErinMFEEConfig.json`, which
+ships off (`0`).
+
+### The same tongue twice on one race (cause 3)
+
+Something added races to SLO VE's tongue Armor Addons. In xEdit, the `SLOVE_TongueAA`
+records should be changed by `SLOVE.esp` alone. `SLOVE_UBE_Support.esp` changes the ten
+tongue armors, never their addons. Two ways this happens:
+
+- **A `SLOVE_UBE_Support.esp` from 0.6.27 or older** that an install merged over
+  instead of replacing. That version changed the addons, and since 0.7.1 it puts
+  Khajiit and Argonians on two of them. Reinstall SLO VE with the UBE option, or
+  delete the file if you don't use UBE.
+- **A patcher's output that adds races to armor addons it didn't create.** The
+  *UBE Armor Race Patcher* DLL does this to the standard tongue too, but there the UBE
+  addon outranks the standard one, so it is not a cause.
+
+!!! note "Not a second tongue"
+    On a Khajiit or an Argonian the tongue shows below the jaw for a moment as the mouth
+    opens and closes. That is how the beast tongues are fitted, see
+    [Khajiit and Argonians](config/slove.md#expressions).
 
 ## SFX are wrong or missing
 

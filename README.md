@@ -20,7 +20,7 @@ reference, troubleshooting.
 | Mfg Fix NG (MfgConsoleFunc/Ext) | all face writes |
 
 Soft (auto-detected, optional): SKSE Menu Framework (the in-game settings
-menu), MFEE, sr_fillherup (tongue), Devious Devices
+menu), MFEE, Devious Devices
 (gag), SexLab Survival (ahegao yield), SOS/TNG (huge-partner detection),
 Accurate Penetration (measured penetration/gape, read by SLOVE.dll),
 Oninus Lactis NG (nipple squirts during scenes, `[milk]` in SLOVE.toml;

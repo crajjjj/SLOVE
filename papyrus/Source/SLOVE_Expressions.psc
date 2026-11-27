@@ -54,8 +54,10 @@ Function PerformInitialization()
 	;the expression JSONs are unreachable (the function existed but was never
 	;called - dead in Hentairim too)
 	ResetHentaiExpressionGroup()
-	HentairimPrepare()
+	;before HentairimPrepare: its first label read can call AddTongue, which needs
+	;HasMFEE / HasMFEEVanillaRace (the MFEE tongue path, ForeignMFEETongue)
 	CheckHasMFEE()
+	HentairimPrepare()
 	printdebug("initialized complete")
 	RegisterForSingleUpdate(0.1)
 EndFunction
@@ -252,12 +254,6 @@ Event OnUpdate()
 		ExternalAhegaoYieldActive = true
 		printdebug("External face owner (ahegao item / storage key / mute event) - pausing expressions")
 		RemoveTongue()
-		if facemuted && (HasMFEE || HasMFEEVanillaRace)
-			;the muting mod's face is MFG - our painted MFEE ahegao is a morph it never
-			;overwrites, so retract it (an external AHEGAO is left to stack on ours)
-			MFEEAddAhegao = false
-			MuFacialExpressionExtended.SetExpressionByNumber(actorref, 0, 0, 0)
-		endif
 		LipSyncBlockedForFace = false
 		StorageUtil.SetIntValue(actorref, "SLOVE_FaceOwnsMouth_Expr", 0)
 	elseif !extAhegao && ExternalAhegaoYieldActive
@@ -269,6 +265,11 @@ Event OnUpdate()
 	if SLSAhegaoActive || extAhegao
 		;an external ahegao owns the face right now - don't fight it. Keep the loop
 		;ticking so we pick straight back up once it ends.
+		;Our painted MFEE ahegao is a morph that face never overwrites, and it carries a
+		;tongue: beside that mod's tongue it is a second one. Every tick, not only on
+		;entry: a pass that was running as the yield began can repaint it. Free unless
+		;ours is up
+		RetractOwnAhegao()
 		;...but not for ever: this branch returns before FullExpressionPass, whose
 		;scene-gone test is the backstop for an AnimationEnd that never reached us.
 		;A face mute holds this branch for whole scenes, so make the test here too.
@@ -409,14 +410,22 @@ Bool Function FullExpressionPass()
 	;jaw gate: retry a suppressed tongue, or drop an active one whose mouth stayed closed
 	UpdateTongueJawGate()
 
-	;double-tongue guard: FHU equips its armor tongues on its own (inflation
-	;ahegao), which the MFEE morph tongue can't see - if one shows up while the
-	;MFEE tongue is painted, retract ours and let the armor tongue stand
-	;(unequipping FHU's would just fight its re-equip)
+	;double-tongue guard. AddTongue shows the MFEE morph OR the armor, never both, so
+	;what is left to catch is another mod's MFEE tongue-out or ahegao painted while
+	;ours is out: it takes over and ours goes, the same rule AddTongue applies before
+	;showing one (ForeignMFEETongue; unpainting another mod's morph would just fight
+	;its repaint). Another mod's ARMOR tongue is not seen here: EquippedTongue knows
+	;only SLO VE's ten (Fill Her Up's sit on slot 55); those reach us through
+	;expressions.ahegaoitems
 	bool tonguearmorworn = EquippedTongue()
-	if MFEEAddTongue && tonguearmorworn
-		printdebug("Double tongue: FHU armor tongue worn while MFEE tongue painted - retracting MFEE tongue")
+	if (MFEEAddTongue && tonguearmorworn) || ((MFEEAddTongue || tonguearmorworn) && ForeignMFEETongue())
+		if MFEEAddTongue && tonguearmorworn
+			printdebug("Double tongue: our MFEE tongue and an armor tongue of ours are both out - retracting the MFEE one")
+		else
+			printdebug("Double tongue: another mod's MFEE tongue or ahegao is painted - retracting ours")
+		endif
 		RemoveTongue()
+		tonguearmorworn = EquippedTongue()
 	endif
 
 	if IsUnconcious()
@@ -469,11 +478,9 @@ Bool Function FullExpressionPass()
 		if MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 100
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,100) ;ahegao 1
 		endif
-		;make sure tongue out and tongue down is not applied as ahegao already has tongue out and down
-		if MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,8,0) != 0 || MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,8,2) != 0
-			MuFacialExpressionExtended.SetExpressionByNumber(actorref,8,0,0) ;tongueout
-			MuFacialExpressionExtended.SetExpressionByNumber(actorref,8,2,0) ;tongue down
-		endif
+		;the ahegao has its own tongue out and down. Ours was retracted by the RemoveTongue
+		;that set MFEEAddAhegao, and AddTongue stays off while it is set, so a tongue morph
+		;painted now is another mod's: left to it (zeroing it every pass fought its repaint)
 		if MfgConsoleFunc.GetModifier(actorref, 11) != 50
 			MfgConsoleFunc.SetModifier(actorref, 11, ahegaolookupmodifier) ;look up 50
 		endif
@@ -490,11 +497,21 @@ Bool Function FullExpressionPass()
 		;the MFEE expression-0 ahegao painted on top here
 		;the ARMOR tongue is the primary tongue: while it is equipped we do NOT paint
 		;the MFEE ahegao (expression 0 carries its own tongue, which would double up).
-		if enableahegao == 1 && brokenface && HasMFEEVanillaRace && !EquippedTongue() && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 100
-			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,100) ;ahegao 1
-		elseif HasMFEEVanillaRace && (!brokenface || enableahegao != 1 || EquippedTongue()) && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0) != 0
+		;PaintedVanillaAhegao marks the ahegao as ours. One another mod painted (either
+		;mood ahegao) is neither painted over nor retracted here (the old retract zeroed
+		;it every pass, fighting that mod); it keeps our tongue off instead
+		;(ForeignMFEETongue). Ours found below 100 (a load: MFEE saves no morph; facefix)
+		;is painted again while the face calls for it
+		if enableahegao == 1 && brokenface && HasMFEEVanillaRace && !EquippedTongue()
+			int ahegaoval = MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,0)
+			if ahegaoval != 100 && (PaintedVanillaAhegao || (ahegaoval == 0 && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref,0,1) == 0))
+				MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,100) ;ahegao 1
+				PaintedVanillaAhegao = true
+			endif
+		elseif PaintedVanillaAhegao
 			;the broken face ended mid-scene, or the armor tongue took over - retract the
 			;painted ahegao (it otherwise persists until scene-end RevertExpression)
+			PaintedVanillaAhegao = false
 			MuFacialExpressionExtended.SetExpressionByNumber(actorref,0,0,0)
 		endif
 	endif
@@ -1058,8 +1075,9 @@ endfunction
 
 Bool Function EquippedTongue()
 	;semantic: a tongue is visibly OUT via worn armor. The tongue is equipped
-	;on demand (worn = shown), so ANY worn variant counts - ours, or one FHU
-	;equipped on its own (inflation ahegao) - via their shared worn slot
+	;on demand (worn = shown), so ANY of SLO VE's ten counts, the rolled one or
+	;another, via their shared worn slot (44). Another mod's tongue armor is not
+	;one of them: Fill Her Up's are other forms on slot 55
 	if FHUTongueShown
 		return true
 	endif
@@ -1141,6 +1159,13 @@ Function AddTongue()
 
 	if MFEEAddAhegao || wornMask != none || MouthOccupiedByPenis() || EnableTongue != 1 || HasDeviousGag(actorref) || IsUnconcious() || EquippedTongue()
 		printdebug("AddTongue: Conditions blocked tongue, exiting early.")
+		return
+	endif
+
+	;another mod's MFEE tongue-out or ahegao is painted on this face: ours would be a
+	;second tongue
+	if ForeignMFEETongue()
+		printdebug("AddTongue: another mod's MFEE tongue or ahegao is painted - leaving ours off.")
 		return
 	endif
 
@@ -1578,6 +1603,37 @@ bool Function ExternalAhegaoActive()
 	return WearingAhegaoItem() || AhegaoStorageKeyActive()
 EndFunction
 
+;Another mod has an MFEE tongue on this face: the tongue-out morph (expression 8 /
+;morph 0, TongueOut; Up / Down / Left ... only shape it) or a mood ahegao
+;(expression 0 / morph 0 MoodAhegao or morph 1 MoodAhegao2; MFEE's own modder example
+;paints both), which carries a tongue of its own. What SLO VE paints itself does not
+;count: the tongue morph while MFEEAddTongue is set, MoodAhegao while MFEEAddAhegao
+;(Erin / Elin) or PaintedVanillaAhegao is; SLO VE never paints MoodAhegao2. Three
+;natives at most; nothing to read without MFEE.
+bool Function ForeignMFEETongue()
+	if !HasMFEE && !HasMFEEVanillaRace
+		return false
+	endif
+	if !MFEEAddTongue && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref, 8, 0) > 0
+		return true
+	endif
+	if !MFEEAddAhegao && !PaintedVanillaAhegao && MuFacialExpressionExtended.GetExpressionValueByNumber(actorref, 0, 0) > 0
+		return true
+	endif
+	return MuFacialExpressionExtended.GetExpressionValueByNumber(actorref, 0, 1) > 0
+EndFunction
+
+;Take SLO VE's own MFEE ahegao off, either race; one another mod painted is that
+;mod's to clear. Free unless ours is up. The next full pass after a yield paints it
+;again if the face still calls for it
+Function RetractOwnAhegao()
+	if MFEEAddAhegao || PaintedVanillaAhegao
+		MFEEAddAhegao = false
+		PaintedVanillaAhegao = false
+		MuFacialExpressionExtended.SetExpressionByNumber(actorref, 0, 0, 0)
+	endif
+EndFunction
+
 ;True while this actor wears any configured ahegao item. Free when none are
 ;configured (AhegaoItemCount == 0), so it is safe to poll every OnUpdate.
 bool Function WearingAhegaoItem()
@@ -1738,6 +1794,7 @@ function resetexpressions()
 	endif
 	if hasmfee || HasMFEEVanillaRace
 		MuFacialExpressionExtended.RevertExpression(actorref)
+		PaintedVanillaAhegao = false
 	endif
 
 endfunction
@@ -1749,6 +1806,14 @@ int  EnabledMFEETongue = 0
 int EnabledMFEEAhegao = 0
 bool MFEEAddTongue = false
 bool MFEEAddAhegao = false
+;SLO VE painted the vanilla-race MFEE ahegao (expression 0 / morph 0) itself. Kept so
+;one another mod painted is never painted over, retracted or mistaken for ours (see
+;FullExpressionPass, ForeignMFEETongue, RetractOwnAhegao). Per instance, no StorageUtil
+;copy: MFEE saves no morph, so after a load the face is bare and ours is repainted, and
+;marked again, while the face calls for it. An ahegao of ours that a lost teardown
+;left painted looks foreign to the next scene, which then shows no tongue of ours; that
+;scene's end-of-scene RevertExpression clears it
+bool PaintedVanillaAhegao = false
 int ahegaophonemebigaah
 int tonguephonemebigaah
 int tonguephonemeoh
@@ -1905,8 +1970,8 @@ Armor Function CarriedTongue()
 EndFunction
 
 ;all ten tongue variants and their shared biped slot mask, cached once so
-;EquippedTongue can also spot a tongue another mod equipped (e.g. FHU's own
-;inflation ahegao), or a different variant than the one we rolled. Names keep
+;EquippedTongue can also spot a different variant than the one we rolled (another
+;mod's tongues are other forms, Fill Her Up's on slot 55, and are not seen). Names keep
 ;the FHU* prefix for save-compat (renaming a script member breaks saves)
 Form[] FHUAllTongues
 int FHUTongueSlotMask = 0
