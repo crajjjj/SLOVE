@@ -137,7 +137,9 @@ Int Function Restore(Actor akActor) Global
 		int i = 0
 		while i < n
 			Form item = StorageUtil.FormListGet(akActor, "SLOVE_StripItems", i)
-			if item && akActor.GetItemCount(item) > 0 && !akActor.IsEquipped(item)
+			;an armor-swap stand-in stays off: the swap's own restore, which runs right
+			;after this, puts the original on and takes the stand-in away
+			if item && akActor.GetItemCount(item) > 0 && !akActor.IsEquipped(item) && !SLOVE_Utils.IsArmorSwapStandIn(akActor, item)
 				akActor.EquipItemEx(item, 0, false, false)
 				put += 1
 			endif

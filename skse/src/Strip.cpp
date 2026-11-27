@@ -6,6 +6,18 @@ namespace Strip
 	{
 		using namespace Core::Strip;
 
+		// Set for the length of Describe (the console command): every shape looked at
+		// goes into SLOVE.log with what was read from it and why it was skipped.
+		thread_local bool t_trace = false;
+
+		template <class... Args>
+		void Trace(std::format_string<Args...> a_fmt, Args&&... a_args)
+		{
+			if (t_trace) {
+				logger::info("strip: {}", std::format(a_fmt, std::forward<Args>(a_args)...));
+			}
+		}
+
 		Xform ToXform(const RE::NiTransform& a_t)
 		{
 			Xform out;
@@ -40,36 +52,49 @@ namespace Strip
 		// checked: a shape we cannot read simply counts for nothing.
 		void CountShape(RE::BSGeometry* a_geometry, float a_reach, Counts& a_out)
 		{
-			if (!a_geometry || a_geometry->GetAppCulled()) {
+			if (!a_geometry) {
 				return;
 			}
-			if (StartsWithNoCase(a_geometry->name.c_str(), "Virtual"sv)) {
+			const char* shapeName = a_geometry->name.c_str();
+			if (a_geometry->GetAppCulled()) {
+				Trace("  shape '{}': culled, skipped", shapeName);
+				return;
+			}
+			if (StartsWithNoCase(shapeName, "Virtual"sv)) {
+				Trace("  shape '{}': collision proxy, skipped", shapeName);
 				return;  // an HDT-SMP collision proxy, never drawn
 			}
 			if (IsSkinShape(a_geometry)) {
+				Trace("  shape '{}': skin shader, skipped", shapeName);
 				return;
 			}
 
 			// held for the length of the read: the 3D can be rebuilt on another thread
 			const RE::NiPointer<RE::NiSkinInstance> skin = a_geometry->GetGeometryRuntimeData().skinInstance;
 			if (!skin) {
+				Trace("  shape '{}': not skinned, skipped", shapeName);
 				return;  // a rigid part hangs on one node; its place is not known from a bind
 			}
 			const RE::NiPointer<RE::NiSkinData>      data = skin->skinData;
 			const RE::NiPointer<RE::NiSkinPartition> partition = skin->skinPartition;
 			if (!data || !partition || !skin->bones || partition->numPartitions == 0) {
+				Trace("  shape '{}': skin without data ({}) / partition ({}) / bones ({}), skipped", shapeName,
+					data != nullptr, partition != nullptr, skin->bones != nullptr);
 				return;
 			}
 			// every partition holds the whole vertex buffer; the first is the master copy
 			auto&       first = partition->partitions[0];
 			const auto* buffer = first.buffData;
 			if (!buffer || !buffer->rawVertexData || partition->vertexCount == 0) {
+				Trace("  shape '{}': no vertex buffer (partitions {}, buffer {}, raw {}, vertices {}), skipped", shapeName,
+					partition->numPartitions, buffer != nullptr, buffer && buffer->rawVertexData, partition->vertexCount);
 				return;
 			}
 
 			// the buffer's own description of its vertices
 			auto desc = buffer->vertexDesc;
 			if (!desc.HasFlag(RE::BSGraphics::Vertex::VF_VERTEX)) {
+				Trace("  shape '{}': vertices without positions (flags {:03X}), skipped", shapeName, static_cast<std::uint32_t>(desc.GetFlags()));
 				return;
 			}
 			ShapeView shape;
@@ -105,7 +130,38 @@ namespace Strip
 			}
 			shape.boneZones = boneZones;
 
-			Count(shape, a_reach, a_out);
+			Counts own;
+			Count(shape, a_reach, own);
+			a_out.Add(own);
+
+			if (t_trace) {
+				Vec3 firstVertex;
+				std::memcpy(&firstVertex, shape.vertices, sizeof(firstVertex));
+				auto partDesc = first.vertexDesc;
+				Trace("  shape '{}': {} vertices, stride {}, flags {:03X} (partition's {:03X}, stride {}), skin at {}, {} bones, first vertex {:.2f} {:.2f} {:.2f}",
+					shapeName, shape.count, shape.stride, static_cast<std::uint32_t>(desc.GetFlags()),
+					static_cast<std::uint32_t>(partDesc.GetFlags()), partDesc.GetSize(), shape.skinOffset, bones,
+					firstVertex.x, firstVertex.y, firstVertex.z);
+				for (const auto& [label, anchor] : { std::pair{ "pelvis", shape.pelvis }, std::pair{ "spine2", shape.spine2 }, std::pair{ "head", shape.head } }) {
+					if (anchor) {
+						const Vec3 at = Apply(*anchor, firstVertex);
+						Trace("    {} bind: t {:.2f} {:.2f} {:.2f} scale {:.3f} rot {:.2f} {:.2f} {:.2f} / {:.2f} {:.2f} {:.2f} / {:.2f} {:.2f} {:.2f}; first vertex there {:.2f} {:.2f} {:.2f}",
+							label, anchor->t.x, anchor->t.y, anchor->t.z, anchor->scale,
+							anchor->rot[0][0], anchor->rot[0][1], anchor->rot[0][2], anchor->rot[1][0], anchor->rot[1][1], anchor->rot[1][2],
+							anchor->rot[2][0], anchor->rot[2][1], anchor->rot[2][2], at.x, at.y, at.z);
+					}
+				}
+				std::string names;
+				for (std::uint32_t b = 0; b < bones && b < 12; ++b) {
+					names += std::format("{}'{}'", b ? ", " : "", skin->bones[b] ? skin->bones[b]->name.c_str() : "(null)");
+				}
+				Trace("    bones: {}{}", names, bones > 12 ? ", ..." : "");
+				for (int z = 0; z < kZoneCount; ++z) {
+					if (own.weighted[z] || own.reached[z]) {
+						Trace("    {}: {} weighted, {} in reach", kZones[z].name, own.weighted[z], own.reached[z]);
+					}
+				}
+			}
 		}
 
 		// Why an armor is left alone no matter what it covers; nullptr = it may go.
@@ -150,6 +206,8 @@ namespace Strip
 				continue;
 			}
 			const RE::NiPointer<RE::NiAVObject> part = object.partClone;
+			Trace("biped slot {}: '{}' [{:08X}], part {}", slot + 30, armor->GetName() ? armor->GetName() : "", armor->GetFormID(),
+				part ? part->name.c_str() : "(none)");
 			if (!part) {
 				continue;
 			}
@@ -218,7 +276,11 @@ namespace Strip
 	std::vector<std::string> Describe(RE::Actor* a_actor, float a_reach, std::uint32_t a_keepSlots)
 	{
 		std::vector<std::string> out;
-		for (const auto& item : Survey(a_actor, a_reach, a_keepSlots)) {
+		t_trace = true;
+		Trace("survey of '{}', reach {:.2f}", a_actor ? a_actor->GetDisplayFullName() : "(none)", a_reach);
+		const auto items = Survey(a_actor, a_reach, a_keepSlots);
+		t_trace = false;
+		for (const auto& item : items) {
 			if (item.kept && std::string_view{ item.kept } == "skin"sv) {
 				continue;
 			}

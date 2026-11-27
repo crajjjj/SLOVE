@@ -593,6 +593,13 @@ EndFunction
 ;Put the actor into the scene versions of what they wear. Returns how many
 ;armors were exchanged, and 0 when a swap is already written on the actor: a
 ;scene picked up again after a game load must not swap the stand-ins in turn.
+;Is this form a stand-in the armor swap put on this actor (and has not taken back)?
+;For procedural stripping: a stand-in it took off is not put back on at scene end,
+;because RestoreArmor is about to exchange it for the original anyway.
+Bool Function IsArmorSwapStandIn(Actor a, Form akItem) Global
+	return a != None && akItem != None && StorageUtil.FormListHas(a, "SLOVE_ArmorSwapStandIn", akItem)
+EndFunction
+
 Int Function SwapArmor(Actor a) Global
 	if a == None || ArmorSwapCount(a) > 0
 		return 0
