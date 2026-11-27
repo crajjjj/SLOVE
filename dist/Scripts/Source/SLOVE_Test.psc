@@ -426,6 +426,58 @@ Function ArmorSwap() Global
 	MiscUtil.PrintConsole("SLOVE armorswap: " + swapped + " armor(s) swapped. Run it again to put them back. Scenes swap by themselves only with director.enablearmorswap = 1 (it is " + SLOVE_Config.GetInt("director.enablearmorswap", 0) + ").")
 EndFunction
 
+;Procedural stripping without a scene: what does SLOVE.dll make of the armors the
+;crosshair actor (else the player) wears? One line per armor - vertices weighted
+;to a zone's bones (w) and within strip.reach of it (n), * where that counts as
+;covering. With a zone (vagina, anus, penis, breasts, mouth, all) those armors come off;
+;"back" puts them on again.
+Function Strip(String zone) Global
+	if !SLOVE_Strip.Available()
+		MiscUtil.PrintConsole("SLOVE strip: needs SLOVE.dll 0.7.17 or newer.")
+		return
+	endif
+	Actor who = Game.GetCurrentCrosshairRef() as Actor
+	if !who
+		who = Game.GetPlayer()
+	endif
+	if zone == "back"
+		int put = SLOVE_Strip.Restore(who)
+		MiscUtil.PrintConsole("SLOVE strip: " + put + " item(s) put back on " + who.GetDisplayName() + ".")
+		return
+	endif
+	float reach = SLOVE_Config.GetFloat("strip.reach", 3.0)
+	int keep = SLOVE_Strip.SlotMask(SLOVE_Config.GetString("strip.keepslots", ""))
+	MiscUtil.PrintConsole("SLOVE strip: " + who.GetDisplayName() + ", reach " + reach + " (strip.enable is " + SLOVE_Config.GetInt("strip.enable", 0) + ")")
+	String[] lines = SLOVE_Strip.DescribeWorn(who, reach, keep)
+	if !lines
+		MiscUtil.PrintConsole("  no armor found on the loaded body (naked, or the 3D is not loaded)")
+	else
+		int i = 0
+		while i < lines.Length
+			MiscUtil.PrintConsole("  " + lines[i])
+			i += 1
+		endwhile
+	endif
+	int zones = 0
+	if zone == "vagina"
+		zones = 1
+	elseif zone == "anus"
+		zones = 2
+	elseif zone == "penis"
+		zones = 4
+	elseif zone == "breasts"
+		zones = 8
+	elseif zone == "mouth"
+		zones = 16
+	elseif zone == "all"
+		zones = 31
+	endif
+	if zones != 0
+		int took = SLOVE_Strip.Uncover(who, zones, reach, keep, true)
+		MiscUtil.PrintConsole("SLOVE strip: " + took + " item(s) taken off for '" + zone + "'. slovetest strip back puts them on again (a zone is worked once until then).")
+	endif
+EndFunction
+
 ;List every actor that has a mute written on it (SLOVE_Mute_* events), with what
 ;is written and whether it is in force - a mute that has run out stays written
 ;until it is lifted or the game is loaded.

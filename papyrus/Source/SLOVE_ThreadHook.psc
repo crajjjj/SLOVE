@@ -1,28 +1,48 @@
 ScriptName SLOVE_ThreadHook extends SexLabThreadHook
-{P+ SexLab thread hook - now INERT. It formerly preloaded the FHU tongue armors in
- SexLab's DETERMINISTIC pre-strip window (OnAnimationStarting = HOOKID_STARTING, which
- fires inside StartThread() before UndressAndStripActors(), so an AddItem here beat the
- strip and any add-triggered NPC redress was cleaned up by it). That bulk pre-add was
- retired in 0.4.6: the player's single rolled tongue is now pre-added by
- SLOVE_Expressions.InitializeAddNPCTongue, and NPCs auto-add their tongue on the
- mid-scene EquipItem - so nothing needs the guaranteed pre-strip window anymore.
+{P+ SexLab thread hook. OnAnimationStarting = HOOKID_STARTING fires inside
+ StartThread() before UndressAndStripActors(): the one deterministic window before
+ SexLab strips.
 
- The script is KEPT (registered as a live SexLabThreadHook, bound to the shared
- SLOVE.esp alias) rather than deleted: removing a registered thread hook and its alias
- mid-playthrough CTDs existing saves. Emptying the body is the save-safe way to retire
- it. If a future feature again needs the guaranteed pre-strip window, it goes here.
+ Since 0.7.17 it serves procedural stripping (strip.enable + strip.replacesexlab):
+ for a scene the player is in, every position gets a custom strip of "no armor,
+ weapons only", so SexLab's scene-start strip leaves the clothes on and
+ SLOVE_Director's StripPass takes off what an act needs when it begins. NPC-only
+ scenes are left to SexLab.
 
- P+ ONLY. Classic SexLab SE 1.63 has no SexLabThreadHook (and no tongues) - the
- classic variant ships an inert stub of this script that extends ReferenceAlias and
- does nothing, so the shared SLOVE.esp alias binds cleanly on both.}
+ History: it preloaded the FHU tongue armors here until 0.4.6 (the player's single
+ rolled tongue is now pre-added by SLOVE_Expressions.InitializeAddNPCTongue, NPCs
+ auto-add theirs on the mid-scene EquipItem) and was an empty body from then to
+ 0.7.16. It was kept all along, registered and bound to the shared SLOVE.esp alias:
+ removing a registered thread hook and its alias mid-playthrough CTDs existing saves.
+
+ P+ ONLY. Classic SexLab SE 1.63 has no SexLabThreadHook - the classic variant ships
+ an inert stub of this script that extends ReferenceAlias and does nothing, so the
+ shared SLOVE.esp alias binds cleanly on both. Classic users lower SexLab's own
+ strip options instead.}
 
 SLOVE_Director MasterScript ;SAVE-COMPAT: unused since the preload retired; retained so the script layout matches saves made on the 0.4.6-dev blocking-hook build
 Actor PlayerRef             ;SAVE-COMPAT: as above
 
-; Retained as the hook's entry point (empty). OnAnimationStarting = HOOKID_STARTING:
-; all thread data is set, before the active animation is chosen and before the strip -
-; the one guaranteed pre-strip window, kept available for any future need. The base
-; SexLabThreadHook auto-registers this on init, so there is no OnInit override.
+; The hook's entry point. It BLOCKS the thread, so it leaves on the first line for
+; a scene without the player and does nothing slow: settings are cache reads.
+; The base SexLabThreadHook auto-registers this on init, so there is no OnInit override.
 Function OnAnimationStarting(SexLabThread akThread)
-
+	if !akThread || !akThread.HasPlayer()
+		return
+	endif
+	if SLOVE_Config.GetInt("strip.enable", 0) != 1 || SLOVE_Config.GetInt("strip.replacesexlab", 1) != 1
+		return
+	endif
+	if !SLOVE_Strip.Available()
+		return ;an old SLOVE.dll finds no armor: leave SexLab's strip alone
+	endif
+	Actor[] cast = akThread.GetPositions()
+	int i = 0
+	while i < cast.Length
+		if cast[i]
+			;slots 0 = no armor, weapons still go; false = not now, at SexLab's own strip
+			akThread.SetCustomStrip(cast[i], 0, true, false)
+		endif
+		i += 1
+	endwhile
 EndFunction

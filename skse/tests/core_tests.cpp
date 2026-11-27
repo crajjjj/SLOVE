@@ -8,11 +8,13 @@
 #include "core/Labels.h"
 #include "core/Model.h"
 #include "core/Schema.h"
+#include "core/Strip.h"
 #include "core/Thrust.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -842,6 +844,248 @@ namespace
 		own.Reset();
 		Check(own.Feed(absent, 4.0f, 1.0).beat == Beat::None, "after the receiver ends the watch starts over");
 	}
+
+	// ---------- procedural stripping (core/Strip.h) ----------
+
+	// One vertex in the engine's layout for a skinned shape without colours:
+	// position (16 bytes), uv (4), normal (4), tangent (4), then 4 half weights
+	// and 4 byte bone indices at offset 28. 40 bytes.
+	constexpr std::uint32_t kStripStride = 40;
+	constexpr std::int32_t  kStripSkinAt = 28;
+
+	std::uint16_t Half(float a_value)
+	{
+		// the few values the tests use
+		if (a_value == 0.0f) {
+			return 0x0000;
+		}
+		if (a_value == 1.0f) {
+			return 0x3C00;
+		}
+		if (a_value == 0.5f) {
+			return 0x3800;
+		}
+		if (a_value == 0.25f) {
+			return 0x3400;
+		}
+		return 0x2A66;  // 0.05 (0.049988)
+	}
+
+	void PutVertex(std::vector<std::uint8_t>& a_buffer, Strip::Vec3 a_at, std::uint8_t a_bone, float a_weight,
+		std::uint8_t a_bone2 = 0, float a_weight2 = 0.0f)
+	{
+		const auto at = a_buffer.size();
+		a_buffer.resize(at + kStripStride, 0);
+		std::memcpy(a_buffer.data() + at, &a_at, sizeof(a_at));
+		const std::uint16_t halves[4] = { Half(a_weight), Half(a_weight2), 0, 0 };
+		const std::uint8_t  bones[4] = { a_bone, a_bone2, 0, 0 };
+		std::memcpy(a_buffer.data() + at + kStripSkinAt, halves, sizeof(halves));
+		std::memcpy(a_buffer.data() + at + kStripSkinAt + sizeof(halves), bones, sizeof(bones));
+	}
+
+	Strip::ShapeView StripShape(const std::vector<std::uint8_t>& a_buffer, const std::vector<std::uint8_t>& a_boneZones)
+	{
+		Strip::ShapeView shape;
+		shape.vertices = a_buffer.data();
+		shape.count = static_cast<std::uint32_t>(a_buffer.size() / kStripStride);
+		shape.stride = kStripStride;
+		shape.skinOffset = kStripSkinAt;
+		shape.boneZones = a_boneZones;
+		return shape;
+	}
+
+	void TestStrip()
+	{
+		using namespace Strip;
+
+		// bone names, as the bodies spell them
+		Check(BoneZones("NPC L Pussy02") == kVagina, "a labia bone is the vagina zone");
+		Check(BoneZones("VaginaB1") == kVagina && BoneZones("Clitoral1") == kVagina && BoneZones("Vagina_L 1") == kVagina,
+			"the vagina bones of every body");
+		Check(BoneZones("NPC LB Anus2") == kAnus && BoneZones("Anus_Top_L 1") == kAnus, "anus bones");
+		Check(BoneZones("NPC GenitalsBase [GenBase]") == kPenis, "the genital base is the penis zone, not the shaft");
+		Check(BoneZones("NPC Genitals02 [Gen02]") == kPenis, "the second genital bone still lies at the body");
+		Check(BoneZones("NPC Genitals03 [Gen03]") == (kPenis | kShaftBone), "from the third bone on it is the shaft");
+		Check(BoneZones("npc genitals05 [gen05]") == (kPenis | kShaftBone), "names compare without case");
+		Check(BoneZones("L Breast02") == kBreasts && BoneZones("NPC R Breast") == kBreasts, "breast bones");
+		Check(BoneZones("CME BreastMagic L") == 0, "the spell-casting node on the chest is not a breast bone");
+		Check(BoneZones("tong1 3") == kTongueBone, "a tongue chain bone marks a tongue");
+		Check(BoneZones("NPC Head [Head]") == 0, "the head bone is no zone: the mouth has no bones");
+		Check(BoneZones("NPC Pelvis [Pelv]") == 0 && BoneZones("NPC L Thigh [LThg]") == 0, "the pelvis and a thigh are no zone");
+
+		Check(HalfToFloat(0x3C00) == 1.0f && HalfToFloat(0x3800) == 0.5f && HalfToFloat(0x0000) == 0.0f, "half floats decode");
+		Check(std::abs(HalfToFloat(0x2A66) - 0.05f) < 0.001f, "a small half float decodes");
+		Check(HalfToFloat(0x0001) > 0.0f && HalfToFloat(0x0001) < 1e-6f, "a subnormal half float decodes");
+
+		// bones: 0 pelvis, 1 labia, 2 anus, 3 shaft, 4 breast
+		const std::vector<std::uint8_t> zones{ 0, kVagina, kAnus, static_cast<std::uint8_t>(kPenis | kShaftBone), kBreasts };
+		const Vec3                      away{ 0.0f, 0.0f, 60.0f };
+
+		// weights: enough vertices on a zone's bone cover it, however far from the probe
+		{
+			std::vector<std::uint8_t> buffer;
+			for (int i = 0; i < 4; ++i) {
+				PutVertex(buffer, away, 1, 0.5f, 0, 0.5f);
+			}
+			PutVertex(buffer, away, 2, 1.0f);  // one stray anus vertex
+			Counts counts;
+			Count(StripShape(buffer, zones), 3.0f, counts);
+			Check(counts.weighted[0] == 4 && counts.weighted[1] == 1, "vertices are counted per zone by their bones");
+			Check(Covered(counts) == kVagina, "four weighted vertices cover a zone, one does not");
+			Check(!IsShaft(counts), "no shaft weights, no schlong");
+		}
+		// a weight under the threshold is the faint edge of a copied weight
+		{
+			std::vector<std::uint8_t> buffer;
+			for (int i = 0; i < 8; ++i) {
+				PutVertex(buffer, away, 0, 1.0f, 1, 0.05f);
+			}
+			Counts counts;
+			Count(StripShape(buffer, zones), 3.0f, counts);
+			Check(Covered(counts) == 0, "a weight under the threshold does not count");
+		}
+		// the second weight of a vertex counts like the first
+		{
+			std::vector<std::uint8_t> buffer;
+			for (int i = 0; i < 4; ++i) {
+				PutVertex(buffer, away, 0, 0.5f, 4, 0.5f);
+			}
+			Counts counts;
+			Count(StripShape(buffer, zones), 3.0f, counts);
+			Check(Covered(counts) == kBreasts, "any of a vertex's weights can place it in a zone");
+		}
+		// shaft weights mark a schlong
+		{
+			std::vector<std::uint8_t> buffer;
+			for (int i = 0; i < 6; ++i) {
+				PutVertex(buffer, away, 3, 1.0f);
+			}
+			Counts counts;
+			Count(StripShape(buffer, zones), 3.0f, counts);
+			Check(IsShaft(counts), "a shape weighted to the shaft bones is a schlong or a strap-on");
+		}
+		// a bone index past the list is ignored, not read
+		{
+			std::vector<std::uint8_t> buffer;
+			for (int i = 0; i < 4; ++i) {
+				PutVertex(buffer, away, 200, 1.0f);
+			}
+			Counts counts;
+			Count(StripShape(buffer, zones), 3.0f, counts);
+			Check(Covered(counts) == 0, "a bone index outside the skin's list counts for nothing");
+		}
+
+		// reach: a pelvis-only mesh is placed by where it lies on the pelvis
+		{
+			const std::vector<std::uint8_t> pelvisOnly{ 0 };
+			Xform                           bind;  // skin space is 10 units above pelvis space
+			bind.t = { 0.0f, 0.0f, -10.0f };
+
+			std::vector<std::uint8_t> buffer;
+			for (int i = 0; i < 4; ++i) {
+				// the vaginal probe is (0.07, -1.37, -3.34) on the pelvis: 1 unit in front of it
+				PutVertex(buffer, { 0.07f, -0.37f, 6.66f }, 0, 1.0f);
+			}
+			auto shape = StripShape(buffer, pelvisOnly);
+			shape.pelvis = &bind;
+
+			Counts within;
+			Count(shape, 3.0f, within);
+			Check((Covered(within) & kVagina) != 0, "vertices within reach of the opening cover it");
+			Check((Covered(within) & kBreasts) == 0, "a zone on another anchor is not judged from the pelvis");
+
+			Counts tight;
+			Count(shape, 0.5f, tight);
+			Check(Covered(tight) == 0, "a shorter reach leaves the same vertices out");
+
+			Counts weightsOnly;
+			Count(shape, 0.0f, weightsOnly);
+			Check(Covered(weightsOnly) == 0, "reach 0 is bone weights only");
+
+			shape.pelvis = nullptr;
+			Counts unanchored;
+			Count(shape, 3.0f, unanchored);
+			Check(Covered(unanchored) == 0, "a shape not skinned to the anchor bone cannot be placed");
+		}
+		// the bind's scale and rotation are applied (a mesh modelled in another space)
+		{
+			const std::vector<std::uint8_t> pelvisOnly{ 0 };
+			Xform                           bind;  // quarter turn about z, half scale: (x, y, z) -> (-y, x, z) / 2
+			bind.rot[0][0] = 0.0f;
+			bind.rot[0][1] = -1.0f;
+			bind.rot[1][0] = 1.0f;
+			bind.rot[1][1] = 0.0f;
+			bind.scale = 0.5f;
+			std::vector<std::uint8_t> buffer;
+			for (int i = 0; i < 4; ++i) {
+				// lands on the anus probe (0, -4.95, -1.17)
+				PutVertex(buffer, { -9.9f, 0.0f, -2.34f }, 0, 1.0f);
+			}
+			auto shape = StripShape(buffer, pelvisOnly);
+			shape.pelvis = &bind;
+			Counts counts;
+			Count(shape, 0.5f, counts);
+			Check(Covered(counts) == kAnus, "the bind transform places a vertex on the anchor bone");
+		}
+		// the chest reaches one and a half times as far
+		{
+			const std::vector<std::uint8_t> spineOnly{ 0 };
+			const Xform                     bind;
+			std::vector<std::uint8_t>       buffer;
+			for (int i = 0; i < 4; ++i) {
+				PutVertex(buffer, { 5.45f, 7.83f, 6.54f + 4.0f }, 0, 1.0f);  // 4 units above a breast probe
+			}
+			auto shape = StripShape(buffer, spineOnly);
+			shape.spine2 = &bind;
+			Counts counts;
+			Count(shape, 3.0f, counts);
+			Check(Covered(counts) == kBreasts, "the chest zone uses a wider reach");
+		}
+		// the mouth: placed on the head bone only; a tongue lying in it is a tongue
+		{
+			const std::vector<std::uint8_t> headAndTongue{ 0, kTongueBone };
+			const Xform                     bind;
+			std::vector<std::uint8_t>       mask;
+			std::vector<std::uint8_t>       tongue;
+			for (int i = 0; i < 4; ++i) {
+				PutVertex(mask, { 0.0f, 10.3f, -3.9f }, 0, 1.0f);  // 1.5 units in front of the teeth
+				PutVertex(tongue, { 0.0f, 9.0f, -4.2f }, 1, 1.0f);
+			}
+			auto shape = StripShape(mask, headAndTongue);
+			shape.head = &bind;
+			Counts counts;
+			Count(shape, 3.0f, counts);
+			Check(Covered(counts) == kMouth && !IsTongue(counts), "a mask in front of the mouth covers it");
+
+			auto lolling = StripShape(tongue, headAndTongue);
+			lolling.head = &bind;
+			Counts tongueCounts;
+			Count(lolling, 3.0f, tongueCounts);
+			Check((Covered(tongueCounts) & kMouth) != 0 && IsTongue(tongueCounts), "a tongue lies in the mouth and is known as a tongue");
+
+			std::vector<std::uint8_t> brow;
+			for (int i = 0; i < 4; ++i) {
+				PutVertex(brow, { 0.0f, 9.0f, 3.0f }, 0, 1.0f);  // a circlet on the forehead
+			}
+			auto circlet = StripShape(brow, headAndTongue);
+			circlet.head = &bind;
+			Counts browCounts;
+			Count(circlet, 3.0f, browCounts);
+			Check(Covered(browCounts) == 0, "what sits on the forehead does not cover the mouth");
+		}
+		// broken input is counted as nothing
+		{
+			Counts counts;
+			Count(ShapeView{}, 3.0f, counts);
+			std::vector<std::uint8_t> buffer(8, 0);
+			ShapeView                 shortVertex;
+			shortVertex.vertices = buffer.data();
+			shortVertex.count = 1;
+			shortVertex.stride = 8;
+			Count(shortVertex, 3.0f, counts);
+			Check(Covered(counts) == 0, "an empty or malformed shape covers nothing");
+		}
+	}
 }
 
 int main(int argc, char** argv)
@@ -859,6 +1103,7 @@ int main(int argc, char** argv)
 
 	TestLabels();
 	TestThrust();
+	TestStrip();
 	TestLiterals();
 	TestDocument(original);
 	TestSchema(dir, original);

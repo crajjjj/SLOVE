@@ -121,3 +121,12 @@ subs:
         type: int
         required: true
         help: 1-100 = that willpower (lifts a break), 0 = broken for the configured hours
+  - name: Strip
+    alias: strip
+    func: Strip
+    help: Procedural stripping on the crosshair actor (else the player) - list what each worn armor covers, and with a zone take those armors off
+    args:
+      - name: zone
+        type: String
+        default: ""
+        help: vagina, anus, penis, breasts, mouth or all = take off what covers it; back = put it on again; empty = only list

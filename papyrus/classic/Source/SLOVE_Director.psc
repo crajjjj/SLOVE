@@ -125,6 +125,7 @@ Function ReconcileSceneOnLoad()
 		;when this stamp moves; between player scenes nothing else acts on it
 		IdleLabelStamp -= 1.0
 		LastLabelUpdateTime = IdleLabelStamp
+		SLOVE_Strip.RestoreAll() ;procedural stripping left over from a scene whose end the save never saw
 		return ;wasn't tracking a scene when the save was made - nothing was dropped
 	endif
 	;SexLab restores its threads slightly after the load event fires; give it a
@@ -535,6 +536,7 @@ Function InitializeDirectorConfigs()
 	enablenpcscenes = SLOVE_Config.GetInt("director.enablenpcscenes", 1)
 	npcscenedistance = SLOVE_Config.GetFloat("director.npcscenedistance", 2048.0)
 	maxnpcscenes = SLOVE_Config.GetInt("director.maxnpcscenes", 3)
+	InitializeStripConfig()
 	printdebug(" enablenpcscenes :" + enablenpcscenes + " npcscenedistance :" + npcscenedistance + " maxnpcscenes :" + maxnpcscenes)
 
 	printdebug(" enablevoice :" + enablevoice)
@@ -748,6 +750,7 @@ Function AdoptScene()
 	PCPosition = CurrentThread.Positions.Find(Playerref)
 	;SLO VE: no foreplay / linear-scene / custom-scene / orgasm choreography - dropped
 	PlayerInScene = true
+	StripReset = true ;procedural stripping: per-position state starts over
 	UpdateLabelsArr()
 	;initialize variables
 	PCisAggressor = PCisAggressor()
@@ -884,6 +887,7 @@ Function DirectorEndScene()
 	if removeTongues
 		RemoveTongueItems()
 	endif
+	StripSceneEnd() ;before the armor swap goes back: a stripped stand-in is re-equipped, then exchanged
 	RestoreSceneArmor()
 
 	SendModEvent("SLOVE_SceneEnd", endedThreadID as string)
@@ -967,6 +971,285 @@ Function RestoreSceneArmor()
 	endif
 EndFunction
 
+;-------- procedural stripping ([strip]; SLOVE_Strip is the framework-free half) --------
+;Take off only what lies on the body zone an act uses, when the act begins, and
+;put it back at scene end. SLOVE.dll names the armors (it reads the worn meshes),
+;SLOVE_Strip unequips and remembers them; this block decides WHEN, once per
+;update tick, for every position of the player's scene:
+;  - a zone Accurate Penetration measures something in comes off at once
+;  - a zone the stage's labels name comes off when any contact is measured in the
+;    scene (PPA depth, or the framework's own contact detector), or after
+;    strip.contactwait seconds of the stage without one, or at stage start when
+;    nothing can measure (and with contactwait = 0)
+;A zone is worked once per actor per scene; nothing goes back on before the end.
+;Everything from here to "procedural stripping, the framework's part" is the same
+;in both variants: edit both together.
+int stripenable
+float stripreach
+float stripcontactwait
+int stripbreasts
+int stripmouth
+int stripredress
+int stripkeepslots ;slot mask from strip.keepslots
+bool StripReset ;a scene was adopted: the three per-position arrays below start over
+Actor[] StripCast ;who the per-position entries were made for
+int[] StripDone ;zones handled this scene (the actor's SLOVE_StripZones key, cached); -1 = never strip this position
+int[] StripAnatomy ;0 not asked, 1 has a penis, -1 has none, 2 wears the framework's strap-on
+
+Function InitializeStripConfig()
+	stripenable = SLOVE_Config.GetInt("strip.enable", 0)
+	if stripenable == 1 && !SLOVE_Strip.Available()
+		stripenable = 0
+		SLOVE_Utils.WritetoErrorlogs("Director", "strip.enable = 1 needs SLOVE.dll 0.7.17 or newer - procedural stripping is off. Reinstall SLO VE (the DLL is in its Core files).")
+	endif
+	stripreach = SLOVE_Config.GetFloat("strip.reach", 3.0)
+	if stripreach < 0.0
+		stripreach = 0.0
+	endif
+	stripcontactwait = SLOVE_Config.GetFloat("strip.contactwait", 5.0)
+	stripbreasts = SLOVE_Config.GetInt("strip.breasts", 1)
+	stripmouth = SLOVE_Config.GetInt("strip.mouth", 1)
+	stripredress = SLOVE_Config.GetInt("strip.redress", 1)
+	stripkeepslots = SLOVE_Strip.SlotMask(SLOVE_Config.GetString("strip.keepslots", ""))
+	printdebug(" strip enable :" + stripenable + " reach :" + stripreach + " contactwait :" + stripcontactwait + " breasts :" + stripbreasts + " mouth :" + stripmouth + " redress :" + stripredress + " keepslots mask :" + stripkeepslots)
+EndFunction
+
+;What the labels of position z call for, as SLOVE_Strip zone bits plus 32 = "this
+;position's own genitals" (StripResolve turns that into the penis or the vagina
+;zone). Own variables only: no call leaves the script.
+int Function StripLabelZones(int z)
+	if z >= PenetrationLabelarr.Length || z >= PenisActionLabelarr.Length || z >= Stimulationlabelarr.Length || z >= OralLabelarr.Length
+		return 0
+	endif
+	int zones = 0
+	string pen = PenetrationLabelarr[z]
+	if pen == "SVP" || pen == "FVP" || pen == "SCG" || pen == "FCG" || pen == "SDP" || pen == "FDP"
+		zones += 1
+	endif
+	if pen == "SAP" || pen == "FAP" || pen == "SAC" || pen == "FAC" || pen == "SDP" || pen == "FDP"
+		zones += 2
+	endif
+	;every penis action label is this position's own penis in use (DV DA MF HJ FJ
+	;TF), every stimulation label its genitals being licked, fingered or fisted
+	string act = PenisActionLabelarr[z]
+	string stim = Stimulationlabelarr[z]
+	if (act != "" && act != "LDI") || stim == "SST" || stim == "FST" || stim == "BST"
+		zones += 32
+	endif
+	;a mouth at work: blowjob, cunnilingus, rimjob. Not a kiss (KIS), which would
+	;pull a helmet for a peck. A tongue in that mouth is never taken (the DLL knows one).
+	if stripmouth == 1
+		string oral = OralLabelarr[z]
+		if oral == "SBJ" || oral == "FBJ" || oral == "CUN" || oral == "RIM"
+			zones += 16
+		endif
+	endif
+	;the chest of whoever gives the titfuck: position 0, as ActorIsgivingtitfuck reads it
+	if stripbreasts == 1 && z == 0
+		int other = 1
+		while other < PenisActionLabelarr.Length
+			if PenisActionLabelarr[other] == "STF" || PenisActionLabelarr[other] == "FTF"
+				zones += 8
+				other = PenisActionLabelarr.Length
+			endif
+			other += 1
+		endwhile
+	endif
+	return zones
+EndFunction
+
+;What Accurate Penetration measures inside this actor right now. Cache reads.
+int Function StripPPAZones(Actor pos)
+	float[] snap = SLOVE_PPA.GetSnapshot(pos)
+	if snap.Length < 5 || snap[0] <= 0.0
+		return 0
+	endif
+	;[3] one bit per partner's site, [4] the actor's own (a toy, fingers): site 1 = mouth, 2 = anus, 3 = vagina, 4 = both
+	int sites = snap[3] as int
+	int own = snap[4] as int
+	int zones = 0
+	if Math.LogicalAnd(sites, 8) != 0 || Math.LogicalAnd(sites, 16) != 0 || own == 3 || own == 4
+		zones += 1
+	endif
+	if Math.LogicalAnd(sites, 4) != 0 || Math.LogicalAnd(sites, 16) != 0 || own == 2 || own == 4
+		zones += 2
+	endif
+	if stripmouth == 1 && Math.LogicalAnd(sites, 2) != 0
+		zones += 16
+	endif
+	return zones
+EndFunction
+
+;32 ("own genitals") becomes the penis zone or the vagina zone, and a position the
+;framework gave a strap-on keeps its pelvis dressed: the strap-on sits on it.
+;Anatomy costs calls out of the script, so it is asked once per position.
+int Function StripResolve(Actor pos, int z, int zones)
+	if Math.LogicalAnd(zones, 39) == 0 ;1 + 2 + 4 + 32: nothing at the pelvis
+		return zones
+	endif
+	if StripAnatomy[z] == 0
+		if IsUsingStrapon(pos)
+			StripAnatomy[z] = 2
+		elseif StripHasPenis(pos)
+			StripAnatomy[z] = 1
+		else
+			StripAnatomy[z] = -1
+		endif
+	endif
+	if StripAnatomy[z] == 2
+		return Math.LogicalAnd(zones, 24) ;chest and mouth
+	endif
+	if Math.LogicalAnd(zones, 32) != 0
+		zones -= 32
+		if StripAnatomy[z] == 1
+			zones = Math.LogicalOr(zones, 4)
+		else
+			zones = Math.LogicalOr(zones, 1)
+		endif
+	endif
+	return zones
+EndFunction
+
+;Does what comes off this actor go back on at scene end? The framework's own rule
+;for a victim, asked while the scene still runs (at its end nobody answers).
+bool Function StripMayRedress(Actor pos)
+	if stripredress != 1
+		return false
+	endif
+	return !isVictim(pos) || Sexlab.Config.RedressVictim
+EndFunction
+
+;Called from OnUpdate on every tick of the player's scene.
+Function StripPass()
+	if stripenable != 1 || !PlayerInScene || CurrentThread == none || !actorList
+		return
+	endif
+	;one copy for the whole pass: every call out of the script lets DirectorStageStart
+	;in, which replaces actorList (a shorter one would be read past its end below)
+	Actor[] cast = actorList
+	int n = cast.Length
+	if n > 8
+		n = 8 ;the two arrays below; SexLab seats five
+	endif
+	if StripReset || StripDone.Length != n
+		StripReset = false
+		StripCast = PapyrusUtil.ActorArray(n)
+		StripDone = PapyrusUtil.IntArray(n)
+		StripAnatomy = PapyrusUtil.IntArray(n)
+	endif
+
+	bool ppa = SLOVE_PPA.IsConnected()
+	bool live = StripContactLive()
+	;with nothing to measure contact, or no patience for it, the labels are acted on at once
+	bool labelsDue = (!ppa && !live) || stripcontactwait <= 0.0 || (GetTimeTotal() - LastLabelUpdateTime) >= stripcontactwait
+
+	;pass 1: what every position needs, and whether anything is in contact
+	int[] byLabel = new int[8]
+	int[] byPPA = new int[8]
+	bool contact = false
+	Keyword npcType = none
+	int z = 0
+	while z < n
+		Actor pos = cast[z]
+		if !PlayerInScene
+			return ;ended while a call was out: the thread is gone, nothing was taken yet
+		endif
+		if pos
+			if StripCast[z] != pos
+				;a position we have not met this scene (a mid-scene reload keeps the key)
+				StripCast[z] = pos
+				StripAnatomy[z] = 0
+				;HasKeyword, not HasKeywordString: the SKSE one reads the form's own
+				;keyword list, and an actor reference has none (it would call everyone a creature)
+				if npcType == none
+					npcType = Keyword.GetKeyword("ActorTypeNPC")
+				endif
+				if npcType == none || pos.HasKeyword(npcType)
+					StripDone[z] = SLOVE_Strip.DoneZones(pos)
+				else
+					StripDone[z] = -1 ;a creature wears nothing
+				endif
+			endif
+			if StripDone[z] != -1
+				if ppa
+					byPPA[z] = Math.LogicalAnd(StripResolve(pos, z, StripPPAZones(pos)), Math.LogicalNot(StripDone[z]))
+					if byPPA[z] != 0
+						contact = true
+					endif
+				endif
+				int labelZones = StripLabelZones(z)
+				if labelZones != 0
+					labelZones = Math.LogicalAnd(StripResolve(pos, z, labelZones), Math.LogicalNot(StripDone[z]))
+					byLabel[z] = labelZones
+					;the framework's detector is only asked while a labelled zone is still dressed
+					if labelZones != 0 && !contact && !labelsDue && live && StripContactZones(pos) != 0
+						contact = true
+					endif
+				endif
+			endif
+		endif
+		z += 1
+	endwhile
+
+	;pass 2: uncover
+	z = 0
+	while z < n
+		int want = byPPA[z]
+		if labelsDue || contact
+			want = Math.LogicalOr(want, byLabel[z])
+		endif
+		if !PlayerInScene
+			return ;ended while a call was out; what came off before is already back on
+		endif
+		if want != 0 && cast[z]
+			Actor who = cast[z]
+			int took = SLOVE_Strip.Uncover(who, want, stripreach, stripkeepslots, StripMayRedress(who))
+			if took >= 0
+				StripDone[z] = Math.LogicalOr(StripDone[z], want)
+			endif
+			if took > 0
+				printdebug("Strip : " + took + " item(s) off " + who.GetDisplayName() + " for zones " + want)
+			endif
+			if !PlayerInScene
+				;the scene ended while the items came off (every equip call lets other
+				;events in): its restore has come and gone, so put this actor's back
+				SLOVE_Strip.Restore(who)
+				return
+			endif
+		endif
+		z += 1
+	endwhile
+EndFunction
+
+;Called from DirectorEndScene. Not behind the switch: whatever came off goes back
+;on, also when the option was turned off mid-scene.
+Function StripSceneEnd()
+	int put = SLOVE_Strip.RestoreAll()
+	if put > 0
+		printdebug("Strip : " + put + " item(s) put back on")
+	endif
+EndFunction
+
+;-------- procedural stripping, the framework's part (differs per variant) --------
+;Classic SexLab has no contact detector: only Accurate Penetration can measure.
+bool Function StripContactLive()
+	return false
+EndFunction
+
+;Never called while StripContactLive() is false; kept so the shared block compiles.
+int Function StripContactZones(Actor pos)
+	return 0
+EndFunction
+
+;Classic has no anatomy helper: a male, or a woman in the SOS schlong faction.
+bool Function StripHasPenis(Actor pos)
+	if IsMale(pos)
+		return true
+	endif
+	return schlongfaction && pos.IsInFaction(schlongfaction)
+EndFunction
+;-------- procedural stripping END --------
+
 Bool Function AnimationisEnding()
 	return isEnding
 EndFunction
@@ -1031,6 +1314,9 @@ Event OnUpdate()
 			endif
 		endif
 	endif
+
+	;=== procedural stripping: uncover what the running act needs ===
+	StripPass()
 
 	;=== Continue Scene or End ===
 

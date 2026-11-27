@@ -252,7 +252,7 @@ function Assert-VariantTypes {
     # Director adapter and the single pex would break one of the two frameworks.
     # A stale copy in dist-classic is just as fatal - the FOMOD's ClassicScripts
     # overlay would shadow the unified Core pex with an outdated build.
-    $unifiedScripts = @('SLOVE_Voice', 'SLOVE_NpcVoice', 'SLOVE_PPA', 'SLOVE_Utils')
+    $unifiedScripts = @('SLOVE_Voice', 'SLOVE_NpcVoice', 'SLOVE_PPA', 'SLOVE_Utils', 'SLOVE_Strip')
     $frameworkTypes = @('SexLabThread', 'sslBaseAnimation', 'sslThreadController',
                         'SexlabRegistry', 'sslActorAlias')
     foreach ($s in $unifiedScripts) {

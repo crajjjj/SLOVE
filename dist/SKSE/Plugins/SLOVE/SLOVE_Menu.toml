@@ -1099,3 +1099,72 @@ control = "int"
 min = 0
 max = 2
 tip = "Oninus Lactis squirt level on a soft stage, 0 to 2."
+
+# ------------------------------------------------------------------ strip
+
+[[page]]
+section = "strip"
+title = "Stripping"
+note = "Procedural stripping: only what is in the way of an act comes off, when the act begins. Player scenes."
+
+[[setting]]
+key = "strip.enable"
+group = "Procedural stripping"
+label = "Strip only what is in the way"
+control = "flag"
+tip = "In scenes the player is in, an actor loses only the armor that lies on the opening, penis or chest an act uses, at the moment the act begins, and gets it back when the scene ends. Which armor that is comes from its mesh."
+
+[[setting]]
+key = "strip.replacesexlab"
+group = "Procedural stripping"
+label = "SexLab strips weapons only"
+control = "flag"
+requires = "pplus"
+tip = "SexLab's own strip at scene start takes only weapons in those scenes, so the clothes stay on until an act needs them gone. Off = SexLab strips as its options say and only what it left on can come off later. On classic SexLab lower its strip options yourself."
+
+[[setting]]
+key = "strip.contactwait"
+group = "When"
+label = "Wait for contact"
+control = "float"
+min = 0.0
+max = 30.0
+unit = "s"
+tip = "How long a stage may run before the clothes come off for what its labels name, when no contact has been measured yet. Measured contact (Accurate Penetration, or SexLab P+ 2.19 and newer) strips at once. 0 strips at the start of the stage."
+
+[[setting]]
+key = "strip.reach"
+group = "What comes off"
+label = "Reach around the opening"
+control = "float"
+min = 0.0
+max = 10.0
+tip = "An item with vertices this close to the opening counts as in the way, in game units (1 is about 1.4 cm). Larger takes off looser clothes too. 0 counts only items weighted to the labia, anus, genital or breast bones. The console command slovetest strip lists what each worn armor covers."
+
+[[setting]]
+key = "strip.breasts"
+group = "What comes off"
+label = "Bare the chest for a titfuck"
+control = "flag"
+tip = "A titfuck takes off what covers the giver's breasts."
+
+[[setting]]
+key = "strip.mouth"
+group = "What comes off"
+label = "Uncover the mouth for oral"
+control = "flag"
+tip = "A blowjob, cunnilingus or rimjob takes off what covers the giver's mouth: a mask or a closed helmet. An open-faced helmet, a hood and a circlet stay on, and so does a tongue. A kiss takes nothing off."
+
+[[setting]]
+key = "strip.keepslots"
+group = "What comes off"
+label = "Slots never touched"
+control = "text"
+tip = "Biped slot numbers whose items are never taken off, comma-separated, for example 52 or 49, 52. Leave empty for none. Schlongs, strap-ons, Devious Devices and SexLabNoStrip items are kept anyway."
+
+[[setting]]
+key = "strip.redress"
+group = "Afterwards"
+label = "Dress again at scene end"
+control = "flag"
+tip = "Put back on what was taken off when the scene ends. A victim follows SexLab's own redress victim option."

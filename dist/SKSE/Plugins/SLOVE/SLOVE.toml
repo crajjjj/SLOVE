@@ -249,3 +249,29 @@ levelintense = 2               # OninusLactis squirt level 0-2
 levelnonintense = 1
 requirebarechest = 1           # skip while body slot (32) is covered
 mmeminfullness = 20            # MME only: skip at/below this % fullness
+
+[strip]
+# Procedural stripping (player scenes). Instead of undressing everybody at scene
+# start, an actor loses only what is in the way of the act, when the act begins:
+# vaginal or anal sex uncovers that opening, a penis in use loses what covers it,
+# a titfuck bares the chest, a mouth at work loses a mask or closed helmet (never
+# a tongue). What comes off is decided per armor from its mesh
+# (SLOVE.dll): vertices weighted to the labia / anus / genital / breast bones, or
+# lying within "reach" of the opening. A long skirt or a coat that does not touch
+# it stays on. Everything goes back on when the scene ends.
+# When: at once where Accurate Penetration measures a penetration; for what the
+# stage's labels name, as soon as any contact is measured (PPA, or SexLab P+
+# 2.19's detector), else after "contactwait" seconds of the stage, else (nothing
+# installed that measures) at the start of the stage.
+# Never taken off: schlongs and strap-ons, Devious Devices, SexLabNoStrip items,
+# nameless items, and the slots in "keepslots".
+# Try it without a scene: console "slovetest strip" lists what every worn armor
+# covers; "slovetest strip vagina" takes those off, "slovetest strip back" undoes it.
+enable = 0                     # 1 = procedural stripping in scenes the player is in
+replacesexlab = 1              # SexLab P+ only: 1 = SexLab's own scene-start strip takes weapons only in those scenes, so there is something left to take off. Classic SexLab: lower its strip options yourself.
+contactwait = 5.0              # seconds a stage may run before its labels are acted on without measured contact; 0 = strip at the start of the stage
+reach = 3.0                    # how far around an opening an item counts as in the way (game units, 1 = 1.4 cm); 0 = bone weights only
+breasts = 1                    # 1 = a titfuck bares the giver's chest
+mouth = 1                      # 1 = a blowjob, cunnilingus or rimjob takes off what covers the giver's mouth (a mask, a closed helmet); a kiss does not
+redress = 1                    # 1 = put everything back on at scene end (a victim follows SexLab's "redress victim" option)
+keepslots = ""                 # biped slots never touched, comma-separated: "52" or "49, 52"

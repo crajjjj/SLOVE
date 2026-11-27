@@ -1,6 +1,7 @@
 #include "Papyrus.h"
 
 #include "PPA.h"
+#include "Strip.h"
 #include "core/Labels.h"
 
 namespace Papyrus
@@ -9,6 +10,7 @@ namespace Papyrus
 	{
 		constexpr auto kPPAScript = "SLOVE_PPA"sv;
 		constexpr auto kTagsScript = "SLOVE_Hentairim_Tags"sv;
+		constexpr auto kStripScript = "SLOVE_Strip"sv;
 
 		// Natives below never throw into the VM: what can fail (an unknown actor,
 		// no PPA) answers "nothing measured", and std::bad_alloc is the only
@@ -149,6 +151,36 @@ namespace Papyrus
 			const auto set = ToSet(a_tags, a_moreTags);
 			return Core::Labels::Label(set, KindOf(a_kind), a_stage, a_position, a_aslFallback).c_str();
 		}
+
+		// ---------- SLOVE_Strip ----------
+
+		// The armors akActor wears that lie on aiZones (Core::Strip::Zone bits).
+		// These two read the actor's loaded 3D, so unlike everything above they are
+		// registered to run at the VM's frame sync, and whatever goes wrong inside
+		// answers "nothing in the way".
+		std::vector<RE::TESForm*> FindBlocking(RE::StaticFunctionTag*, RE::Actor* a_actor,
+			std::int32_t a_zones, float a_reach, std::int32_t a_keepSlots)
+		{
+			try {
+				return Strip::FindBlocking(a_actor, static_cast<std::uint32_t>(a_zones), a_reach, static_cast<std::uint32_t>(a_keepSlots));
+			} catch (...) {
+				return {};
+			}
+		}
+
+		std::vector<RE::BSFixedString> DescribeWorn(RE::StaticFunctionTag*, RE::Actor* a_actor,
+			float a_reach, std::int32_t a_keepSlots)
+		{
+			std::vector<RE::BSFixedString> out;
+			try {
+				for (const auto& line : Strip::Describe(a_actor, a_reach, static_cast<std::uint32_t>(a_keepSlots))) {
+					out.emplace_back(line.c_str());
+				}
+			} catch (...) {
+				out.clear();
+			}
+			return out;
+		}
 	}
 
 	bool Register(RE::BSScript::IVirtualMachine* a_vm)
@@ -173,7 +205,11 @@ namespace Papyrus
 		a_vm->RegisterFunction("ClassifyOne"sv, kTagsScript, ClassifyOne, true);
 		a_vm->RegisterFunction("ClassifyPosition"sv, kTagsScript, ClassifyPosition, true);
 
-		logger::info("Papyrus natives registered ({}, {})", kPPAScript, kTagsScript);
+		// false: these walk the actor's scene graph, so they wait for the frame sync
+		a_vm->RegisterFunction("FindBlocking"sv, kStripScript, FindBlocking, false);
+		a_vm->RegisterFunction("DescribeWorn"sv, kStripScript, DescribeWorn, false);
+
+		logger::info("Papyrus natives registered ({}, {}, {})", kPPAScript, kTagsScript, kStripScript);
 		return true;
 	}
 }

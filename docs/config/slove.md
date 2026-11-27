@@ -316,3 +316,36 @@ Optional nipple squirts during scenes via **Oninus Lactis NG** (player only, dri
     self-stops after `mintime`–`maxtime` seconds. Note the squirt **level** comes only
     from `levelintense` / `levelnonintense` — MME fullness gates and drains, it never
     scales the level.
+
+## `[strip]`
+
+Procedural stripping, for scenes the player is in. Off by default. Instead of undressing everybody at scene start, an actor loses only the armor that is **in the way of the act**, at the moment the act begins, and gets it back when the scene ends. Vaginal or anal sex uncovers that opening, a penis in use loses what covers it, a titfuck bares the chest, a mouth at work loses a mask or a closed helmet. An open helmet, boots, a long coat or a skirt that does not touch the opening stay on.
+
+Which armor is in the way is read from its mesh by `SLOVE.dll`, per armor, on the actor: it counts the vertices **weighted to the labia, anus, genital or breast bones** (an outfit fitted to a 3BA, UBE or BHUNP body carries those exactly where it lies on them) and the vertices that lie **within `reach` of the opening**, which is what catches a vanilla-rigged outfit. Needs `SLOVE.dll` 0.7.17 or newer; works in both the P+ and classic script sets.
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enable` | `0` | Master switch. |
+| `replacesexlab` | `1` | **P+ variant only.** In a player scene SexLab's own scene-start strip takes weapons only, so the clothes are still on when an act needs them gone. `0` = SexLab strips as its options say, and only what it left on can come off later. On classic SexLab lower its strip options yourself. |
+| `contactwait` | `5.0` | Float, seconds. How long a stage may run before the clothes come off for what its labels name while no contact has been measured. `0` = at the start of the stage. See *When* below. |
+| `reach` | `3.0` | Float, game units (1 is about 1.4 cm). An item with vertices this close to the opening counts as in the way. Larger takes looser clothes off too; `0` = bone weights only. The chest uses one and a half times the value. |
+| `breasts` | `1` | A titfuck bares the giver's chest. |
+| `mouth` | `1` | A blowjob, cunnilingus or rimjob takes off what covers the giver's mouth: a mask, a closed helmet (whole, it is one armor). An open-faced helmet, a hood and a circlet stay on. A kiss takes nothing off. The mouth has no bones, so this is the `reach` test alone, around the lower front teeth. A tongue is never taken: SLO VE's own, Fill Her Up's, any mesh weighted to tongue bones. |
+| `redress` | `1` | Put everything back on at scene end. A victim follows SexLab's own *redress victim* option. |
+| `keepslots` | `""` | Biped slots whose items are never taken off, comma-separated: `"52"` or `"49, 52"`. |
+
+**When.** A zone comes off
+
+- at once, where **Accurate Penetration** measures a penetration there;
+- for what the stage's labels name: as soon as **any contact is measured** in the scene (Accurate Penetration, or SexLab P+ 2.19's own contact detector), or after `contactwait` seconds of the stage without one;
+- at the start of the stage, when nothing installed can measure contact (classic SexLab or P+ before 2.19, without Accurate Penetration).
+
+A zone is worked once per actor per scene, and nothing goes back on before the scene ends.
+
+**Never taken off:** a schlong or a strap-on (anything weighted to the penis shaft bones), a tongue, Devious Devices, items with the `SexLabNoStrip` keyword, items without a name, the slots in `keepslots`, and anything below the chest on an actor SexLab gave a strap-on. When a penis is in use and nothing is found covering it, the body-slot armor comes off, so a schlong that hides under a cuirass is not left hidden.
+
+!!! note "NPC-only scenes"
+    Scenes the player is not in are stripped by SexLab as always.
+
+!!! tip "See what your outfit covers"
+    `slovetest strip` lists every armor the actor under the crosshair (else the player) wears, with the vertices found weighted to each zone (`w`) and within reach of it (`n`); a `*` marks a zone the armor counts as covering. `slovetest strip vagina` (or `anus`, `penis`, `breasts`, `mouth`, `all`) takes those armors off, `slovetest strip back` puts them on again. Change `reach`, run `SLOVE_Config Reload`, and look again. Needs ConsoleUtil Extended.
