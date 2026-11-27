@@ -267,7 +267,7 @@ mmeminfullness = 20            # MME only: skip at/below this % fullness
 # nameless items, and the slots in "keepslots".
 # Try it without a scene: console "slovetest strip" lists what every worn armor
 # covers; "slovetest strip vagina" takes those off, "slovetest strip back" undoes it.
-enable = 0                     # 1 = procedural stripping in scenes the player is in
+enable = 1                     # 1 = procedural stripping in scenes the player is in; 0 = SexLab strips as its own options say
 replacesexlab = 1              # SexLab P+ only: 1 = SexLab's own scene-start strip takes weapons only in those scenes, so there is something left to take off. Classic SexLab: lower its strip options yourself.
 contactwait = 5.0              # seconds a stage may run before its labels are acted on without measured contact; 0 = strip at the start of the stage
 reach = 3.0                    # how far around an opening an item counts as in the way (game units, 1 = 1.4 cm); 0 = bone weights only

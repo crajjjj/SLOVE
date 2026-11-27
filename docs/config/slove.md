@@ -319,13 +319,13 @@ Optional nipple squirts during scenes via **Oninus Lactis NG** (player only, dri
 
 ## `[strip]`
 
-Procedural stripping, for scenes the player is in. Off by default. Instead of undressing everybody at scene start, an actor loses only the armor that is **in the way of the act**, at the moment the act begins, and gets it back when the scene ends. Vaginal or anal sex uncovers that opening, a penis in use loses what covers it, a titfuck bares the chest, a mouth at work loses a mask or a closed helmet. An open helmet, boots, a long coat or a skirt that does not touch the opening stay on.
+Procedural stripping, for scenes the player is in. On by default since 0.8.1 (`enable = 0` gives SexLab its own strip back). Instead of undressing everybody at scene start, an actor loses only the armor that is **in the way of the act**, at the moment the act begins, and gets it back when the scene ends. Vaginal or anal sex uncovers that opening, a penis in use loses what covers it, a titfuck bares the chest, a mouth at work loses a mask or a closed helmet. An open helmet, boots, a long coat or a skirt that does not touch the opening stay on.
 
 Which armor is in the way is read from its mesh by `SLOVE.dll`, per armor, on the actor: it counts the vertices **weighted to the labia, anus, genital or breast bones** (an outfit fitted to a 3BA, UBE or BHUNP body carries those exactly where it lies on them) and the vertices that lie **within `reach` of the opening**, which is what catches a vanilla-rigged outfit. Needs `SLOVE.dll` 0.7.17 or newer; works in both the P+ and classic script sets.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `enable` | `0` | Master switch. |
+| `enable` | `1` | Master switch. `0` = off: SexLab strips as its own options say. A `SLOVE.toml` kept from before 0.7.17 has no `[strip]` section and gets the default, so the feature is on there too. |
 | `replacesexlab` | `1` | **P+ variant only.** In a player scene SexLab's own scene-start strip takes weapons only, so the clothes are still on when an act needs them gone. `0` = SexLab strips as its options say, and only what it left on can come off later. On classic SexLab lower its strip options yourself. |
 | `contactwait` | `5.0` | Float, seconds. How long a stage may run before the clothes come off for what its labels name while no contact has been measured. `0` = at the start of the stage. See *When* below. |
 | `reach` | `3.0` | Float, game units (1 is about 1.4 cm). An item with vertices this close to the opening counts as in the way. Larger takes looser clothes off too; `0` = bone weights only. The chest uses one and a half times the value. |

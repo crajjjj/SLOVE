@@ -30,7 +30,7 @@ Function OnAnimationStarting(SexLabThread akThread)
 	if !akThread || !akThread.HasPlayer()
 		return
 	endif
-	if SLOVE_Config.GetInt("strip.enable", 0) != 1 || SLOVE_Config.GetInt("strip.replacesexlab", 1) != 1
+	if SLOVE_Config.GetInt("strip.enable", 1) != 1 || SLOVE_Config.GetInt("strip.replacesexlab", 1) != 1
 		return
 	endif
 	if !SLOVE_Strip.Available()

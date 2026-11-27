@@ -447,7 +447,7 @@ Function Strip(String zone) Global
 	endif
 	float reach = SLOVE_Config.GetFloat("strip.reach", 3.0)
 	int keep = SLOVE_Strip.SlotMask(SLOVE_Config.GetString("strip.keepslots", ""))
-	MiscUtil.PrintConsole("SLOVE strip: " + who.GetDisplayName() + ", reach " + reach + " (strip.enable is " + SLOVE_Config.GetInt("strip.enable", 0) + ")")
+	MiscUtil.PrintConsole("SLOVE strip: " + who.GetDisplayName() + ", reach " + reach + " (strip.enable is " + SLOVE_Config.GetInt("strip.enable", 1) + ")")
 	String[] lines = SLOVE_Strip.DescribeWorn(who, reach, keep)
 	if !lines
 		MiscUtil.PrintConsole("  no armor found on the loaded body (naked, or the 3D is not loaded)")

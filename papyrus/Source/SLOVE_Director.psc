@@ -994,7 +994,7 @@ int[] StripDone ;zones handled this scene (the actor's SLOVE_StripZones key, cac
 int[] StripAnatomy ;0 not asked, 1 has a penis, -1 has none, 2 wears the framework's strap-on
 
 Function InitializeStripConfig()
-	stripenable = SLOVE_Config.GetInt("strip.enable", 0)
+	stripenable = SLOVE_Config.GetInt("strip.enable", 1)
 	if stripenable == 1 && !SLOVE_Strip.Available()
 		stripenable = 0
 		SLOVE_Utils.WritetoErrorlogs("Director", "strip.enable = 1 needs SLOVE.dll 0.7.17 or newer - procedural stripping is off. Reinstall SLO VE (the DLL is in its Core files).")
